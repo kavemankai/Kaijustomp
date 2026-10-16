@@ -39,6 +39,8 @@ func _run() -> void:
 	demo.biomass = demo._cost() + 300
 	demo._start_evolution()
 	demo._finish_evolution()
+	# Previous queued cards are freed at frame end, as in the portrait art test.
+	await process_frame
 	var choices := 0
 	for button in demo.choice_column.get_children():
 		if button is Button:
