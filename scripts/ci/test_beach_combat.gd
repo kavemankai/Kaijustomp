@@ -26,7 +26,7 @@ func _run_test() -> void:
 		if int(b["base_occupants"]) < 1 or int(b["hidden"]) < 1:
 			_fail("Every building must begin with civilians inside")
 			return
-		if not b["collider"] is StaticBody3D:
+		if not (b["collider"] is StaticBody3D):
 			_fail("Every intact building needs a StaticBody3D collider")
 			return
 	# A long swept move simulates a sprint frame; it cannot tunnel through the cafe.
@@ -39,16 +39,30 @@ func _run_test() -> void:
 	if demo.beast.global_position.z < -33.5:
 		_fail("Monster entered the cafe footprint")
 		return
-	# First strength tier takes three hits to break a kiosk and releases occupants.
+	# Baseline strength cannot damage buildings. First strength tier must
+	# take three contact attacks; second tier knocks down weak structures once.
 	var baseline: int = demo.civilians.size()
 	var occupants: int = demo.buildings[0]["hidden"]
+	demo.strength = 0
+	demo._attack_building(0, false)
+	if int(demo.buildings[0]["hits"]) != 3:
+		_fail("Level-zero monster should not damage buildings")
+		return
+	demo.strength = 1
 	for i in range(3):
-		demo._damage_building(0, 1)
+		demo.strike_timer = 0.0
+		demo._attack_building(0, false)
 	if not demo.buildings[0]["destroyed"]:
 		_fail("Three hits did not demolish the weak kiosk")
 		return
 	if demo.civilians.size() != baseline + occupants:
 		_fail("Collapsing structure did not release all its occupants")
+		return
+	demo.strength = 2
+	demo.strike_timer = 0.0
+	demo._attack_building(1, false)
+	if not demo.buildings[1]["destroyed"]:
+		_fail("A stronger monster must break a wooden shed in one attack")
 		return
 	# A bullet is simulated over its travel path, and only a real hit damages.
 	demo.beast.global_position = Vector3(0, 0, 18)
