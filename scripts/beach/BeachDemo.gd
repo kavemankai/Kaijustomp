@@ -13,6 +13,7 @@ const BITE_RANGE := 2.85
 const BITE_CONE_DOT := 0.53
 const BITE_SECONDS := 0.55
 const CAMERA_OFFSET := Vector3(14.0, 25.0, 22.0)
+const PORTRAIT_CAMERA_DISTANCE := 1.48
 
 var beast: Node3D
 var beast_visual: Node3D
@@ -21,6 +22,9 @@ var head_pivot: Node3D
 var leg_pivots: Array[Node3D] = []
 var tail_pivots: Array[Node3D] = []
 var prey_in_mouth: Node3D
+var growth_scale := 1.0
+var evolution_visual_clock := 0.0
+var mutation_visual_counts: Dictionary = {}
 var follow_camera: Camera3D
 var touch_input: MobileTouchController
 var touch_vector := Vector2.ZERO
@@ -199,8 +203,14 @@ func _build_camera() -> void:
 	follow_camera.near = 0.1
 	follow_camera.far = 230.0
 	follow_camera.current = true
-	follow_camera.global_position = beast.global_position + CAMERA_OFFSET
+	follow_camera.global_position = beast.global_position + _camera_offset()
 	follow_camera.look_at(beast.global_position + Vector3(0, 0, -2.8), Vector3.UP)
+
+func _camera_offset() -> Vector3:
+	# Keep the approved view angle. Pull back in portrait so targets remain
+	# visible on the narrower screen without changing movement orientation.
+	var viewport_size := get_viewport().get_visible_rect().size
+	return CAMERA_OFFSET * (PORTRAIT_CAMERA_DISTANCE if viewport_size.y > viewport_size.x else 1.0)
 
 func _build_population() -> void:
 	for i in range(22):
@@ -236,8 +246,8 @@ func _build_ui() -> void:
 	touch_input.movement_vector_updated.connect(_touch_moved)
 	ui_layer.add_child(touch_input)
 	stats_label = Label.new()
-	stats_label.position = Vector2(12, 12)
-	stats_label.add_theme_font_size_override("font_size", 18)
+	stats_label.position = Vector2(18, 30)
+	stats_label.add_theme_font_size_override("font_size", 17)
 	stats_label.add_theme_color_override("font_color", Color.WHITE)
 	stats_label.add_theme_color_override("font_shadow_color", Color.BLACK)
 	stats_label.add_theme_constant_override("shadow_offset_x", 2)
@@ -263,7 +273,7 @@ func _build_ui() -> void:
 	modal.visible = false
 	ui_layer.add_child(modal)
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(330, 0)
+	panel.custom_minimum_size = Vector2(350, 0)
 	modal.add_child(panel)
 	choice_column = VBoxContainer.new()
 	choice_column.add_theme_constant_override("separation", 9)
@@ -297,6 +307,7 @@ func _physics_process(delta: float) -> void:
 		return
 	if evolving:
 		evolution_clock -= delta
+		_update_evolution_animation(delta)
 	else:
 		_update_movement(delta)
 		_update_biting(delta)
@@ -549,12 +560,31 @@ func _take_damage(raw: float) -> void:
 		evolution_damage += damage
 	if hp <= 0.0:
 		game_over = true
+		if evolving:
+			_reset_evolution_pose()
 		evolving = false
 		retry_button.visible = true
 	elif evolving and evolution_damage >= 35.0:
+		_reset_evolution_pose()
 		evolving = false
 		biomass = 0
 		evolution_damage = 0.0
+
+func _update_evolution_animation(delta: float) -> void:
+	# Readable pulsing/shivering while the player is vulnerable. Temporary
+	# pose changes cannot overwrite accumulated physical growth.
+	evolution_visual_clock += delta
+	var beat := sin(evolution_visual_clock * 11.0)
+	beast_visual.position.y = -0.12 + 0.045 * beat
+	beast_visual.rotation.z = beat * 0.025
+	beast_visual.scale = Vector3.ONE * growth_scale * (1.0 + 0.018 * maxf(0.0, beat))
+	head_pivot.rotation.x = 0.07 * sin(evolution_visual_clock * 8.0)
+
+func _reset_evolution_pose() -> void:
+	beast_visual.position = Vector3.ZERO
+	beast_visual.rotation.z = 0.0
+	beast_visual.scale = Vector3.ONE * growth_scale
+	head_pivot.rotation.x = 0.0
 
 func _start_evolution() -> void:
 	if game_over or evolving or choice_open or biomass < _cost():
@@ -563,10 +593,12 @@ func _start_evolution() -> void:
 	sprint_requested = false
 	sprint_active = false
 	evolution_damage = 0.0
+	evolution_visual_clock = 0.0
 	evolution_clock = 6.0 + float(evolutions) * 1.5
 
 func _finish_evolution() -> void:
 	evolving = false
+	_reset_evolution_pose()
 	choice_open = true
 	get_tree().paused = true
 	modal.visible = true
@@ -608,6 +640,7 @@ func _choose_mutation(id: String) -> void:
 		"strength": strength += 1
 		"health": max_hp += 25.0
 		"regen": regeneration += 1
+	_apply_mutation_visual(id)
 	biomass = maxi(0, biomass - _cost())
 	evolutions += 1
 	hp = max_hp
@@ -615,14 +648,71 @@ func _choose_mutation(id: String) -> void:
 	sprint_locked = false
 	sprint_requested = false
 	if evolutions % 3 == 0:
-		beast_visual.scale *= 1.25
+		growth_scale *= 1.25
+	beast_visual.scale = Vector3.ONE * growth_scale
 	choice_open = false
 	modal.visible = false
 	get_tree().paused = false
 	touch_input.reset_input()
 
+func _apply_mutation_visual(id: String) -> void:
+	# Each chosen mutation adds a *small* persistent physical detail.
+	# Repeating one mutation adds further details instead of replacing
+	# the creature or changing its overall size.
+	var stage := int(mutation_visual_counts.get(id, 0))
+	mutation_visual_counts[id] = stage + 1
+	var slot := stage % 5
+	var tier := floori(float(stage) / 5.0)
+	var lift := minf(0.20, float(tier) * 0.065)
+	match id:
+		"armour":
+			for side in [-1.0, 1.0]:
+				_box(beast_visual,
+					Vector3(side * 0.54, 1.64 + lift, -0.96 + float(slot) * 0.48),
+					Vector3(0.42, 0.13, 0.32),
+					Color(0.33, 0.48, 0.29).darkened(minf(0.28, float(tier) * 0.08)))
+		"speed":
+			# New tendon markings along the outer edge of each moving leg.
+			for hip in leg_pivots:
+				_box(hip,
+					Vector3(0, -0.23 - float(slot % 3) * 0.22, -0.31 - lift),
+					Vector3(0.37, 0.10, 0.12),
+					Color(0.60, 0.68, 0.26))
+		"stamina":
+			for side in [-1.0, 1.0]:
+				_box(beast_visual,
+					Vector3(side * (0.90 + lift), 1.15, -0.96 + float(slot) * 0.46),
+					Vector3(0.10, 0.26, 0.23),
+					Color(0.47, 0.65, 0.24))
+		"jaw":
+			for side in [-1.0, 1.0]:
+				_box(head_pivot,
+					Vector3(side * 0.53, -0.24, -0.54 - float(slot) * 0.23),
+					Vector3(0.16, 0.20 + lift, 0.17),
+					Color(0.74, 0.72, 0.53))
+		"strength":
+			for index in [0, 2]:
+				var foreleg := leg_pivots[index]
+				for claw in [-1.0, 0.0, 1.0]:
+					_box(foreleg,
+						Vector3(claw * 0.17, -1.02, -0.34 - float(slot) * 0.075),
+						Vector3(0.10, 0.13 + lift, 0.23),
+						Color(0.72, 0.68, 0.46))
+		"health":
+			for side in [-1.0, 1.0]:
+				_sphere(beast_visual,
+					Vector3(side * 0.83, 1.10, -0.94 + float(slot) * 0.47),
+					0.17 + lift * 0.14,
+					Color(0.28, 0.46, 0.22))
+		"regen":
+			for side in [-1.0, 1.0]:
+				_sphere(beast_visual,
+					Vector3(side * 0.32, 1.68 + lift, -1.00 + float(slot) * 0.47),
+					0.13,
+					Color(0.55, 0.86, 0.43))
+
 func _update_camera(delta: float) -> void:
-	var goal := beast.global_position + CAMERA_OFFSET
+	var goal := beast.global_position + _camera_offset()
 	follow_camera.global_position = follow_camera.global_position.lerp(goal, minf(1.0, 6.0 * delta))
 	follow_camera.look_at(beast.global_position + Vector3(0, 0, -2.8), Vector3.UP)
 
