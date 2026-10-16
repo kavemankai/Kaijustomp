@@ -74,6 +74,13 @@ var buildings: Array[Dictionary] = []
 var debris: Array[Dictionary] = []
 var projectiles: Array[Dictionary] = []
 const MAX_PROJECTILES := 72
+# Seven coastal districts give roughly eight times the original 140-unit beach.
+const COAST_HALF_LENGTH := 560.0
+const PLAYABLE_HALF_LENGTH := 548.0
+const ACTIVE_POPULATION_TARGET := 34
+const MAX_ACTIVE_CIVILIANS := 42
+const POPULATION_REFRESH_SECONDS := 1.7
+var population_clock := 0.0
 
 var ui_layer: CanvasLayer
 var stats_label: Label
@@ -156,13 +163,14 @@ func _build_lighting() -> void:
 	add_child(sun)
 
 func _build_beach() -> void:
-	_box(self, Vector3(0, -0.3, -24), Vector3(160, 0.5, 100), Color("d9c79e"))
-	_box(self, Vector3(0, -0.06, -27), Vector3(150, 0.10, 8), Color("687a7a"))
-	_box(self, Vector3(0, 0.015, -18), Vector3(150, 0.12, 4.5), Color("c8bea5"))
-	_box(self, Vector3(0, -0.08, -51), Vector3(150, 0.14, 39), Color("94a18a"))
-	for x in range(-6, 7):
+	var beach_width := COAST_HALF_LENGTH * 2.0 + 40.0
+	_box(self, Vector3(0, -0.3, -24), Vector3(beach_width, 0.5, 100), Color("d9c79e"))
+	_box(self, Vector3(0, -0.06, -27), Vector3(beach_width, 0.10, 8), Color("687a7a"))
+	_box(self, Vector3(0, 0.015, -18), Vector3(beach_width, 0.12, 4.5), Color("c8bea5"))
+	_box(self, Vector3(0, -0.08, -51), Vector3(beach_width, 0.14, 39), Color("94a18a"))
+	for x in range(-int(COAST_HALF_LENGTH / 11.0), int(COAST_HALF_LENGTH / 11.0) + 1):
 		_box(self, Vector3(float(x) * 11.0, 0.02, -27), Vector3(4.2, 0.03, 0.20), Color(0.76, 0.70, 0.50))
-	CoastalArt.scenery(self)
+	CoastalArt.scenery(self, COAST_HALF_LENGTH)
 	# Weak beach structures are the first demolition targets; larger buildings
 	# require more Strength evolutions. Every structure has baseline occupants.
 	_add_building(Vector3(-6, 0, -35), Vector2(5, 5), 2.9, Color(0.71, 0.58, 0.34), "Beach kiosk", 1, 3, 3, 2)
@@ -171,6 +179,16 @@ func _build_beach() -> void:
 	_add_building(Vector3(22, 0, -37), Vector2(10, 9), 4.0, Color(0.55, 0.67, 0.70), "Beach shop", 2, 4, 4, 3)
 	_add_building(Vector3(-45, 0, -54), Vector2(14, 12), 7.5, Color(0.65, 0.56, 0.62), "Apartments", 3, 7, 5, 10)
 	_add_building(Vector3(45, 0, -54), Vector2(14, 12), 7.0, Color(0.64, 0.62, 0.49), "Hotel", 3, 7, 5, 12)
+	# Keep the proven first six buildings intact. Six additional coastal districts
+	# spread weak and strong structures along both directions of the beach.
+	for district in [-3, -2, -1, 1, 2, 3]:
+		var anchor := float(district) * 150.0
+		var stagger := float(absi(district) % 2) * 4.0
+		_add_building(Vector3(anchor - 35, 0, -35 - stagger), Vector2(5, 5), 2.9, Color(0.71, 0.58, 0.34), "Beach kiosk", 1, 3, 3, 2)
+		_add_building(Vector3(anchor + 4, 0, -44), Vector2(6, 5), 3.1, Color(0.59, 0.51, 0.38), "Wooden shed", 1, 3, 3, 1)
+		_add_building(Vector3(anchor - 9, 0, -58), Vector2(12, 10), 4.6, Color(0.76, 0.46, 0.34), "Cafe", 2, 5, 4, 5)
+		_add_building(Vector3(anchor + 36, 0, -53), Vector2(11, 10), 4.0, Color(0.55, 0.67, 0.70), "Beach shop", 2, 4, 4, 3)
+		_add_building(Vector3(anchor - 54, 0, -55), Vector2(14, 12), 7.5, Color(0.65, 0.56, 0.62), "Apartments", 3, 7, 5, 10)
 
 func _add_building(pos: Vector3, footprint: Vector2, height: float, col: Color, title: String, required_strength: int, hits: int, breakthrough_strength: int, occupants: int) -> void:
 	var root := Node3D.new()
@@ -330,9 +348,43 @@ func _camera_look_target() -> Vector3:
 
 
 func _build_population() -> void:
-	for i in range(22):
+	# Preserve the original busy starting beach; newcomers arrive in small
+	# batches as the player explores rather than loading the whole coast's NPCs.
+	for i in range(26):
 		var pos := Vector3(randf_range(-48, 48), 0, randf_range(-14, 15))
+		if _blocking_building(pos) < 0:
+			_spawn_civilian(pos)
+	_maintain_population(0.0)
+
+
+func _maintain_population(delta: float) -> void:
+	population_clock -= delta
+	if population_clock > 0.0:
+		return
+	population_clock = POPULATION_REFRESH_SECONDS
+	# Retire only people far beyond the local play space. Total active actors
+	# stay bounded regardless of the length of the map or length of the session.
+	var retirement_distance := maxf(150.0, growth_scale * 90.0)
+	for i in range(civilians.size() - 1, -1, -1):
+		var actor: Node3D = civilians[i]["node"]
+		if actor.global_position.distance_to(beast.global_position) > retirement_distance:
+			actor.queue_free()
+			civilians.remove_at(i)
+	var newcomers := mini(5, ACTIVE_POPULATION_TARGET - civilians.size())
+	var attempts := 0
+	while newcomers > 0 and attempts < 50 and civilians.size() < MAX_ACTIVE_CIVILIANS:
+		attempts += 1
+		var min_distance := maxf(42.0, growth_scale * 36.0)
+		var side := -1.0 if randi_range(0, 1) == 0 else 1.0
+		var pos := Vector3(beast.global_position.x + side * randf_range(min_distance, min_distance + 48.0), 0, randf_range(-13.0, 17.0))
+		if absf(pos.x) >= PLAYABLE_HALF_LENGTH - 6.0:
+			continue
+		if pos.distance_to(beast.global_position) < maxf(38.0, growth_scale * 28.0):
+			continue
+		if _blocking_building(pos) >= 0:
+			continue
 		_spawn_civilian(pos)
+		newcomers -= 1
 
 func _person(pos: Vector3, uniform: bool = false) -> Node3D:
 	var node := Node3D.new()
@@ -343,7 +395,19 @@ func _person(pos: Vector3, uniform: bool = false) -> Node3D:
 
 func _spawn_civilian(pos: Vector3) -> void:
 	var response := randi_range(0, 2) # flee at once, freeze, or react late
-	civilians.append({"node": _person(pos), "speed": randf_range(3.4, 7.1), "response": response, "panic": false, "delay": 0.0, "shelter": randi_range(-1, 1), "direction": Vector3.ZERO})
+	# Use nearby shelters, never a fixed building index back at spawn.
+	var shelter := -1
+	if randi_range(0, 2) != 0:
+		var best_distance := 58.0
+		for i in range(buildings.size()):
+			var building: Dictionary = buildings[i]
+			if building["destroyed"]:
+				continue
+			var distance := pos.distance_to(building["position"])
+			if distance < best_distance:
+				best_distance = distance
+				shelter = i
+	civilians.append({"node": _person(pos), "speed": randf_range(3.4, 7.1), "response": response, "panic": false, "delay": 0.0, "shelter": shelter, "direction": Vector3.ZERO})
 
 func _spawn_officer(pos: Vector3, swat: bool = false) -> void:
 	var node := _person(pos, true)
@@ -484,6 +548,7 @@ func _physics_process(delta: float) -> void:
 		_update_movement(delta)
 		_update_biting(delta)
 		_update_civilians(delta)
+		_maintain_population(delta)
 		if regeneration > 0:
 			hp = minf(max_hp, hp + float(regeneration) * 0.6 * delta)
 	_update_police(delta)
@@ -526,7 +591,7 @@ func _update_movement(delta: float) -> void:
 	if moving:
 		beast.rotation.y = lerp_angle(beast.rotation.y, atan2(-direction.x, -direction.z), minf(1.0, TURN_RESPONSE * delta))
 		var next_pos := beast.global_position + direction * speed * delta
-		next_pos.x = clampf(next_pos.x, -70.0, 70.0)
+		next_pos.x = clampf(next_pos.x, -PLAYABLE_HALF_LENGTH, PLAYABLE_HALF_LENGTH)
 		next_pos.z = clampf(next_pos.z, -67.0, 26.0)
 		# move_and_collide performs a swept physics test, including sprint frames.
 		# Sliding preserves responsive movement along the face of an obstacle.
@@ -786,7 +851,7 @@ func _update_civilians(delta: float) -> void:
 						civilians.remove_at(i)
 						continue
 				var new_pos := person.global_position + travel * float(c["speed"]) * delta
-				new_pos.x = clampf(new_pos.x, -69.0, 69.0)
+				new_pos.x = clampf(new_pos.x, -PLAYABLE_HALF_LENGTH + 1.0, PLAYABLE_HALF_LENGTH - 1.0)
 				new_pos.z = clampf(new_pos.z, -62.0, 23.0)
 				if _blocking_building(new_pos) < 0:
 					person.global_position = new_pos
@@ -794,16 +859,31 @@ func _update_civilians(delta: float) -> void:
 		CoastalArt.animate_person(person, creature_idle_clock * 12.0 + float(i), bool(c["panic"]) and float(c["delay"]) <= 0.0)
 		civilians[i] = c
 
+func _spawn_local_officer(offset: float, swat: bool) -> void:
+	var x := clampf(beast.global_position.x + offset, -PLAYABLE_HALF_LENGTH + 8.0, PLAYABLE_HALF_LENGTH - 8.0)
+	var z := clampf(beast.global_position.z - 30.0, -60.0, 16.0)
+	var point := Vector3(x, 0, z)
+	if _blocking_building(point) >= 0:
+		point.z = clampf(beast.global_position.z + 22.0, -12.0, 22.0)
+	_spawn_officer(point, swat)
+
+
 func _update_police(delta: float) -> void:
+	# Do not leave the entire police response stranded in an earlier district.
+	for i in range(officers.size() - 1, -1, -1):
+		var officer: Node3D = officers[i]["node"]
+		if officer.global_position.distance_to(beast.global_position) > maxf(155.0, growth_scale * 95.0):
+			officer.queue_free()
+			officers.remove_at(i)
 	if alert > 0.0:
 		response_clock += delta
 	if response_clock > 18.0 and officers.is_empty():
-		_spawn_officer(Vector3(-12, 0, -30))
-		_spawn_officer(Vector3(12, 0, -30))
+		_spawn_local_officer(-12.0, false)
+		_spawn_local_officer(12.0, false)
 		response_clock = -8.0
 	if alert > 65.0 and response_clock > 65.0 and officers.size() < 4:
-		_spawn_officer(Vector3(-32, 0, -29), true)
-		_spawn_officer(Vector3(32, 0, -29), true)
+		_spawn_local_officer(-32.0, true)
+		_spawn_local_officer(32.0, true)
 		response_clock = 0.0
 	for i in range(officers.size()):
 		var cop: Dictionary = officers[i]
