@@ -4,6 +4,9 @@ Branch: feature/beach-demo-elevated-camera. This is a **separate scene** from th
 
 ## Play
 
+**Android APK:** GitHub Actions now generates an installable Android debug APK on every development push. See [Android APK builds](ANDROID_APK_BUILDS.md) for the latest workflow and installation instructions.
+
+
 Open in Godot 4.3 (4.2+ should be compatible) and run the project. The game is now **portrait-only (9:16 base, 540 × 960)** with mobile orientation locked to portrait. Desktop preview opens at 405 × 720. The portrait viewport expands on taller phones to avoid letterboxing. The branch changes `run/main_scene` to `res://scenes/BeachDemo.tscn`. The original scene remains at `res://MainGame.tscn`.
 
 - Desktop: WASD / arrow keys to move, **tap Shift** to toggle sprint on/off, press E to evolve, R to restart after death.
