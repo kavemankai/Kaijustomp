@@ -155,7 +155,7 @@ jobs:
           retention-days: 30
 
       - name: Publish direct-install APK link (preview)
-        if: startsWith(github.ref, 'refs/heads/')
+        if: github.ref == 'refs/heads/feature/beach-demo-elevated-camera' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
