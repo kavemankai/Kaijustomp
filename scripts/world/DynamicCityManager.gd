@@ -3,6 +3,7 @@ extends Node3D
 
 const CELL_SIZE: float = 4.0
 const CITY_EXTENTS: int = 12
+const BUILDING_ROWS: Array[int] = [2, 3, 4]
 
 var grid_map: GridMap
 var nav_region: NavigationRegion3D
@@ -12,7 +13,8 @@ var is_baking: bool = false
 var pending_rebake: bool = false
 
 var sim_manager: SimulationManager
-var building_heights: Array[float] = [4.5, 7.5]
+var building_heights: Array[float] = [4.5, 7.5, 9.5]
+var audio_bank: RetroAudioBank
 
 func _ready() -> void:
 	_setup_navigation()
@@ -62,13 +64,26 @@ func _setup_navigation() -> void:
 func _setup_city_gridmap() -> void:
 	var mesh_lib := MeshLibrary.new()
 	var ps1_shader := load("res://shaders/ps1_retro_model.gdshader") as Shader
-	var colors: Array[Color] = [Color(0.45, 0.5, 0.58), Color(0.6, 0.52, 0.45)]
+	var atlas: ImageTexture = RetroTextureAtlas.get_atlas_texture()
+	var colors: Array[Color] = [
+		Color(0.55, 0.62, 0.72),
+		Color(0.68, 0.58, 0.48),
+		Color(0.52, 0.56, 0.64)
+	]
 	
-	for id in range(2):
+	for id in range(3):
 		var h: float = building_heights[id]
 		var mat := ShaderMaterial.new()
 		mat.shader = ps1_shader
-		var b_mesh: ArrayMesh = RetroMeshFactory.create_skyscraper_mesh(h, colors[id], mat)
+		mat.set_shader_parameter("albedo_tex", atlas)
+		
+		var b_mesh: ArrayMesh
+		if id == 0:
+			b_mesh = RetroMeshFactory.create_skyscraper_mesh(h, colors[id], mat)
+		elif id == 1:
+			b_mesh = RetroMeshFactory.create_industrial_building_mesh(h, colors[id], mat)
+		else:
+			b_mesh = RetroMeshFactory.create_radio_tower_mesh(h, colors[id], mat)
 		
 		mesh_lib.create_item(id)
 		mesh_lib.set_item_mesh(id, b_mesh)
@@ -91,7 +106,7 @@ func _populate_city_cells() -> void:
 			if abs(x) <= 2 and abs(z) <= 2:
 				continue
 			if (x % 3 != 0) and (z % 3 != 0) and randf() < 0.75:
-				var type_id: int = randi() % 2
+				var type_id: int = randi() % 3
 				grid_map.set_cell_item(Vector3i(x, int(building_heights[type_id] * 0.5), z), type_id)
 
 func reset_city() -> void:
@@ -100,7 +115,7 @@ func reset_city() -> void:
 
 func is_cell_blocked(world_pos: Vector3) -> bool:
 	var map_pos: Vector3i = grid_map.local_to_map(world_pos)
-	for y_check in [2, 3]:
+	for y_check in BUILDING_ROWS:
 		if grid_map.get_cell_item(Vector3i(map_pos.x, y_check, map_pos.z)) != GridMap.INVALID_CELL_ITEM:
 			return true
 	return false
@@ -109,9 +124,11 @@ func crush_buildings_near(world_pos: Vector3, radius: float = 2.6) -> void:
 	var map_pos: Vector3i = grid_map.local_to_map(world_pos)
 	var crushed_any: bool = false
 	
-	for dx in range(-1, 2):
-		for dz in range(-1, 2):
-			for y_check in [2, 3]:
+	# Scan enough neighbouring cells to cover the radius (the seismic stomp crushes wider than a footstep).
+	var reach: int = maxi(1, int(ceil(radius / CELL_SIZE)))
+	for dx in range(-reach, reach + 1):
+		for dz in range(-reach, reach + 1):
+			for y_check in BUILDING_ROWS:
 				var cell := Vector3i(map_pos.x + dx, y_check, map_pos.z + dz)
 				if grid_map.get_cell_item(cell) != GridMap.INVALID_CELL_ITEM:
 					var cell_world: Vector3 = grid_map.map_to_local(cell)
@@ -123,6 +140,8 @@ func crush_buildings_near(world_pos: Vector3, radius: float = 2.6) -> void:
 							
 	if crushed_any:
 		Input.vibrate_handheld(120)
+		if is_instance_valid(audio_bank):
+			audio_bank.play_sfx("building_crush", 0.12)
 		trigger_building_destruction_rebake()
 
 func trigger_building_destruction_rebake() -> void:

@@ -1,10 +1,13 @@
 extends Node3D
 
+var progression: ProgressionManager
+var audio_bank: RetroAudioBank
 var sim_manager: SimulationManager
 var city_manager: DynamicCityManager
 var player: KaijuPlayer
+var touch_ctrl: MobileTouchController
 var debug_label: Label
-var game_over_label: Label
+var modal_ui: MutationAndLabUI
 
 func _ready() -> void:
 	Engine.max_fps = 60
@@ -28,17 +31,29 @@ func _setup_lighting() -> void:
 	add_child(sun)
 
 func _setup_game_systems() -> void:
+	progression = ProgressionManager.new()
+	add_child(progression)
+	
+	audio_bank = RetroAudioBank.new()
+	add_child(audio_bank)
+	
 	sim_manager = SimulationManager.new()
+	sim_manager.audio_bank = audio_bank
+	sim_manager.progression = progression
 	add_child(sim_manager)
 	
 	city_manager = DynamicCityManager.new()
 	city_manager.sim_manager = sim_manager
+	city_manager.audio_bank = audio_bank
 	add_child(city_manager)
 	
 	player = KaijuPlayer.new()
 	player.sim_manager = sim_manager
 	player.city_manager = city_manager
+	player.audio_bank = audio_bank
+	player.progression = progression
 	player.player_died.connect(_on_player_died)
+	player.level_up_ready.connect(_on_player_level_up)
 	add_child(player)
 	
 	sim_manager.player_ref = player
@@ -62,49 +77,57 @@ func _setup_post_processing_and_ui() -> void:
 	ui_layer.layer = 2
 	add_child(ui_layer)
 	
-	var touch_ctrl := MobileTouchController.new()
+	touch_ctrl = MobileTouchController.new()
 	touch_ctrl.movement_vector_updated.connect(player.set_movement_vector)
-	touch_ctrl.tap_action_triggered.connect(_on_right_tap)
+	touch_ctrl.tap_action_triggered.connect(player.trigger_atomic_nova)
 	ui_layer.add_child(touch_ctrl)
 	
 	debug_label = Label.new()
-	debug_label.position = Vector2(20, 20)
-	debug_label.add_theme_font_size_override("font_size", 18)
+	debug_label.position = Vector2(20, 16)
+	debug_label.add_theme_font_size_override("font_size", 17)
 	ui_layer.add_child(debug_label)
 	
-	game_over_label = Label.new()
-	game_over_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	game_over_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	game_over_label.add_theme_font_size_override("font_size", 28)
-	game_over_label.visible = false
-	ui_layer.add_child(game_over_label)
+	modal_ui = MutationAndLabUI.new()
+	modal_ui.progression = progression
+	modal_ui.player_ref = player
+	modal_ui.sim_ref = sim_manager
+	modal_ui.mutation_selected.connect(_on_mutation_selected)
+	modal_ui.revive_requested.connect(_on_revive_requested)
+	modal_ui.restart_requested.connect(_restart_game)
+	ui_layer.add_child(modal_ui)
+
+func _on_player_level_up(new_level: int) -> void:
+	modal_ui.show_level_up(new_level)
+
+func _on_mutation_selected(mutation_id: String) -> void:
+	player.apply_mutation(mutation_id)
+	# The touch controller is paused during the draft and misses the finger-up, so clear its stale joystick.
+	touch_ctrl.reset_input()
 
 func _on_player_died() -> void:
-	game_over_label.text = "KAIJU DEFEATED!\nTotal Tanks Destroyed: %d\n[ Right-Tap or Press ENTER to Restart ]" % sim_manager.total_kills
-	game_over_label.visible = true
+	touch_ctrl.reset_input()
+	modal_ui.show_game_over_lab()
 
-func _on_right_tap() -> void:
-	if player.is_dead:
-		_restart_game()
-	else:
-		player.trigger_atomic_nova()
-
-func _unhandled_input(event: InputEvent) -> void:
-	if player.is_dead and event.is_action_pressed("ui_accept"):
-		_restart_game()
+func _on_revive_requested() -> void:
+	player.revive_with_defibrillator()
 
 func _restart_game() -> void:
-	game_over_label.visible = false
 	sim_manager.reset_simulation()
 	city_manager.reset_city()
 	player.reset_player()
 
 func _process(_delta: float) -> void:
 	if is_instance_valid(debug_label) and is_instance_valid(sim_manager) and is_instance_valid(player):
-		debug_label.text = "HP: %d/%d | Kills: %d | Horde: %d | FPS: %d" % [
+		var nova_text: String = "READY" if player.nova_timer <= 0.0 else "%.1fs" % player.nova_timer
+		debug_label.text = "HP: %d/%d | Lv.%d (XP %d/%d) | DEFCON %d | Kills: %d | G-Cells: %d | Nova: %s | FPS: %d" % [
 			int(ceil(player.hp)),
 			int(player.max_hp),
+			player.level,
+			player.xp,
+			player.xp_to_next,
+			sim_manager.defcon_level,
 			sim_manager.total_kills,
-			sim_manager.active_enemy_count,
+			progression.g_cells,
+			nova_text,
 			Engine.get_frames_per_second()
 		]
