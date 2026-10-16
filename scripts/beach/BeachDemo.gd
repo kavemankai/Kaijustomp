@@ -6,6 +6,9 @@ const BASE_HP := 100.0
 const BASE_WALK := 11.0
 const BASE_STAMINA := 100.0
 const SPRINT_MULTIPLIER := 2.35
+const SPRINT_BURN_RATE := 35.0
+const SPRINT_RECHARGE_RATE := 19.0
+const TURN_RESPONSE := 24.0
 const BITE_RANGE := 2.85
 const BITE_CONE_DOT := 0.53
 const BITE_SECONDS := 0.55
@@ -14,10 +17,15 @@ const CAMERA_OFFSET := Vector3(14.0, 25.0, 22.0)
 var beast: Node3D
 var beast_visual: Node3D
 var jaw: Node3D
+var head_pivot: Node3D
+var leg_pivots: Array[Node3D] = []
+var tail_pivots: Array[Node3D] = []
+var prey_in_mouth: Node3D
 var follow_camera: Camera3D
 var touch_input: MobileTouchController
 var touch_vector := Vector2.ZERO
-var sprint_pressed := false
+var sprint_requested := false
+var sprint_locked := false
 var sprint_active := false
 var stamina := BASE_STAMINA
 var max_stamina := BASE_STAMINA
@@ -145,18 +153,42 @@ func _build_creature() -> void:
 	beast.add_child(beast_visual)
 	var green := Color(0.22, 0.42, 0.19)
 	_box(beast_visual, Vector3(0, 1.02, 0), Vector3(1.75, 1.18, 3.0), green)
-	_box(beast_visual, Vector3(0, 0.97, -1.76), Vector3(1.30, 0.68, 1.53), green.lightened(0.10))
-	jaw = Node3D.new()
-	jaw.position = Vector3(0, 0.70, -2.22)
-	beast_visual.add_child(jaw)
-	_box(jaw, Vector3(0, 0, -0.18), Vector3(1.02, 0.19, 1.0), Color(0.46, 0.48, 0.24))
+	# Four pivoted legs make direction changes read as a scurry, not a sliding tank.
+	leg_pivots.clear()
 	for x in [-0.78, 0.78]:
-		for z in [-0.83, 0.92]:
-			_box(beast_visual, Vector3(x, 0.60, z), Vector3(0.50, 1.07, 0.55), green.darkened(0.17))
-	for i in range(3):
-		_box(beast_visual, Vector3(0, 0.96 - i * 0.17, 1.76 + i * 0.65), Vector3(1.08 - i * 0.30, 0.62 - i * 0.13, 0.9), green.darkened(0.10))
+		for z in [-0.87, 0.94]:
+			var hip := Node3D.new()
+			hip.position = Vector3(x, 1.0, z)
+			beast_visual.add_child(hip)
+			_box(hip, Vector3(0, -0.46, 0), Vector3(0.50, 1.05, 0.58), green.darkened(0.17))
+			_box(hip, Vector3(0, -0.96, -0.13), Vector3(0.58, 0.16, 0.65), green.darkened(0.24))
+			leg_pivots.append(hip)
+
+	head_pivot = Node3D.new()
+	head_pivot.position = Vector3(0, 1.13, -1.22)
+	beast_visual.add_child(head_pivot)
+	_box(head_pivot, Vector3(0, -0.04, -0.45), Vector3(1.36, 0.74, 1.46), green.lightened(0.10))
+	_box(head_pivot, Vector3(0, -0.24, -1.18), Vector3(1.03, 0.31, 0.93), green)
 	for x in [-0.48, 0.48]:
-		_sphere(beast_visual, Vector3(x, 1.29, -2.06), 0.14, Color(0.96, 0.73, 0.16))
+		_sphere(head_pivot, Vector3(x, 0.23, -0.85), 0.17, Color(0.96, 0.73, 0.16))
+		_sphere(head_pivot, Vector3(x * 0.48, -0.09, -1.61), 0.072, Color(0.10, 0.15, 0.10))
+	jaw = Node3D.new()
+	jaw.position = Vector3(0, -0.45, -0.95)
+	head_pivot.add_child(jaw)
+	_box(jaw, Vector3(0, -0.05, -0.25), Vector3(1.04, 0.20, 1.13), Color(0.48, 0.52, 0.28))
+	_box(jaw, Vector3(0, 0.06, -0.36), Vector3(0.78, 0.04, 0.76), Color(0.57, 0.18, 0.22))
+
+	# Jointed tail swings opposite the hips at speed.
+	tail_pivots.clear()
+	var tail_parent: Node3D = beast_visual
+	for i in range(3):
+		var segment := Node3D.new()
+		segment.position = Vector3(0, 0.98 if i == 0 else -0.13, 1.24 if i == 0 else 0.91)
+		tail_parent.add_child(segment)
+		var taper := 1.0 - float(i) * 0.27
+		_box(segment, Vector3(0, 0, 0.39), Vector3(0.86 * taper, 0.62 * taper, 1.06), green.darkened(0.08 + float(i) * 0.06))
+		tail_pivots.append(segment)
+		tail_parent = segment
 	for z in [-0.9, -0.25, 0.42]:
 		_box(beast_visual, Vector3(0, 1.67, z), Vector3(0.18, 0.40, 0.25), Color(0.33, 0.51, 0.29))
 
@@ -212,10 +244,10 @@ func _build_ui() -> void:
 	stats_label.add_theme_constant_override("shadow_offset_y", 2)
 	ui_layer.add_child(stats_label)
 	sprint_button = Button.new()
-	sprint_button.text = "HOLD\nSPRINT"
+	sprint_button.text = "SPRINT"
 	_place_right_button(sprint_button, -164, -83)
-	sprint_button.button_down.connect(func() -> void: sprint_pressed = true)
-	sprint_button.button_up.connect(func() -> void: sprint_pressed = false)
+	sprint_button.pressed.connect(_toggle_sprint)
+	sprint_button.add_theme_color_override("font_disabled_color", Color(0.69, 0.68, 0.65))
 	evolve_button = Button.new()
 	evolve_button.text = "EVOLVE"
 	_place_right_button(evolve_button, -253, -174)
@@ -252,6 +284,11 @@ func _place_right_button(btn: Button, upper: int, lower: int) -> void:
 func _touch_moved(vector: Vector2) -> void:
 	touch_vector = vector
 
+func _toggle_sprint() -> void:
+	if game_over or evolving or choice_open or sprint_locked:
+		return
+	sprint_requested = not sprint_requested
+
 func _cost() -> int:
 	return 55 + evolutions * 25
 
@@ -282,19 +319,28 @@ func _update_movement(delta: float) -> void:
 	var forward := -follow_camera.global_transform.basis.z
 	forward.y = 0.0
 	forward = forward.normalized()
-	var direction := (right * stick.x - forward * stick.y)
+	var direction := right * stick.x - forward * stick.y
 	if direction.length_squared() > 1.0:
 		direction = direction.normalized()
-	sprint_active = (sprint_pressed or Input.is_key_pressed(KEY_SHIFT)) and stamina > 0.1 and direction.length_squared() > 0.05
-	var speed := (BASE_WALK + speed_bonus) * (SPRINT_MULTIPLIER if sprint_active else 1.0)
+	var moving := direction.length_squared() > 0.003
+	if sprint_locked and stamina >= max_stamina - 0.01:
+		sprint_locked = false
+	sprint_active = sprint_requested and not sprint_locked and moving and stamina > 0.0
 	if sprint_active:
-		stamina = maxf(0.0, stamina - delta * 35.0)
+		stamina = maxf(0.0, stamina - delta * SPRINT_BURN_RATE)
+		if stamina <= 0.0:
+			sprint_active = false
+			sprint_requested = false
+			sprint_locked = true
 	else:
-		stamina = minf(max_stamina, stamina + delta * 19.0)
+		stamina = minf(max_stamina, stamina + delta * SPRINT_RECHARGE_RATE)
+	# Input dictates travel instantly. The body turns rapidly to match travel,
+	# rather than requiring tank-like rotation before moving.
+	var speed := (BASE_WALK + speed_bonus) * (SPRINT_MULTIPLIER if sprint_active else 1.0)
 	if bite_timer > 0.0:
 		speed *= 0.53
-	if direction.length_squared() > 0.003:
-		beast.rotation.y = lerp_angle(beast.rotation.y, atan2(-direction.x, -direction.z), minf(1.0, 8.0 * delta))
+	if moving:
+		beast.rotation.y = lerp_angle(beast.rotation.y, atan2(-direction.x, -direction.z), minf(1.0, TURN_RESPONSE * delta))
 		var next_pos := beast.global_position + direction * speed * delta
 		next_pos.x = clampf(next_pos.x, -70.0, 70.0)
 		next_pos.z = clampf(next_pos.z, -67.0, 26.0)
@@ -309,14 +355,36 @@ func _update_movement(delta: float) -> void:
 			elif strike_timer <= 0.0:
 				_damage_building(building_idx, 1)
 				strike_timer = 0.70
-		run_phase += delta * (16.0 if sprint_active else 8.0)
-		beast_visual.position.y = sin(run_phase) * 0.08
-	else:
-		beast_visual.position.y = lerpf(beast_visual.position.y, 0.0, 5.0 * delta)
-	bite_timer = maxf(0.0, bite_timer - delta)
-	if is_instance_valid(jaw):
-		jaw.rotation.x = sin((1.0 - bite_timer / BITE_SECONDS) * PI) * 0.27 if bite_timer > 0.0 else 0.0
+		run_phase += delta * (18.0 if sprint_active else 11.0) * maxf(0.4, stick.length())
 	strike_timer = maxf(0.0, strike_timer - delta)
+	_update_creature_animation(delta, moving)
+	bite_timer = maxf(0.0, bite_timer - delta)
+
+func _update_creature_animation(delta: float, moving: bool) -> void:
+	var gait_amplitude := (0.74 if sprint_active else 0.45) if moving else 0.0
+	for i in range(leg_pivots.size()):
+		var phase := run_phase + (0.0 if i == 0 or i == 3 else PI)
+		var limb := leg_pivots[i]
+		limb.rotation.x = lerpf(limb.rotation.x, sin(phase) * gait_amplitude, minf(1.0, 15.0 * delta))
+	var bob := absf(sin(run_phase)) * (0.11 if sprint_active else 0.065) if moving else 0.0
+	beast_visual.position.y = lerpf(beast_visual.position.y, bob, minf(1.0, 14.0 * delta))
+	beast_visual.rotation.z = lerpf(beast_visual.rotation.z, (0.035 * sin(run_phase * 0.5)) if moving else 0.0, minf(1.0, 8.0 * delta))
+	for i in range(tail_pivots.size()):
+		var tail := tail_pivots[i]
+		tail.rotation.y = lerpf(tail.rotation.y, sin(run_phase * 0.58 - float(i) * 0.65) * (0.15 if sprint_active else 0.09) if moving else 0.0, minf(1.0, 8.0 * delta))
+
+	# Bite cycle: snap forward -> jaws open -> grab -> retract and swallow.
+	var progress := 1.0 - clampf(bite_timer / maxf(0.05, bite_duration), 0.0, 1.0)
+	var snap := sin(progress * PI) if bite_timer > 0.0 else 0.0
+	head_pivot.position.z = -1.22 - 0.67 * snap
+	head_pivot.rotation.x = -0.13 * snap
+	jaw.rotation.x = -0.85 * maxf(0.0, sin(progress * PI)) if bite_timer > 0.0 else 0.0
+	if is_instance_valid(prey_in_mouth):
+		prey_in_mouth.position = prey_in_mouth.position.lerp(Vector3(0, -0.43, -1.16), minf(1.0, 18.0 * delta))
+		prey_in_mouth.scale = Vector3.ONE * maxf(0.02, 1.0 - progress * 1.2)
+		if bite_timer <= delta:
+			prey_in_mouth.queue_free()
+			prey_in_mouth = null
 
 func _blocking_building(pos: Vector3) -> int:
 	for i in range(buildings.size()):
@@ -376,21 +444,28 @@ func _update_biting(_delta: float) -> void:
 	for i in range(civilians.size() - 1, -1, -1):
 		var npc: Node3D = civilians[i]["node"]
 		var toward := npc.global_position - beast.global_position
-		toward.y = 0
+		toward.y = 0.0
 		if toward.length_squared() <= BITE_RANGE * BITE_RANGE and facing.dot(toward.normalized()) >= BITE_CONE_DOT:
-			npc.queue_free()
 			civilians.remove_at(i)
-			_feed(12)
+			_capture_and_feed(npc, 12)
 			return
 	for i in range(officers.size() - 1, -1, -1):
 		var cop: Node3D = officers[i]["node"]
 		var toward := cop.global_position - beast.global_position
-		toward.y = 0
+		toward.y = 0.0
 		if toward.length_squared() <= BITE_RANGE * BITE_RANGE and facing.dot(toward.normalized()) >= BITE_CONE_DOT:
-			cop.queue_free()
 			officers.remove_at(i)
-			_feed(16)
+			_capture_and_feed(cop, 16)
 			return
+
+func _capture_and_feed(prey: Node3D, amount: int) -> void:
+	# Remove the target from AI updates immediately, but keep its mesh for
+	# the brief jaw-grab/swallow visual instead of making it vanish at contact.
+	if is_instance_valid(prey_in_mouth):
+		prey_in_mouth.queue_free()
+	prey_in_mouth = prey
+	prey.reparent(head_pivot, true)
+	_feed(amount)
 
 func _feed(amount: int) -> void:
 	biomass += amount
@@ -485,7 +560,7 @@ func _start_evolution() -> void:
 	if game_over or evolving or choice_open or biomass < _cost():
 		return
 	evolving = true
-	sprint_pressed = false
+	sprint_requested = false
 	sprint_active = false
 	evolution_damage = 0.0
 	evolution_clock = 6.0 + float(evolutions) * 1.5
@@ -537,6 +612,8 @@ func _choose_mutation(id: String) -> void:
 	evolutions += 1
 	hp = max_hp
 	stamina = max_stamina
+	sprint_locked = false
+	sprint_requested = false
 	if evolutions % 3 == 0:
 		beast_visual.scale *= 1.25
 	choice_open = false
@@ -555,11 +632,22 @@ func _update_hud() -> void:
 		int(ceil(hp)), int(max_hp), biomass, _cost(), int(100.0 * stamina / max_stamina), evolutions, status
 	]
 	evolve_button.visible = not evolving and not game_over and biomass >= _cost()
-	sprint_button.disabled = evolving or game_over
+	sprint_button.disabled = evolving or game_over or sprint_locked
+	if sprint_locked:
+		sprint_button.text = "RECHARGING\n%d%%" % int(100.0 * stamina / max_stamina)
+		sprint_button.modulate = Color(0.48, 0.48, 0.48)
+	elif sprint_requested:
+		sprint_button.text = "SPRINT ON"
+		sprint_button.modulate = Color(0.30, 0.98, 0.74)
+	else:
+		sprint_button.text = "SPRINT"
+		sprint_button.modulate = Color.WHITE
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_E:
 			_start_evolution()
+		elif event.keycode == KEY_SHIFT:
+			_toggle_sprint()
 		elif event.keycode == KEY_R and game_over:
 			get_tree().reload_current_scene()
