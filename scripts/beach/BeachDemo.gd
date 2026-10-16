@@ -59,6 +59,7 @@ var reveal_active := false
 var evolution_total := 6.0
 var evolution_history: Array[Dictionary] = []
 var shedding: EvolutionShedding
+var creature_audio: CreatureAudio
 var camera_celebration_clock := 0.0
 
 var civilians: Array[Dictionary] = []
@@ -263,6 +264,8 @@ func _build_creature() -> void:
 		tail_parent = segment
 	# Geometry is modular and follows all established animation pivots.
 	CreatureArt.build(beast_visual, head_pivot, jaw, leg_pivots, tail_pivots)
+	creature_audio = CreatureAudio.new()
+	beast.add_child(creature_audio)
 
 
 func _sync_beast_collision() -> void:
@@ -485,6 +488,7 @@ func _update_movement(delta: float) -> void:
 	bite_timer = maxf(0.0, bite_timer - delta)
 
 func _update_creature_animation(delta: float, moving: bool) -> void:
+	creature_audio.update_gait(delta, moving, sprint_active)
 	var gait_amplitude := (0.74 if sprint_active else 0.45) if moving else 0.0
 	for i in range(leg_pivots.size()):
 		var phase := run_phase + (0.0 if i == 0 or i == 3 else PI)
@@ -636,6 +640,7 @@ func _capture_and_feed(prey: Node3D, amount: int) -> void:
 	_feed(amount)
 
 func _feed(amount: int) -> void:
+	creature_audio.play_effect("bite")
 	biomass += amount
 	hp = minf(max_hp, hp + 15.0)
 	alert += 5.0
@@ -809,6 +814,7 @@ func _reset_evolution_pose() -> void:
 func _start_evolution() -> void:
 	if game_over or evolving or choice_open or reveal_active or biomass < _cost():
 		return
+	creature_audio.play_effect("shed")
 	evolving = true
 	sprint_requested = false
 	sprint_active = false
