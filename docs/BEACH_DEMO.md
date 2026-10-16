@@ -77,3 +77,14 @@ Split the single scene script into player, civilian, response, world, evolution 
 - **Skin history:** previous full mutation appearance is copied before applying the new mutation. Up to five noncolliding remains last a maximum of 40 seconds and fade out.
 - **UI/history:** last four evolution choices displayed during each mutation draft. Ordered evolution_history array is a future tree/web foundation, not a graphical skill tree yet.
 - **Tests:** headless scene smoke tests expanded with evolution regression. **No confirmed Godot 4.5/Android run has yet been observed for this update.**
+
+
+## Building collision, destruction and physical gunfire (iteration 5, 2026-10-16)
+
+- Beach buildings have actual `StaticBody3D` box colliders and the lizard is a `CharacterBody3D` with a sized capsule, using swept `move_and_collide` plus wall sliding. Sprint cannot tunnel through walls.
+- New beach kiosk and wooden shed provide weak first-tier targets. Kiosks and sheds need 1 Brutal Strength evolution, three contact attacks, or a sprint impact once strength reaches 3. Cafe and shop require strength 2; apartments and hotel strength 3. Stronger variants have greater durability and later sprint-breakthrough thresholds.
+- Every building starts with a guaranteed set of civilians: kiosk 2, shed 1, cafe 5, shop 3, apartments 10, hotel 12. Civilians who take shelter increase that building's occupant count; collapsing releases everyone.
+- The existing automatic collision attack uses the movement control, not another mobile button. Intact walls block movement; after destruction their physical collider is removed with the structure.
+- Police shoot actual simulated projectile entities. Yellow is a 10-damage ordinary round; orange-red is a 16-damage heavy/SWAT round. Shots have visible emissive streaks that move with each projectile; hits are resolved by a swept physics ray from old to new projectile position. A building intercepts shots, and a missed projectile deals no damage. Projectile count and lifetime are capped for Android.
+- Added `scripts/ci/test_beach_combat.gd` to the Android export gate, covering sprint collision, baseline occupants, rubble/civilian release, projectile hit and cover occlusion.
+- This iteration is **committed for CI verification**. Phone gameplay and frame pacing still require testing of the newly exported APK.
