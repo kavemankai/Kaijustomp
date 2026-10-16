@@ -52,6 +52,8 @@ var strength := 0
 var speed_bonus := 0.0
 var bite_duration := BITE_SECONDS
 var regeneration := 0
+var cocoon_rank := 0
+var metamorphosis_rank := 0
 var bite_timer := 0.0
 var strike_timer := 0.0
 var run_phase := 0.0
@@ -64,6 +66,7 @@ var evolution_damage := 0.0
 var choice_open := false
 var reveal_active := false
 var evolution_total := 6.0
+const NEIGHBOURHOOD_FAR_Z := -232.0
 var evolution_history: Array[Dictionary] = []
 var shedding: EvolutionShedding
 var camera_celebration_clock := 0.0
@@ -171,6 +174,7 @@ func _build_beach() -> void:
 	for x in range(-int(COAST_HALF_LENGTH / 11.0), int(COAST_HALF_LENGTH / 11.0) + 1):
 		_box(self, Vector3(float(x) * 11.0, 0.02, -27), Vector3(4.2, 0.03, 0.20), Color(0.76, 0.70, 0.50))
 	CoastalArt.scenery(self, COAST_HALF_LENGTH)
+	CoastalArt.neighbourhood(self)
 	# Weak beach structures are the first demolition targets; larger buildings
 	# require more Strength evolutions. Every structure has baseline occupants.
 	_add_building(Vector3(-6, 0, -35), Vector2(5, 5), 2.9, Color(0.71, 0.58, 0.34), "Beach kiosk", 1, 3, 3, 2)
@@ -189,12 +193,23 @@ func _build_beach() -> void:
 		_add_building(Vector3(anchor - 9, 0, -58), Vector2(12, 10), 4.6, Color(0.76, 0.46, 0.34), "Cafe", 2, 5, 4, 5)
 		_add_building(Vector3(anchor + 36, 0, -53), Vector2(11, 10), 4.0, Color(0.55, 0.67, 0.70), "Beach shop", 2, 4, 4, 3)
 		_add_building(Vector3(anchor - 54, 0, -55), Vector2(14, 12), 7.5, Color(0.65, 0.56, 0.62), "Apartments", 3, 7, 5, 10)
+	# First inland suburb: a connected road behind the promenade, not a new
+	# game scene or teleport. Leave the original beach layout untouched.
+	for row in range(3):
+		for column in range(6):
+			var at := Vector3(-90.0 + float(column) * 36.0, 0, -109.0 - float(row) * 44.0)
+			var colour := Color("e4c8a6") if (column + row) % 3 == 0 else (Color("cfdfcd") if (column + row) % 3 == 1 else Color("d3d5df"))
+			_add_building(at, Vector2(13, 12), 4.1 + float((column + row) % 2) * 0.6, colour,
+				"Coastal home", 2 if row < 2 else 3, 5 if row < 2 else 6, 4 if row < 2 else 5, 4 + (column + row) % 3)
 
 func _add_building(pos: Vector3, footprint: Vector2, height: float, col: Color, title: String, required_strength: int, hits: int, breakthrough_strength: int, occupants: int) -> void:
 	var root := Node3D.new()
 	root.position = pos
 	add_child(root)
-	CoastalArt.building(root, footprint, height, title)
+	if title == "Coastal home":
+		CoastalArt.home(root, footprint, height, col)
+	else:
+		CoastalArt.building(root, footprint, height, title)
 	# A visible MeshInstance3D is not an obstacle. Physical collision must
 	# remain active until the building actually collapses.
 	var crack_layers := _build_building_cracks(root, footprint, height)
@@ -376,7 +391,12 @@ func _maintain_population(delta: float) -> void:
 		attempts += 1
 		var min_distance := maxf(42.0, growth_scale * 36.0)
 		var side := -1.0 if randi_range(0, 1) == 0 else 1.0
-		var pos := Vector3(beast.global_position.x + side * randf_range(min_distance, min_distance + 48.0), 0, randf_range(-13.0, 17.0))
+		var spawn_z := randf_range(-211.0, -91.0) if beast.global_position.z < -82.0 else randf_range(-13.0, 17.0)
+		var pos := Vector3(beast.global_position.x + side * randf_range(min_distance, min_distance + 48.0), 0, spawn_z)
+		if beast.global_position.z < -82.0:
+			pos.x = beast.global_position.x + randf_range(-70.0, 70.0)
+			if pos.distance_to(beast.global_position) < min_distance:
+				continue
 		if absf(pos.x) >= PLAYABLE_HALF_LENGTH - 6.0:
 			continue
 		if pos.distance_to(beast.global_position) < maxf(38.0, growth_scale * 28.0):
@@ -592,7 +612,7 @@ func _update_movement(delta: float) -> void:
 		beast.rotation.y = lerp_angle(beast.rotation.y, atan2(-direction.x, -direction.z), minf(1.0, TURN_RESPONSE * delta))
 		var next_pos := beast.global_position + direction * speed * delta
 		next_pos.x = clampf(next_pos.x, -PLAYABLE_HALF_LENGTH, PLAYABLE_HALF_LENGTH)
-		next_pos.z = clampf(next_pos.z, -67.0, 26.0)
+		next_pos.z = clampf(next_pos.z, NEIGHBOURHOOD_FAR_Z, 26.0)
 		# move_and_collide performs a swept physics test, including sprint frames.
 		# Sliding preserves responsive movement along the face of an obstacle.
 		var previous_position := beast.global_position
@@ -852,7 +872,7 @@ func _update_civilians(delta: float) -> void:
 						continue
 				var new_pos := person.global_position + travel * float(c["speed"]) * delta
 				new_pos.x = clampf(new_pos.x, -PLAYABLE_HALF_LENGTH + 1.0, PLAYABLE_HALF_LENGTH - 1.0)
-				new_pos.z = clampf(new_pos.z, -62.0, 23.0)
+				new_pos.z = clampf(new_pos.z, NEIGHBOURHOOD_FAR_Z + 6.0, 23.0)
 				if _blocking_building(new_pos) < 0:
 					person.global_position = new_pos
 				person.rotation.y = atan2(-travel.x, -travel.z)
@@ -861,10 +881,10 @@ func _update_civilians(delta: float) -> void:
 
 func _spawn_local_officer(offset: float, swat: bool) -> void:
 	var x := clampf(beast.global_position.x + offset, -PLAYABLE_HALF_LENGTH + 8.0, PLAYABLE_HALF_LENGTH - 8.0)
-	var z := clampf(beast.global_position.z - 30.0, -60.0, 16.0)
+	var z := clampf(beast.global_position.z - 30.0, NEIGHBOURHOOD_FAR_Z + 7.0, 16.0)
 	var point := Vector3(x, 0, z)
 	if _blocking_building(point) >= 0:
-		point.z = clampf(beast.global_position.z + 22.0, -12.0, 22.0)
+		point.z = clampf(beast.global_position.z + 22.0, NEIGHBOURHOOD_FAR_Z + 8.0, 22.0)
 	_spawn_officer(point, swat)
 
 
@@ -970,6 +990,9 @@ func _take_damage(raw: float) -> void:
 	if game_over:
 		return
 	var damage := raw * pow(0.78, armour)
+	if evolving:
+		# The cocoon protects health and resists transformation interruption.
+		damage *= pow(0.82, cocoon_rank)
 	hp = maxf(0.0, hp - damage)
 	Input.vibrate_handheld(35)
 	if evolving:
@@ -981,12 +1004,21 @@ func _take_damage(raw: float) -> void:
 			shedding.abort_shed()
 		evolving = false
 		retry_button.visible = true
-	elif evolving and evolution_damage >= 35.0:
+	elif evolving and evolution_damage >= _cocoon_break_limit():
 		_reset_evolution_pose()
 		shedding.abort_shed()
 		evolving = false
 		biomass = 0
 		evolution_damage = 0.0
+
+func _cocoon_break_limit() -> float:
+	return 35.0 + 12.0 * float(cocoon_rank)
+
+
+func _evolution_duration() -> float:
+	# Speed upgrades shorten the dangerous stage, never the safe selection.
+	return maxf(3.0, (6.0 + float(evolutions) * 1.5) * pow(0.78, metamorphosis_rank))
+
 
 func _update_evolution_animation(delta: float) -> void:
 	# Readable pulsing/shivering while the player is vulnerable. Temporary
@@ -1014,7 +1046,7 @@ func _start_evolution() -> void:
 	sprint_active = false
 	evolution_damage = 0.0
 	evolution_visual_clock = 0.0
-	evolution_total = 6.0 + float(evolutions) * 1.5
+	evolution_total = _evolution_duration()
 	evolution_clock = evolution_total
 	shedding.begin_shed(beast_visual)
 
@@ -1044,18 +1076,22 @@ func _finish_evolution() -> void:
 		{"id": "strength", "name": "Brutal Strength", "detail": "Damage buildings much faster"},
 		{"id": "health", "name": "Dense Flesh", "detail": "Increase maximum health"}
 	]
+	if evolutions >= 1:
+		pool.append({"id": "cocoon", "name": "Reinforced Cocoon", "detail": "Protect yourself during evolution"})
+		pool.append({"id": "metamorphosis", "name": "Rapid Metamorphosis", "detail": "Shorten vulnerable evolution time"})
 	if evolutions >= 2:
 		pool.append({"id": "regen", "name": "Regeneration", "detail": "Recover health over time"})
 	pool.shuffle()
 	var extra := maxi(0, int((biomass - _cost()) / 30.0))
-	var number_of_choices := mini(pool.size(), 3 + extra)
+	# Nine possible families, but never crowd the approved portrait choice UI.
+	var number_of_choices := mini(7, mini(pool.size(), 3 + extra))
 	for i in range(number_of_choices):
 		var mutation: Dictionary = pool[i]
 		var button := Button.new()
 		button.custom_minimum_size = Vector2(350, 76)
 		button.add_theme_font_size_override("font_size", 14)
 		button.add_theme_constant_override("icon_max_width", 42)
-		var region: String = {"armour":"BACK PLATES", "speed":"LIMBS", "stamina":"RIB GILLS", "jaw":"JAWS", "strength":"FORECLAWS", "health":"CHEST", "regen":"FLANKS"}[mutation["id"]]
+		var region: String = {"armour":"BACK PLATES", "speed":"LIMBS", "stamina":"RIB GILLS", "jaw":"JAWS", "strength":"FORECLAWS", "health":"CHEST", "regen":"FLANKS", "cocoon":"SHELL", "metamorphosis":"DORSAL CREST"}[mutation["id"]]
 		var rank := int(mutation_visual_counts.get(mutation["id"],0)) + 1
 		button.icon = MutationIcons.texture(String(mutation["id"]), rank)
 		button.text = "%s  /  %d\n%s\n%s" % [mutation["name"], rank, region, mutation["detail"]]
@@ -1073,6 +1109,8 @@ func _choose_mutation(id: String) -> void:
 		"strength": strength += 1
 		"health": max_hp += 25.0
 		"regen": regeneration += 1
+		"cocoon": cocoon_rank += 1
+		"metamorphosis": metamorphosis_rank += 1
 	_apply_mutation_visual(id)
 	_record_evolution(id)
 	biomass = maxi(0, biomass - _cost())
@@ -1118,7 +1156,7 @@ func _resolve_growth_clearance() -> void:
 		for direction in range(16):
 			var angle := TAU * float(direction) / 16.0
 			var candidate := origin + Vector3(cos(angle), 0, sin(angle)) * float(ring) * 0.5
-			if absf(candidate.x) > 70.0 or candidate.z < -67.0 or candidate.z > 26.0:
+			if absf(candidate.x) > PLAYABLE_HALF_LENGTH or candidate.z < NEIGHBOURHOOD_FAR_Z or candidate.z > 26.0:
 				continue
 			if _growth_position_clear(candidate):
 				beast.global_position = candidate
@@ -1148,6 +1186,8 @@ func _evolution_label(id: String) -> String:
 		"strength": return "Brutal Strength"
 		"health": return "Dense Flesh"
 		"regen": return "Regeneration"
+		"cocoon": return "Reinforced Cocoon"
+		"metamorphosis": return "Rapid Metamorphosis"
 	return id
 
 
@@ -1214,11 +1254,11 @@ func _update_camera(delta: float) -> void:
 	follow_camera.look_at(_camera_look_target(), Vector3.UP)
 
 func _update_hud() -> void:
-	var status := "EVOLVING %.1fs  |  DAMAGE %.0f/35" % [evolution_clock, evolution_damage] if evolving else ("GAME OVER" if game_over else "Hunt / feed / escape / evolve")
+	var status := "EVOLVING %.1fs  |  DAMAGE %.0f/%.0f" % [evolution_clock, evolution_damage, _cocoon_break_limit()] if evolving else ("GAME OVER" if game_over else "Hunt / feed / escape / evolve")
 	stats_label.text = "HP %d/%d    BIOMASS %d/%d\nSTAMINA %d%%    EVOLUTIONS %d\n%s" % [
 		int(ceil(hp)), int(max_hp), biomass, _cost(), int(100.0 * stamina / max_stamina), evolutions, status
 	]
-	coastal_hud.update_state(hp, max_hp, stamina, max_stamina, biomass, _cost(), evolutions, status if evolving or game_over else ("COASTAL KAIJU" if upright_form else "COASTAL HATCHLING"))
+	coastal_hud.update_state(hp, max_hp, stamina, max_stamina, biomass, _cost(), evolutions, status if evolving or game_over else ("COASTAL NEIGHBOURHOOD" if beast.global_position.z < -82.0 else ("COASTAL KAIJU" if upright_form else "COASTAL HATCHLING")))
 	evolve_button.visible = not evolving and not game_over and biomass >= _cost()
 	evolution_progress.visible = evolving
 	if evolving:

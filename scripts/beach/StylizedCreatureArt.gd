@@ -165,6 +165,16 @@ static func add_mutation(body: Node3D, head: Node3D, legs: Array[Node3D], id: St
 			for side in [-1.0, 1.0]:
 				for i in range(tier):
 					_plate(group, Vector3(side * .70, 1.30, .55 + i * .19), Vector3(.18, .40, .24), LIGHT)
+		"cocoon":
+			# Overlapping back shields communicate stronger shedding protection.
+			for side in [-1.0, 1.0]:
+				for i in range(2 + tier):
+					_plate(group, Vector3(side * .39, 1.76, -.88 + float(i) * .43), Vector3(.49 * bulk, .28, .46), BELLY)
+		"metamorphosis":
+			# Secondary ridge fins signal an accelerated transformation cycle.
+			for side in [-1.0, 1.0]:
+				for i in range(tier + 1):
+					_plate(group, Vector3(side * .28, 1.90, -.95 + float(i) * .47), Vector3(.27 * bulk, .40, .34), RIDGE_LIGHT)
 	if group.get_child_count() > 0:
 		_batch_family(group)
 

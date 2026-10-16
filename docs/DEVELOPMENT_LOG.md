@@ -1,5 +1,10 @@
 # Development log
 
+## 2026-10-17 — player-approved long beach, cocoon and neighbourhood preview
+
+Player confirmed the extended beach works and requested a stronger cocoon, faster evolution, and the next section. On isolated `feature/cocoon-evolution-coastal-suburb`, add Reinforced Cocoon and Rapid Metamorphosis as evolution mutations with tiered art, capped seven-card portrait selection, stronger damage interruption tolerance and reduced vulnerable evolution timer. Preserve original pause, reveal, bite, movement and camera. Build Banksia Heights directly inland, 18 solid destructible homes, connecting streets, local food replenishment and police response. Add full regression + isolated Android publishing gates, leave long beach preview intact. Details and physical-phone acceptance in [SUBURB_EVOLUTION.md](SUBURB_EVOLUTION.md).
+
+
 ## 2026-10-17 — longer beach and sustainable prey candidate
 
 Player approved the coastal art preview but ran out of people and room. On isolated `feature/extended-coast-population`, extend the horizontal game space from approximately 140 to 1,096 playable units within a continuous 1,120-unit coastline; preserve the six original buildings and add 30 destructible destinations across six new districts. Add bounded nearby crowd replenishment, local shelters and police response so exploration no longer strands prey or threats in the original centre. Preserve camera, touch controls, sprint and mutation/gameplay baseline. Introduce a new long-beach headless regression, full CI gate, and independently installable Android package and immutable preview release. See [LONG_BEACH.md](LONG_BEACH.md). This entry documents the candidate, not physical-device acceptance; the CI outcome must be checked before shipping.

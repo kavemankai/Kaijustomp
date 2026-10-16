@@ -137,6 +137,59 @@ static func building(root: Node3D, footprint: Vector2, height: float, title: Str
 	sign.outline_size = 0
 	root.add_child(sign)
 
+# A walkable inland neighbourhood immediately beyond the beach promenade.
+# Geometry is visual-only; the 18 houses use real StaticBody3D wall collision.
+static func neighbourhood(parent: Node3D) -> void:
+	var town := Node3D.new()
+	town.name = "CoastalNeighbourhood"
+	parent.add_child(town)
+	box(town,Vector3(0,-.34,-159),Vector3(270,.50,178),Color("a6ad86"))
+	# Long access road from beach into the neighbourhood, then cross streets.
+	box(town,Vector3(0,-.057,-149),Vector3(13,.09,162),Color("626f71"))
+	for crossing in [-131.0,-175.0]:
+		box(town,Vector3(0,-.05,crossing),Vector3(230,.08,12),Color("626f71"))
+	# Restrained paths and regularly spaced road markings.
+	for x in [-8.0,8.0]:
+		box(town,Vector3(x,.005,-153),Vector3(2.0,.05,154),Color("d7d1be"))
+	for z in range(-214,-77,14):
+		box(town,Vector3(0,.011,float(z)),Vector3(.30,.018,5),Color("e8dfbd"))
+	for crossing in [-131.0,-175.0]:
+		for x in range(-108,109,16):
+			box(town,Vector3(float(x),.009,crossing),Vector3(5,.018,.26),Color("e8dfbd"))
+	merge(town,"NeighbourhoodRoads")
+	var marker := Label3D.new()
+	marker.name = "NeighbourhoodSign"
+	marker.text = "BANKSIA HEIGHTS"
+	marker.font_size = 52
+	marker.pixel_size = .012
+	marker.modulate = Color("faf0d4")
+	marker.outline_size = 0
+	marker.position = Vector3(12.0, 2.45, -82.0)
+	town.add_child(marker)
+
+
+static func home(root: Node3D, footprint: Vector2, height: float, colour: Color) -> void:
+	# Batched authored-shape residential kit, not a beach commercial box.
+	var w := footprint.x
+	var d := footprint.y
+	box(root,Vector3(0,height * .5,0),Vector3(w,height,d),colour)
+	box(root,Vector3(0,height+.20,0),Vector3(w+.4,.24,d+.4),Color("648384"))
+	# Two large pitched roof planes with overhangs.
+	for side in [-1.0,1.0]:
+		var roof := box(root,Vector3(side*w*.24,height+.68,0),Vector3(w*.56,.22,d+.65),Color("718480"))
+		roof.rotation.z = side * -.21
+	# Front facing coast: porch and readable doors/windows within wall footprint.
+	box(root,Vector3(0,1.15,d*.5+.07),Vector3(1.25,2.3,.13),INK)
+	box(root,Vector3(.34,1.0,d*.5+.15),Vector3(.10,.12,.04),CREAM)
+	for side in [-1.0,1.0]:
+		box(root,Vector3(side*w*.29,2.05,d*.5+.07),Vector3(1.62,1.42,.11),CREAM)
+		box(root,Vector3(side*w*.29,2.05,d*.5+.14),Vector3(1.34,1.14,.055),Color("678f99"))
+		box(root,Vector3(side*w*.29,2.05,d*.5+.18),Vector3(.06,1.20,.07),CREAM)
+		box(root,Vector3(side*w*.29,2.05,-d*.5-.055),Vector3(1.45,1.25,.11),Color("678f99"))
+	box(root,Vector3(0,.16,d*.5-.20),Vector3(3.8,.24,2.3),Color("c8bdab"))
+	merge(root,"Architecture")
+	shadow(root,Vector2(w+1.6,d+1.6),Vector3(.15,.005,.25))
+
 static func scenery(parent: Node3D, coast_half_length: float = 70.0) -> void:
 	# Fixed seed: art placement never consumes gameplay random choices.
 	var rng := RandomNumberGenerator.new()

@@ -185,6 +185,14 @@ jobs:
           grep -q 'LONG BEACH TEST PASSED' "$RUNNER_TEMP/long-beach.log"
           if grep -E 'SCRIPT ERROR|Parse Error|TEST FAILED|Invalid call|Invalid access' "$RUNNER_TEMP/long-beach.log"; then exit 1; fi
 
+      - name: Verify cocoon mutation and first inland neighbourhood
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --path . --script res://scripts/ci/test_suburb_evolution.gd 2>&1 | tee "$RUNNER_TEMP/suburb-evolution.log"
+          grep -q 'SUBURB EVOLUTION TEST PASSED' "$RUNNER_TEMP/suburb-evolution.log"
+          if grep -E 'SCRIPT ERROR|Parse Error|TEST FAILED|Invalid call|Invalid access' "$RUNNER_TEMP/suburb-evolution.log"; then exit 1; fi
+
       - name: Export portrait Android debug APK
         shell: bash
         run: |
@@ -203,6 +211,10 @@ jobs:
           if [ "$BUILD_BRANCH" = 'feature/extended-coast-population' ]; then
             sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.longbeachpreview"@' export_presets.cfg
             sed -i 's@^package/name=.*@package/name="Kaijustomp Long Beach Preview"@' export_presets.cfg
+          fi
+          if [ "$BUILD_BRANCH" = 'feature/cocoon-evolution-coastal-suburb' ]; then
+            sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.suburbpreview"@' export_presets.cfg
+            sed -i 's@^package/name=.*@package/name="Kaijustomp Suburb Preview"@' export_presets.cfg
           fi
           APK="Kaijustomp-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:7}-debug.apk"
           echo "APK_NAME=$APK" >> "$GITHUB_ENV"
@@ -243,6 +255,9 @@ jobs:
           fi
           if [ "$BUILD_BRANCH" = 'feature/extended-coast-population' ]; then
             EXPECTED_PACKAGE='com.kavemankai.kaijustomp.longbeachpreview'
+          fi
+          if [ "$BUILD_BRANCH" = 'feature/cocoon-evolution-coastal-suburb' ]; then
+            EXPECTED_PACKAGE='com.kavemankai.kaijustomp.suburbpreview'
           fi
           grep -q "name='$EXPECTED_PACKAGE'" "$RUNNER_TEMP/apk-badging.txt"
           grep -q '^launchable-activity:' "$RUNNER_TEMP/apk-badging.txt"
@@ -361,6 +376,23 @@ jobs:
           ASSET_SIZE=$(gh release view "$TAG" --json assets --jq '.assets[] | select(.name == "Kaijustomp-growth-preview.apk") | .size')
           test "$LOCAL_SIZE" = "$ASSET_SIZE"
           echo "Preview APK: https://github.com/${GH_REPO}/releases/download/${TAG}/Kaijustomp-growth-preview.apk" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish immutable suburb evolution preview
+        if: github.ref == 'refs/heads/feature/cocoon-evolution-coastal-suburb' && github.event_name != 'pull_request'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG="suburb-evolution-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:7}"
+          cat > "$RUNNER_TEMP/suburb-notes.md" <<EOF
+          Coastal suburb and evolution preview from ${GITHUB_SHA}. Reinforced Cocoon reduces damage and raises interruption limit during the vulnerable evolution stage; Rapid Metamorphosis shortens that vulnerable stage. Both have three capped visual tiers, and retain the prior safe paused choice/shedding mechanics. Adds a connected inland street and 18 destructible residential homes, local pedestrians and district-aware police, while keeping the long beach and approved mobile camera/controls/art. Distinct installable package com.kavemankai.kaijustomp.suburbpreview. Godot automated test and Android export are CI gated; real phone performance and player acceptance still need confirmation.
+          EOF
+          gh release create "$TAG" "build/android/$APK_NAME" "build/android/$APK_NAME.sha256" --target "$GITHUB_SHA" --title "Kaijustomp suburb evolution ${GITHUB_RUN_NUMBER}" --notes-file "$RUNNER_TEMP/suburb-notes.md" --prerelease
+          LOCAL_SIZE=$(stat -c "%s" "build/android/$APK_NAME")
+          ASSET_SIZE=$(gh release view "$TAG" --json assets --jq ".assets[] | select(.name == \"$APK_NAME\") | .size")
+          test "$LOCAL_SIZE" = "$ASSET_SIZE"
 
       - name: Publish immutable extended beach preview
         if: github.ref == 'refs/heads/feature/extended-coast-population' && github.event_name != 'pull_request'
