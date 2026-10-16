@@ -232,7 +232,7 @@ jobs:
           grep -q "name='$EXPECTED_PACKAGE'" "$RUNNER_TEMP/apk-badging.txt"
           grep -q '^launchable-activity:' "$RUNNER_TEMP/apk-badging.txt"
           grep -q "arm64-v8a" "$RUNNER_TEMP/apk-badging.txt"
-          sha256sum "$APK"
+          (cd build/android && sha256sum "$APK_NAME") | tee "$APK.sha256"
 
       - name: Upload installable APK
         uses: actions/upload-artifact@v4

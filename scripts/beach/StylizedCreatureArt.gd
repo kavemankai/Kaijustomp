@@ -151,7 +151,7 @@ static func add_mutation(body: Node3D, head: Node3D, legs: Array[Node3D], id: St
 					mark.rotation.x = -.35
 		"jaw":
 			for side in [-1.0, 1.0]:
-				_plate(group, Vector3(side * .53, -.16, -.48), Vector3(.24 * bulk, .37, .55 * bulk), RIDGE_LIGHT)
+				_plate(group, Vector3(side * .64, -.02, -.55), Vector3(.32 * bulk, .48, .70 * bulk), RIDGE_LIGHT)
 		"strength":
 			for index in [0, 2]:
 				var marks := _family(legs[index].get_node("Knee/Ankle"), id)
@@ -164,7 +164,7 @@ static func add_mutation(body: Node3D, head: Node3D, legs: Array[Node3D], id: St
 		"regen":
 			for side in [-1.0, 1.0]:
 				for i in range(tier):
-					_plate(group, Vector3(side * .70, 1.22, .55 + i * .19), Vector3(.18, .12, .24), LIGHT)
+					_plate(group, Vector3(side * .70, 1.30, .55 + i * .19), Vector3(.18, .40, .24), LIGHT)
 	if group.get_child_count() > 0:
 		_batch_family(group)
 
