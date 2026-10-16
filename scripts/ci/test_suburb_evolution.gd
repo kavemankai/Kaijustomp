@@ -68,7 +68,7 @@ func _run() -> void:
 	demo.biomass = demo._cost() + 50
 	demo._start_evolution()
 	if not _check(is_equal_approx(demo.evolution_clock, 10.5 * 0.78), "Next transformation was not faster"): return
-	demo._take_damage(65.0)
+	demo._take_damage(80.0)
 	if not _check(not demo.evolving and demo.biomass == 0 and demo.cocoon_rank == 1 and demo.metamorphosis_rank == 1, "Broken cocoon failed to interrupt evolution fairly"): return
 	# A player can continue from promenade to inland houses without teleporting.
 	demo.beast.global_position = Vector3(-90, 0, -92)
