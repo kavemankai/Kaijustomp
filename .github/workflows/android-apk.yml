@@ -30,6 +30,7 @@ jobs:
     env:
       GODOT_VERSION: '4.5'
       GODOT_CHANNEL: stable
+      BUILD_BRANCH: ${{ github.head_ref || github.ref_name }}
 
     steps:
       - name: Check out Kaijustomp
@@ -183,11 +184,11 @@ jobs:
           mkdir -p build/android
           sed -i -E "s@^version/code=.*@version/code=${GITHUB_RUN_NUMBER}@" export_presets.cfg
           sed -i -E "s@^version/name=.*@version/name=\"0.1.${GITHUB_RUN_NUMBER}-debug\"@" export_presets.cfg
-          if [ "$GITHUB_REF_NAME" = 'feature/creature-growth-takeover' ]; then
+          if [ "$BUILD_BRANCH" = 'feature/creature-growth-takeover' ]; then
             sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.creaturepreview"@' export_presets.cfg
             sed -i 's@^package/name=.*@package/name="Kaijustomp Creature Preview"@' export_presets.cfg
           fi
-          if [ "$GITHUB_REF_NAME" = 'feature/sculpted-coastal-art' ]; then
+          if [ "$BUILD_BRANCH" = 'feature/sculpted-coastal-art' ]; then
             sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.artpreview"@' export_presets.cfg
             sed -i 's@^package/name=.*@package/name="Kaijustomp Coastal Art"@' export_presets.cfg
           fi
@@ -222,8 +223,11 @@ jobs:
           "$ANDROID_SDK_ROOT/build-tools/35.0.0/aapt" dump badging "$APK" > "$RUNNER_TEMP/apk-badging.txt"
           grep -E '^(package:|application-label:|launchable-activity:|native-code:)' "$RUNNER_TEMP/apk-badging.txt"
           EXPECTED_PACKAGE='com.kavemankai.kaijustomp'
-          if [ "$GITHUB_REF_NAME" = 'feature/creature-growth-takeover' ]; then
+          if [ "$BUILD_BRANCH" = 'feature/creature-growth-takeover' ]; then
             EXPECTED_PACKAGE='com.kavemankai.kaijustomp.creaturepreview'
+          fi
+          if [ "$BUILD_BRANCH" = 'feature/sculpted-coastal-art' ]; then
+            EXPECTED_PACKAGE='com.kavemankai.kaijustomp.artpreview'
           fi
           grep -q "name='$EXPECTED_PACKAGE'" "$RUNNER_TEMP/apk-badging.txt"
           grep -q '^launchable-activity:' "$RUNNER_TEMP/apk-badging.txt"
