@@ -29,6 +29,39 @@ func _run_test() -> void:
 		if not (b["collider"] is StaticBody3D):
 			_fail("Every intact building needs a StaticBody3D collider")
 			return
+	# Native mobile touches should activate sprint even while the stick is held.
+	var tap := InputEventScreenTouch.new()
+	tap.pressed = true
+	tap.position = demo.sprint_button.get_global_rect().get_center()
+	demo._input(tap)
+	if not demo.sprint_requested:
+		_fail("Touching SPRINT did not enable the sprint state")
+		return
+	demo.touch_vector = Vector2(0, -1)
+	var stamina_before: float = demo.stamina
+	demo._update_movement(0.12)
+	if not demo.sprint_active or demo.stamina >= stamina_before:
+		_fail("Sprint input did not increase movement speed and consume stamina")
+		return
+	demo._input(tap)
+	if demo.sprint_requested:
+		_fail("Tapping SPRINT again did not turn it off")
+		return
+	demo.touch_vector = Vector2.ZERO
+	# The head collision must cover the idle snout and extended bite pose.
+	if not (demo.head_collision_node is CollisionShape3D):
+		_fail("Snout collider is missing")
+		return
+	if demo.head_collision_node.position.z - demo.head_collision_shape.radius > -2.86:
+		_fail("Head collision still allows the idle snout to overlap walls")
+		return
+	demo.bite_timer = demo.bite_duration * 0.5
+	demo._update_creature_animation(0.016, false)
+	if demo.head_collision_node.position.z - demo.head_collision_shape.radius > -3.45:
+		_fail("Biting head collider does not extend with the snout")
+		return
+	demo.bite_timer = 0.0
+	demo._update_creature_animation(0.016, false)
 	# A long swept move simulates a sprint frame; it cannot tunnel through the cafe.
 	demo.beast.global_position = Vector3(-21, 0, -23)
 	await physics_frame
@@ -39,14 +72,21 @@ func _run_test() -> void:
 	if demo.beast.global_position.z < -33.5:
 		_fail("Monster entered the cafe footprint")
 		return
-	# Baseline strength cannot damage buildings. First strength tier must
-	# take three contact attacks; second tier knocks down weak structures once.
+	# Every building takes chip damage from a baseline creature; the first
+	# hit must show a crack, and Strength still accelerates destruction.
 	var baseline: int = demo.civilians.size()
 	var occupants: int = demo.buildings[0]["hidden"]
 	demo.strength = 0
+	demo.strike_timer = 0.0
 	demo._attack_building(0, false)
-	if int(demo.buildings[0]["hits"]) != 3:
-		_fail("Level-zero monster should not damage buildings")
+	if float(demo.buildings[0]["hits"]) >= 3.0 or int(demo.buildings[0]["crack_stage"]) < 1:
+		_fail("Level-zero hit should chip a kiosk and reveal its first crack")
+		return
+	var heavy_before: float = demo.buildings[4]["hits"]
+	demo.strike_timer = 0.0
+	demo._attack_building(4, false)
+	if float(demo.buildings[4]["hits"]) >= heavy_before or int(demo.buildings[4]["crack_stage"]) < 1:
+		_fail("Even an apartment must be damageable at base Strength")
 		return
 	demo.strength = 1
 	for i in range(3):
@@ -85,5 +125,5 @@ func _run_test() -> void:
 	if demo.hp != hp_before or not demo.projectiles.is_empty():
 		_fail("An intact building did not absorb the heavy shot")
 		return
-	print("DESTRUCTION TEST PASSED: swept collision, occupants, collapse, real tracers and cover")
+	print("DESTRUCTION TEST PASSED: touch sprint, head collision, progressive cracks, chip damage, collapse, occupants and cover")
 	quit(0)
