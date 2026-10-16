@@ -1,4 +1,10 @@
 .godot/
 *.translation
-export_presets.cfg
 .import/
+
+# Generated Android builds and credentials (commit export_presets.cfg, not secrets)
+build/
+*.apk
+*.aab
+*.keystore
+*.jks
