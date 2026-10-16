@@ -18,7 +18,7 @@ func _run() -> void:
 	root.add_child(demo)
 	demo.set_physics_process(false)
 	await physics_frame
-	if not _check(demo.buildings.size() == 54, "Expected 36 beach and 18 suburban buildings"): return
+	if not _check(demo.buildings.size() == 80, "Expected old 54 and 26 new houses/shops"): return
 	for i in range(36):
 		if not _check(demo.buildings[i]["name"] != "Coastal home", "Existing beach building order changed"): return
 	for i in range(36, 54):
@@ -92,6 +92,6 @@ func _run() -> void:
 	if not _check(demo.civilians.size() == demo.ACTIVE_POPULATION_TARGET, "Neighbourhood cannot refill with prey"): return
 	for npc in demo.civilians:
 		var pos: Vector3 = npc["node"].global_position
-		if not _check(pos.z < -88.0 and pos.z > -215.0 and demo._blocking_building(pos) < 0, "New suburban prey outside neighbourhood or inside house"): return
+		if not _check(pos.z < -88.0 and pos.z > demo.NEIGHBOURHOOD_FAR_Z and demo._blocking_building(pos) < 0, "New suburban prey outside neighbourhood or inside house"): return
 	print("SUBURB EVOLUTION TEST PASSED: cocoon armour and interruption, accelerated metamorphosis, cards, suburban structures, inland path, local prey")
 	quit(0)
