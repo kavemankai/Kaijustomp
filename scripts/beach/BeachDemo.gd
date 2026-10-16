@@ -15,7 +15,8 @@ const BITE_SECONDS := 0.55
 const CAMERA_OFFSET := Vector3(14.0, 25.0, 22.0)
 const PORTRAIT_CAMERA_DISTANCE := 1.48
 
-var beast: Node3D
+var beast: CharacterBody3D
+var beast_collision_shape: CapsuleShape3D
 var beast_visual: Node3D
 var jaw: Node3D
 var head_pivot: Node3D
@@ -62,6 +63,8 @@ var civilians: Array[Dictionary] = []
 var officers: Array[Dictionary] = []
 var buildings: Array[Dictionary] = []
 var debris: Array[Dictionary] = []
+var projectiles: Array[Dictionary] = []
+const MAX_PROJECTILES := 72
 
 var ui_layer: CanvasLayer
 var stats_label: Label
@@ -146,12 +149,16 @@ func _build_beach() -> void:
 		_box(self, Vector3(x, 0.16, z), Vector3(0.5, 0.32, 0.5), Color(0.52, 0.50, 0.36))
 	for p in [Vector3(-32, 0, 7), Vector3(28, 0, 9), Vector3(51, 0, -11)]:
 		_sphere(self, p + Vector3(0, 0.85, 0), 1.2, Color(0.39, 0.38, 0.34))
-	_add_building(Vector3(-21, 0, -40), Vector2(13, 11), 4.6, Color(0.76, 0.46, 0.34), "Cafe")
-	_add_building(Vector3(22, 0, -37), Vector2(10, 9), 4.0, Color(0.55, 0.67, 0.70), "Beach shop")
-	_add_building(Vector3(-45, 0, -54), Vector2(14, 12), 7.5, Color(0.65, 0.56, 0.62), "Apartments")
-	_add_building(Vector3(45, 0, -54), Vector2(14, 12), 7.0, Color(0.64, 0.62, 0.49), "Hotel")
+	# Weak beach structures are the first demolition targets; larger buildings
+	# require more Strength evolutions. Every structure has baseline occupants.
+	_add_building(Vector3(-6, 0, -35), Vector2(5, 5), 2.9, Color(0.71, 0.58, 0.34), "Beach kiosk", 1, 3, 3, 2)
+	_add_building(Vector3(7, 0, -47), Vector2(6, 5), 3.1, Color(0.59, 0.51, 0.38), "Wooden shed", 1, 3, 3, 1)
+	_add_building(Vector3(-21, 0, -40), Vector2(13, 11), 4.6, Color(0.76, 0.46, 0.34), "Cafe", 2, 5, 4, 5)
+	_add_building(Vector3(22, 0, -37), Vector2(10, 9), 4.0, Color(0.55, 0.67, 0.70), "Beach shop", 2, 4, 4, 3)
+	_add_building(Vector3(-45, 0, -54), Vector2(14, 12), 7.5, Color(0.65, 0.56, 0.62), "Apartments", 3, 7, 5, 10)
+	_add_building(Vector3(45, 0, -54), Vector2(14, 12), 7.0, Color(0.64, 0.62, 0.49), "Hotel", 3, 7, 5, 12)
 
-func _add_building(pos: Vector3, footprint: Vector2, height: float, col: Color, title: String) -> void:
+func _add_building(pos: Vector3, footprint: Vector2, height: float, col: Color, title: String, required_strength: int, hits: int, breakthrough_strength: int, occupants: int) -> void:
 	var root := Node3D.new()
 	root.position = pos
 	add_child(root)
@@ -159,12 +166,39 @@ func _add_building(pos: Vector3, footprint: Vector2, height: float, col: Color, 
 	_box(root, Vector3(0, height + 0.18, 0), Vector3(footprint.x + 0.5, 0.35, footprint.y + 0.5), col.darkened(0.24))
 	for x in [-1.0, 1.0]:
 		_box(root, Vector3(x * footprint.x * 0.25, height * 0.60, footprint.y * 0.51), Vector3(1.6, 1.8, 0.14), Color(0.23, 0.37, 0.45))
-	buildings.append({"node": root, "position": pos, "half": footprint * 0.5, "hits": 3, "destroyed": false, "hidden": 0, "name": title})
+	# A visible MeshInstance3D is not an obstacle. Physical collision must
+	# remain active until the building actually collapses.
+	var solid := StaticBody3D.new()
+	solid.collision_layer = 1
+	solid.collision_mask = 1
+	root.add_child(solid)
+	var blocker := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(footprint.x, height, footprint.y)
+	blocker.shape = shape
+	blocker.position.y = height * 0.5
+	solid.add_child(blocker)
+	buildings.append({
+		"node": root, "collider": solid, "position": pos,
+		"half": footprint * 0.5, "hits": hits, "destroyed": false,
+		"hidden": occupants, "base_occupants": occupants, "name": title,
+		"required_strength": required_strength, "breakthrough_strength": breakthrough_strength
+	})
+
 
 func _build_creature() -> void:
-	beast = Node3D.new()
+	beast = CharacterBody3D.new()
+	beast.collision_layer = 1
+	beast.collision_mask = 1
 	beast.position = Vector3(0, 0, 18)
 	add_child(beast)
+	# Upright capsule provides swept, orientation-independent wall collision.
+	# Its broad footprint protects the head and torso, including while sprinting.
+	beast_collision_shape = CapsuleShape3D.new()
+	var body_collision := CollisionShape3D.new()
+	body_collision.shape = beast_collision_shape
+	beast.add_child(body_collision)
+	_sync_beast_collision()
 	beast_visual = Node3D.new()
 	beast.add_child(beast_visual)
 	var green := Color(0.22, 0.42, 0.19)
@@ -207,6 +241,14 @@ func _build_creature() -> void:
 		tail_parent = segment
 	for z in [-0.9, -0.25, 0.42]:
 		_box(beast_visual, Vector3(0, 1.67, z), Vector3(0.18, 0.40, 0.25), Color(0.33, 0.51, 0.29))
+
+func _sync_beast_collision() -> void:
+	# Keep world-space collision sized to major growth milestones.
+	beast_collision_shape.radius = 1.85 * growth_scale
+	beast_collision_shape.height = 3.70 * growth_scale
+	var shape_node: CollisionShape3D = beast.get_child(0)
+	shape_node.position.y = 1.85 * growth_scale
+
 
 func _build_camera() -> void:
 	follow_camera = Camera3D.new()
@@ -357,6 +399,7 @@ func _physics_process(delta: float) -> void:
 		if regeneration > 0:
 			hp = minf(max_hp, hp + float(regeneration) * 0.6 * delta)
 	_update_police(delta)
+	_update_projectiles(delta)
 	_update_debris(delta)
 	if evolving and evolution_clock <= 0.0 and not game_over:
 		_finish_evolution()
@@ -397,17 +440,24 @@ func _update_movement(delta: float) -> void:
 		var next_pos := beast.global_position + direction * speed * delta
 		next_pos.x = clampf(next_pos.x, -70.0, 70.0)
 		next_pos.z = clampf(next_pos.z, -67.0, 26.0)
-		var building_idx := _blocking_building(next_pos)
-		if building_idx < 0:
-			beast.global_position = next_pos
-		elif strength > 0:
-			strike_timer -= delta
-			if strength >= 3:
-				_damage_building(building_idx, 3)
-				beast.global_position = next_pos
-			elif strike_timer <= 0.0:
-				_damage_building(building_idx, 1)
-				strike_timer = 0.70
+		# move_and_collide performs a swept physics test, including sprint frames.
+		# Sliding preserves responsive movement along the face of an obstacle.
+		var motion := next_pos - beast.global_position
+		var contact := beast.move_and_collide(motion)
+		if contact != null:
+			var index := _building_for_collider(contact.get_collider())
+			if index >= 0:
+				var building: Dictionary = buildings[index]
+				if strength >= int(building["required_strength"]):
+					strike_timer -= delta
+					if sprint_active and strength >= int(building["breakthrough_strength"]):
+						_damage_building(index, int(building["hits"]))
+					elif strike_timer <= 0.0:
+						_damage_building(index, 1)
+						strike_timer = 0.70
+			var slide := contact.get_remainder().slide(contact.get_normal())
+			if slide.length_squared() > 0.000001:
+				beast.move_and_collide(slide)
 		run_phase += delta * (18.0 if sprint_active else 11.0) * maxf(0.4, stick.length())
 	strike_timer = maxf(0.0, strike_timer - delta)
 	_update_creature_animation(delta, moving)
@@ -439,6 +489,13 @@ func _update_creature_animation(delta: float, moving: bool) -> void:
 			prey_in_mouth.queue_free()
 			prey_in_mouth = null
 
+func _building_for_collider(collider: Object) -> int:
+	for i in range(buildings.size()):
+		if not buildings[i]["destroyed"] and buildings[i]["collider"] == collider:
+			return i
+	return -1
+
+
 func _blocking_building(pos: Vector3) -> int:
 	for i in range(buildings.size()):
 		var b: Dictionary = buildings[i]
@@ -452,6 +509,8 @@ func _blocking_building(pos: Vector3) -> int:
 
 func _damage_building(index: int, hits: int) -> void:
 	var b: Dictionary = buildings[index]
+	if b["destroyed"]:
+		return
 	b["hits"] = int(b["hits"]) - hits
 	if b["hits"] <= 0:
 		b["destroyed"] = true
@@ -460,8 +519,18 @@ func _damage_building(index: int, hits: int) -> void:
 		root.queue_free()
 		_make_debris(source, 12)
 		alert += 17.0
+		# Everyone already inside, plus people who sheltered during the run,
+		# is released on collapse. Spawn outside the original footprint.
+		var half: Vector2 = b["half"]
 		for j in range(int(b["hidden"])):
-			_spawn_civilian(source + Vector3(randf_range(-9, 9), 0, randf_range(-9, 9)))
+			var side := j % 4
+			var spawn_offset := Vector3.ZERO
+			match side:
+				0: spawn_offset = Vector3(half.x + 2.0, 0, randf_range(-half.y, half.y))
+				1: spawn_offset = Vector3(-half.x - 2.0, 0, randf_range(-half.y, half.y))
+				2: spawn_offset = Vector3(randf_range(-half.x, half.x), 0, half.y + 2.0)
+				3: spawn_offset = Vector3(randf_range(-half.x, half.x), 0, -half.y - 2.0)
+			_spawn_civilian(source + spawn_offset)
 		b["hidden"] = 0
 		Input.vibrate_handheld(65)
 	buildings[index] = b
@@ -586,11 +655,71 @@ func _update_police(delta: float) -> void:
 		if distance < 21.0:
 			cop["cooldown"] = float(cop["cooldown"]) - delta
 			if cop["cooldown"] <= 0.0:
-				var hit_chance := 0.35 if sprint_active else (0.68 if touch_vector.length_squared() > 0.05 or Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down").length_squared() > 0.05 else 1.0)
-				if randf() <= hit_chance:
-					_take_damage(16.0 if cop["swat"] else 10.0)
+				# Every shot creates a real moving projectile. Aim error only
+				# changes its trajectory; damage happens on physical impact.
+				var origin := unit.global_position + Vector3(0, 1.55, 0)
+				var aim := beast.global_position + Vector3(0, 1.75 * growth_scale, 0)
+				var move_aim := sprint_active or touch_vector.length_squared() > 0.05 or Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down").length_squared() > 0.05
+				var spread := 2.15 if sprint_active else (1.1 if move_aim else 0.24)
+				aim += Vector3(randf_range(-spread, spread), randf_range(-spread * 0.45, spread * 0.45), randf_range(-spread, spread))
+				_spawn_projectile(origin, (aim - origin).normalized(), bool(cop["swat"]))
 				cop["cooldown"] = 1.3 if cop["swat"] else 2.0
 		officers[i] = cop
+
+func _spawn_projectile(origin: Vector3, direction: Vector3, heavy: bool) -> void:
+	# A bright tracer is part of the actual projectile, not a cosmetic hitscan.
+	# A strict cap prevents gunfire from overloading a low-end Android device.
+	if projectiles.size() >= MAX_PROJECTILES:
+		var expired: Dictionary = projectiles.pop_front()
+		var old_visual: Node3D = expired["node"]
+		old_visual.queue_free()
+	var tint := Color(1.0, 0.30, 0.12) if heavy else Color(1.0, 0.90, 0.25)
+	var travel := direction.normalized()
+	var root := Node3D.new()
+	root.position = origin
+	add_child(root)
+	root.look_at(origin + travel, Vector3.UP)
+	var streak := BoxMesh.new()
+	streak.size = Vector3(0.18, 0.18, 1.0) if heavy else Vector3(0.12, 0.12, 0.75)
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.albedo_color = tint
+	mat.emission_enabled = true
+	mat.emission = tint
+	streak.material = mat
+	var visual := MeshInstance3D.new()
+	visual.mesh = streak
+	visual.position.z = 0.40
+	root.add_child(visual)
+	projectiles.append({
+		"node": root, "velocity": travel * (43.0 if heavy else 36.0),
+		"damage": 16.0 if heavy else 10.0, "lifetime": 1.8
+	})
+
+
+func _update_projectiles(delta: float) -> void:
+	for i in range(projectiles.size() - 1, -1, -1):
+		var shot: Dictionary = projectiles[i]
+		var visual: Node3D = shot["node"]
+		var start: Vector3 = visual.global_position
+		var destination: Vector3 = start + Vector3(shot["velocity"]) * delta
+		var query := PhysicsRayQueryParameters3D.create(start, destination, 1)
+		var result := get_world_3d().direct_space_state.intersect_ray(query)
+		shot["lifetime"] = float(shot["lifetime"]) - delta
+		if not result.is_empty():
+			visual.global_position = result["position"]
+			if result["collider"] == beast:
+				_take_damage(float(shot["damage"]))
+			# Any intact building intercepts shots; no damage passes through.
+			visual.queue_free()
+			projectiles.remove_at(i)
+		elif shot["lifetime"] <= 0.0:
+			visual.queue_free()
+			projectiles.remove_at(i)
+		else:
+			visual.global_position = destination
+			projectiles[i] = shot
+
 
 func _take_damage(raw: float) -> void:
 	if game_over:
@@ -702,6 +831,7 @@ func _choose_mutation(id: String) -> void:
 	sprint_requested = false
 	if evolutions % 3 == 0:
 		growth_scale *= 1.25
+		_sync_beast_collision()
 	beast_visual.scale = Vector3.ONE * growth_scale
 	choice_open = false
 	modal.visible = false
