@@ -52,6 +52,11 @@ var evolving := false
 var evolution_clock := 0.0
 var evolution_damage := 0.0
 var choice_open := false
+var reveal_active := false
+var evolution_total := 6.0
+var evolution_history: Array[Dictionary] = []
+var shedding: EvolutionShedding
+var camera_celebration_clock := 0.0
 
 var civilians: Array[Dictionary] = []
 var officers: Array[Dictionary] = []
@@ -65,13 +70,20 @@ var evolve_button: Button
 var retry_button: Button
 var modal: CenterContainer
 var choice_column: VBoxContainer
+var evolution_progress: ProgressBar
+var reveal_input_layer: Control
+var reveal_hint: Label
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	Engine.max_fps = 60
 	randomize()
 	_build_lighting()
 	_build_beach()
 	_build_creature()
+	shedding = EvolutionShedding.new()
+	add_child(shedding)
+	shedding.reveal_finished.connect(_on_reveal_finished)
 	_build_camera()
 	_build_population()
 	_build_ui()
@@ -253,6 +265,14 @@ func _build_ui() -> void:
 	stats_label.add_theme_constant_override("shadow_offset_x", 2)
 	stats_label.add_theme_constant_override("shadow_offset_y", 2)
 	ui_layer.add_child(stats_label)
+	evolution_progress = ProgressBar.new()
+	evolution_progress.position = Vector2(18, 128)
+	evolution_progress.size = Vector2(238, 20)
+	evolution_progress.show_percentage = false
+	evolution_progress.min_value = 0
+	evolution_progress.max_value = 100
+	evolution_progress.visible = false
+	ui_layer.add_child(evolution_progress)
 	sprint_button = Button.new()
 	sprint_button.text = "SPRINT"
 	_place_right_button(sprint_button, -164, -83)
@@ -279,6 +299,27 @@ func _build_ui() -> void:
 	choice_column.add_theme_constant_override("separation", 9)
 	panel.add_child(choice_column)
 
+	# Full-screen interaction is present only during the safe, paused reveal.
+	reveal_input_layer = Control.new()
+	reveal_input_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	reveal_input_layer.mouse_filter = Control.MOUSE_FILTER_STOP
+	reveal_input_layer.visible = false
+	reveal_input_layer.gui_input.connect(_on_reveal_input)
+	ui_layer.add_child(reveal_input_layer)
+	reveal_hint = Label.new()
+	reveal_hint.text = "TAP TO BREAK FREE\nOR WATCH THE SKIN SHED"
+	reveal_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	reveal_hint.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	reveal_hint.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	reveal_hint.offset_top = 150
+	reveal_hint.offset_bottom = 224
+	reveal_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	reveal_hint.add_theme_font_size_override("font_size", 23)
+	reveal_hint.add_theme_color_override("font_shadow_color", Color.BLACK)
+	reveal_hint.add_theme_constant_override("shadow_offset_x", 2)
+	reveal_hint.add_theme_constant_override("shadow_offset_y", 2)
+	reveal_input_layer.add_child(reveal_hint)
+
 func _place_right_button(btn: Button, upper: int, lower: int) -> void:
 	btn.anchor_left = 1.0
 	btn.anchor_right = 1.0
@@ -303,7 +344,8 @@ func _cost() -> int:
 	return 55 + evolutions * 25
 
 func _physics_process(delta: float) -> void:
-	if game_over or choice_open:
+	# The root runs during pause for UI, but no enemies, damage or movement do.
+	if game_over or choice_open or reveal_active:
 		return
 	if evolving:
 		evolution_clock -= delta
@@ -562,10 +604,12 @@ func _take_damage(raw: float) -> void:
 		game_over = true
 		if evolving:
 			_reset_evolution_pose()
+			shedding.abort_shed()
 		evolving = false
 		retry_button.visible = true
 	elif evolving and evolution_damage >= 35.0:
 		_reset_evolution_pose()
+		shedding.abort_shed()
 		evolving = false
 		biomass = 0
 		evolution_damage = 0.0
@@ -579,6 +623,7 @@ func _update_evolution_animation(delta: float) -> void:
 	beast_visual.rotation.z = beat * 0.025
 	beast_visual.scale = Vector3.ONE * growth_scale * (1.0 + 0.018 * maxf(0.0, beat))
 	head_pivot.rotation.x = 0.07 * sin(evolution_visual_clock * 8.0)
+	shedding.update_shed_progress(1.0 - evolution_clock / maxf(0.01, evolution_total))
 
 func _reset_evolution_pose() -> void:
 	beast_visual.position = Vector3.ZERO
@@ -587,14 +632,16 @@ func _reset_evolution_pose() -> void:
 	head_pivot.rotation.x = 0.0
 
 func _start_evolution() -> void:
-	if game_over or evolving or choice_open or biomass < _cost():
+	if game_over or evolving or choice_open or reveal_active or biomass < _cost():
 		return
 	evolving = true
 	sprint_requested = false
 	sprint_active = false
 	evolution_damage = 0.0
 	evolution_visual_clock = 0.0
-	evolution_clock = 6.0 + float(evolutions) * 1.5
+	evolution_total = 6.0 + float(evolutions) * 1.5
+	evolution_clock = evolution_total
+	shedding.begin_shed(beast_visual)
 
 func _finish_evolution() -> void:
 	evolving = false
@@ -605,9 +652,14 @@ func _finish_evolution() -> void:
 	for child in choice_column.get_children():
 		child.queue_free()
 	var header := Label.new()
-	header.text = "EVOLUTION COMPLETE\nChoose ONE mutation"
+	header.text = "SKIN READY TO SHED\nChoose ONE mutation"
 	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	choice_column.add_child(header)
+	var history_label := Label.new()
+	history_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	history_label.add_theme_font_size_override("font_size", 14)
+	history_label.text = _evolution_history_summary()
+	choice_column.add_child(history_label)
 	var pool: Array[Dictionary] = [
 		{"id": "armour", "name": "Hardened Scales", "detail": "Reduce incoming damage"},
 		{"id": "speed", "name": "Fleet Limbs", "detail": "Run faster"},
@@ -641,6 +693,7 @@ func _choose_mutation(id: String) -> void:
 		"health": max_hp += 25.0
 		"regen": regeneration += 1
 	_apply_mutation_visual(id)
+	_record_evolution(id)
 	biomass = maxi(0, biomass - _cost())
 	evolutions += 1
 	hp = max_hp
@@ -652,8 +705,66 @@ func _choose_mutation(id: String) -> void:
 	beast_visual.scale = Vector3.ONE * growth_scale
 	choice_open = false
 	modal.visible = false
+	reveal_active = true
+	reveal_input_layer.visible = true
+	shedding.start_reveal()
+	# Remain paused until the new form is fully revealed.
+	touch_input.reset_input()
+
+func _evolution_label(id: String) -> String:
+	match id:
+		"armour": return "Hardened Scales"
+		"speed": return "Fleet Limbs"
+		"stamina": return "Endurance"
+		"jaw": return "Rapid Feeding"
+		"strength": return "Brutal Strength"
+		"health": return "Dense Flesh"
+		"regen": return "Regeneration"
+	return id
+
+
+func _record_evolution(id: String) -> void:
+	# Ordered entries deliberately retain the mutation ID and size milestone:
+	# these will form the nodes/edges of the future evolution tree or web.
+	evolution_history.append({
+		"step": evolutions + 1,
+		"mutation_id": id,
+		"label": _evolution_label(id),
+		"growth_milestone": int((evolutions + 1) / 3)
+	})
+
+
+func _evolution_history_summary() -> String:
+	if evolution_history.is_empty():
+		return "YOUR EVOLUTION PATH\nFirst adaptation"
+	var summary := "YOUR EVOLUTION PATH"
+	var start := maxi(0, evolution_history.size() - 4)
+	for i in range(start, evolution_history.size()):
+		var item: Dictionary = evolution_history[i]
+		summary += "\n%d  %s" % [int(item["step"]), String(item["label"])]
+	return summary
+
+
+func _on_reveal_input(event: InputEvent) -> void:
+	if not reveal_active:
+		return
+	if event is InputEventScreenTouch and event.pressed:
+		shedding.accelerate_reveal()
+		reveal_input_layer.accept_event()
+	elif event is InputEventMouseButton and event.pressed:
+		shedding.accelerate_reveal()
+		reveal_input_layer.accept_event()
+
+
+func _on_reveal_finished() -> void:
+	reveal_active = false
+	reveal_input_layer.visible = false
+	reveal_hint.text = "TAP TO BREAK FREE\nOR WATCH THE SKIN SHED"
+	camera_celebration_clock = 0.22
+	Input.vibrate_handheld(85)
 	get_tree().paused = false
 	touch_input.reset_input()
+
 
 func _apply_mutation_visual(id: String) -> void:
 	# Each chosen mutation adds a *small* persistent physical detail.
@@ -713,6 +824,10 @@ func _apply_mutation_visual(id: String) -> void:
 
 func _update_camera(delta: float) -> void:
 	var goal := beast.global_position + _camera_offset()
+	if camera_celebration_clock > 0.0:
+		camera_celebration_clock = maxf(0.0, camera_celebration_clock - delta)
+		goal.x += sin(camera_celebration_clock * 90.0) * camera_celebration_clock * 0.50
+		goal.z += cos(camera_celebration_clock * 75.0) * camera_celebration_clock * 0.35
 	follow_camera.global_position = follow_camera.global_position.lerp(goal, minf(1.0, 6.0 * delta))
 	follow_camera.look_at(beast.global_position + Vector3(0, 0, -2.8), Vector3.UP)
 
@@ -722,6 +837,9 @@ func _update_hud() -> void:
 		int(ceil(hp)), int(max_hp), biomass, _cost(), int(100.0 * stamina / max_stamina), evolutions, status
 	]
 	evolve_button.visible = not evolving and not game_over and biomass >= _cost()
+	evolution_progress.visible = evolving
+	if evolving:
+		evolution_progress.value = 100.0 * (1.0 - evolution_clock / maxf(0.01, evolution_total))
 	sprint_button.disabled = evolving or game_over or sprint_locked
 	if sprint_locked:
 		sprint_button.text = "RECHARGING\n%d%%" % int(100.0 * stamina / max_stamina)
@@ -735,7 +853,9 @@ func _update_hud() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_E:
+		if event.keycode == KEY_SPACE and reveal_active:
+			shedding.accelerate_reveal()
+		elif event.keycode == KEY_E:
 			_start_evolution()
 		elif event.keycode == KEY_SHIFT:
 			_toggle_sprint()
