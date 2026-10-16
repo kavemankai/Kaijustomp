@@ -88,3 +88,15 @@ Split the single scene script into player, civilian, response, world, evolution 
 - Police shoot actual simulated projectile entities. Yellow is a 10-damage ordinary round; orange-red is a 16-damage heavy/SWAT round. Shots have visible emissive streaks that move with each projectile; hits are resolved by a swept physics ray from old to new projectile position. A building intercepts shots, and a missed projectile deals no damage. Projectile count and lifetime are capped for Android.
 - Added `scripts/ci/test_beach_combat.gd` to the Android export gate, covering sprint collision, baseline occupants, rubble/civilian release, projectile hit and cover occlusion.
 - This iteration is **committed for CI verification**. Phone gameplay and frame pacing still require testing of the newly exported APK.
+
+## Creature visual polish — coloured-shape art direction (October 2026)
+
+The realistic-looking procedural anatomy test (`feature/creature-polish-pass-1`, PR #4) was **rejected after phone playtest**. It is not merged and must not become the visual baseline. The approved baseline is `feature/beach-demo-elevated-camera`: smooth movement, portrait camera, collision, sprint, bite, evolution, buildings, police.
+
+The new `feature/stylized-creature-colour-polish` branch implements the agreed **polished, stylised, coloured-shape** hero rather than pseudo-realism. It uses a sea-glass teal body, lighter turquoise muzzle and side markings, ivory belly/claws, coral back plates, wide expressive amber eyes, graphic mouth treatment, and a thick tapering tail. Each distinct colour reads from the 3/4 portrait mobile camera; small noise/textures are deliberately avoided.
+
+Implementation: `scripts/beach/StylizedCreatureArt.gd` builds independent visual components under the existing `beast_visual`, head, jaw, four leg pivots and three tail pivots. It has **no responsibility for collision, movement, input, enemy logic or camera**. `BeachDemo.gd` keeps the original CharacterBody3D and both tested shapes, with slight visual-only breathing, leg planting, idle head motion and tail sway. Mutations append colour-matched armour, claws, horns and muscle details instead of replacing the creature. The previously accepted evolution shedding and old-form remnant logic is unchanged.
+
+Verification: Godot headless `scripts/ci/test_stylized_creature.gd` must pass **alongside** existing evolution, combat and touch-sprint tests before Android export. The APK is published to an **isolated** `stylized-creature-preview` release; `mobile-preview-godot45` is not overwritten. CI confirms code/export correctness, not whether the artistic design passes the phone visual review. Do not merge until the visual is accepted.
+
+Next only after approval: evaluate creature sound/FX against the new style, then consider beach scene art. Do not replace working joystick, sprint, scale, street collision, town layout or threat behaviour during art feedback.
