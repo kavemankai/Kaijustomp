@@ -107,6 +107,17 @@ jobs:
             exit 1
           fi
 
+      - name: Verify evolution shedding before publishing APK
+        shell: bash
+        run: |
+          set -o pipefail
+          "$GODOT_BIN" --headless --path . --script res://scripts/ci/test_evolution.gd \
+            2>&1 | tee "$RUNNER_TEMP/evolution-test.log"
+          grep -q 'EVOLUTION TEST PASSED' "$RUNNER_TEMP/evolution-test.log"
+          if grep -E 'SCRIPT ERROR|Parse Error|EVOLUTION TEST FAILED|Invalid call|Invalid access' "$RUNNER_TEMP/evolution-test.log"; then
+            exit 1
+          fi
+
       - name: Export portrait Android debug APK
         shell: bash
         run: |
