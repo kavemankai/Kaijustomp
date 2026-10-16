@@ -1074,15 +1074,17 @@ func _finish_evolution() -> void:
 		{"id": "stamina", "name": "Endurance", "detail": "Larger sprint reserve"},
 		{"id": "jaw", "name": "Rapid Feeding", "detail": "Shorter feeding slowdown"},
 		{"id": "strength", "name": "Brutal Strength", "detail": "Damage buildings much faster"},
-		{"id": "health", "name": "Dense Flesh", "detail": "Increase maximum health"},
-		{"id": "cocoon", "name": "Reinforced Cocoon", "detail": "Protect yourself during evolution"},
-		{"id": "metamorphosis", "name": "Rapid Metamorphosis", "detail": "Shorten vulnerable evolution time"}
+		{"id": "health", "name": "Dense Flesh", "detail": "Increase maximum health"}
 	]
+	if evolutions >= 1:
+		pool.append({"id": "cocoon", "name": "Reinforced Cocoon", "detail": "Protect yourself during evolution"})
+		pool.append({"id": "metamorphosis", "name": "Rapid Metamorphosis", "detail": "Shorten vulnerable evolution time"})
 	if evolutions >= 2:
 		pool.append({"id": "regen", "name": "Regeneration", "detail": "Recover health over time"})
 	pool.shuffle()
 	var extra := maxi(0, int((biomass - _cost()) / 30.0))
-	var number_of_choices := mini(pool.size(), 3 + extra)
+	# Nine possible families, but never crowd the approved portrait choice UI.
+	var number_of_choices := mini(7, mini(pool.size(), 3 + extra))
 	for i in range(number_of_choices):
 		var mutation: Dictionary = pool[i]
 		var button := Button.new()
