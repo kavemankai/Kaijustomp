@@ -193,6 +193,14 @@ jobs:
           grep -q 'SUBURB EVOLUTION TEST PASSED' "$RUNNER_TEMP/suburb-evolution.log"
           if grep -E 'SCRIPT ERROR|Parse Error|TEST FAILED|Invalid call|Invalid access' "$RUNNER_TEMP/suburb-evolution.log"; then exit 1; fi
 
+      - name: Verify shopping streets, cars and debug free evolution
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --path . --script res://scripts/ci/test_shopping_cars_debug.gd 2>&1 | tee "$RUNNER_TEMP/shopping-cars-debug.log"
+          grep -q 'SHOPPING CARS DEBUG TEST PASSED' "$RUNNER_TEMP/shopping-cars-debug.log"
+          if grep -E 'SCRIPT ERROR|Parse Error|TEST FAILED|Invalid call|Invalid access' "$RUNNER_TEMP/shopping-cars-debug.log"; then exit 1; fi
+
       - name: Export portrait Android debug APK
         shell: bash
         run: |
@@ -215,6 +223,10 @@ jobs:
           if [ "$BUILD_BRANCH" = 'feature/cocoon-evolution-coastal-suburb' ]; then
             sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.suburbpreview"@' export_presets.cfg
             sed -i 's@^package/name=.*@package/name="Kaijustomp Suburb Preview"@' export_presets.cfg
+          fi
+          if [ "$BUILD_BRANCH" = 'feature/expanded-suburb-shops-cars-debug' ]; then
+            sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.shoppingpreview"@' export_presets.cfg
+            sed -i 's@^package/name=.*@package/name="Kaijustomp Shopping Preview"@' export_presets.cfg
           fi
           APK="Kaijustomp-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:7}-debug.apk"
           echo "APK_NAME=$APK" >> "$GITHUB_ENV"
@@ -258,6 +270,9 @@ jobs:
           fi
           if [ "$BUILD_BRANCH" = 'feature/cocoon-evolution-coastal-suburb' ]; then
             EXPECTED_PACKAGE='com.kavemankai.kaijustomp.suburbpreview'
+          fi
+          if [ "$BUILD_BRANCH" = 'feature/expanded-suburb-shops-cars-debug' ]; then
+            EXPECTED_PACKAGE='com.kavemankai.kaijustomp.shoppingpreview'
           fi
           grep -q "name='$EXPECTED_PACKAGE'" "$RUNNER_TEMP/apk-badging.txt"
           grep -q '^launchable-activity:' "$RUNNER_TEMP/apk-badging.txt"
@@ -376,6 +391,23 @@ jobs:
           ASSET_SIZE=$(gh release view "$TAG" --json assets --jq '.assets[] | select(.name == "Kaijustomp-growth-preview.apk") | .size')
           test "$LOCAL_SIZE" = "$ASSET_SIZE"
           echo "Preview APK: https://github.com/${GH_REPO}/releases/download/${TAG}/Kaijustomp-growth-preview.apk" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish immutable shopping district preview
+        if: github.ref == 'refs/heads/feature/expanded-suburb-shops-cars-debug' && github.event_name != 'pull_request'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG="shopping-cars-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:7}"
+          cat > "$RUNNER_TEMP/shopping-notes.md" <<EOF
+          Expanded Banksia Heights and shopping preview from ${GITHUB_SHA}: 12 new homes, 12 small shops, a supermarket and hardware store on connected streets, 16 physical cars (4 moving), impact demolition/debris and fleeing drivers. Debug-only DEBUG EVO button enables free, immediate mutation choice with normal skin reveal, history and fixed physical growth milestones. Approved beach, camera, joystick and mutation rules preserved. Installs separately as com.kavemankai.kaijustomp.shoppingpreview. On-phone performance, traffic feel and layout require testing.
+          EOF
+          gh release create "$TAG" "build/android/$APK_NAME" "build/android/$APK_NAME.sha256" --target "$GITHUB_SHA" --title "Kaijustomp shopping/cars ${GITHUB_RUN_NUMBER}" --notes-file "$RUNNER_TEMP/shopping-notes.md" --prerelease
+          LOCAL_SIZE=$(stat -c "%s" "build/android/$APK_NAME")
+          ASSET_SIZE=$(gh release view "$TAG" --json assets --jq ".assets[] | select(.name == \"$APK_NAME\") | .size")
+          test "$LOCAL_SIZE" = "$ASSET_SIZE"
 
       - name: Publish immutable suburb evolution preview
         if: github.ref == 'refs/heads/feature/cocoon-evolution-coastal-suburb' && github.event_name != 'pull_request'
