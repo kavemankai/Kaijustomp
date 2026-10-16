@@ -13,7 +13,9 @@ static func texture(id: String, tier: int) -> Texture2D:
 		"jaw":'<path d="M23 15Q32 23 41 15L39 24Q32 29 25 24Z"/>',
 		"strength":'<path d="M10 25L12 18L14 25L17 18L18 29ZM46 29L47 18L50 25L53 18L54 25Z"/>',
 		"health":'<path d="M24 28Q32 22 40 28L39 40Q32 44 25 40Z"/>',
-		"regen":'<circle cx="22" cy="44" r="3"/><circle cx="22" cy="51" r="2.5"/><circle cx="42" cy="44" r="3"/><circle cx="42" cy="51" r="2.5"/>'}
+		"regen":'<circle cx="22" cy="44" r="3"/><circle cx="22" cy="51" r="2.5"/><circle cx="42" cy="44" r="3"/><circle cx="42" cy="51" r="2.5"/>',
+		"cocoon":'<path d="M18 28Q32 18 46 28L43 49Q32 57 21 49Z"/><path d="M24 30L32 24L40 30L37 44L32 48L27 44Z" fill="#18343c"/>',
+		"metamorphosis":'<path d="M27 51L32 33L37 51L33 47L32 61Z"/><path d="M20 43L25 25L30 42ZM35 42L40 25L45 43Z"/>'}
 	var svg := '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="80" viewBox="0 0 64 80"><rect width="64" height="80" rx="10" fill="#18343c"/><g fill="#61998c"><path d="M27 50Q34 57 30 73Q39 63 37 49Z"/><ellipse cx="32" cy="38" rx="12" ry="19"/><path d="M22 12Q32 5 42 12L40 24Q32 28 24 24Z"/><path d="M23 28L13 24L10 30L22 36ZM41 28L51 24L54 30L42 36ZM22 44L13 50L14 55L26 50ZM42 44L51 50L50 55L38 50Z"/></g><g fill="#efb778">%s</g>' % marks.get(id,"")
 	for i in range(3):
 		svg += '<circle cx="%d" cy="76" r="2" fill="%s"/>'%[25+i*7,"#efb778" if i<mini(tier,3) else "#446465"]
