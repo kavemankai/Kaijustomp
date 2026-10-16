@@ -16,7 +16,7 @@ func _run_test() -> void:
 	if packed == null:
 		_fail("Could not load the beach scene")
 		return
-	var demo: Node3D = packed.instantiate()
+	var demo: Variant = packed.instantiate()
 	root.add_child(demo)
 	await process_frame
 	demo.biomass = 80
