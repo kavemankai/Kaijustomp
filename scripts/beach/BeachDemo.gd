@@ -26,6 +26,10 @@ var leg_pivots: Array[Node3D] = []
 var tail_pivots: Array[Node3D] = []
 var creature_rig: Dictionary = {}
 var creature_idle_clock := 0.0
+var growth_stage := 0
+var upright_form := false
+var torso_pivot: Node3D
+var body_art_anchor: Node3D
 var prey_in_mouth: Node3D
 var growth_scale := 1.0
 var evolution_visual_clock := 0.0
@@ -266,6 +270,23 @@ func _build_creature() -> void:
 		tail_parent = segment
 	# No new collision objects or extra gameplay behaviours: only hero artwork.
 	creature_rig = StylizedCreatureArt.build(beast_visual, head_pivot, jaw, leg_pivots, tail_pivots)
+	# An independent upper-body joint lets the major level-22 evolution raise
+	# the shoulders, head and front limbs into an upright stance. At 0 degrees
+	# it is exactly the established quadruped rig.
+	torso_pivot = Node3D.new()
+	torso_pivot.name = "MajorFormPosture"
+	torso_pivot.position = Vector3(0, 0.95, 0.75)
+	beast_visual.add_child(torso_pivot)
+	body_art_anchor = Node3D.new()
+	body_art_anchor.name = "BodyArtSpace"
+	body_art_anchor.position = -torso_pivot.position
+	torso_pivot.add_child(body_art_anchor)
+	var chest: Node3D = creature_rig.get("breathing")
+	if is_instance_valid(chest):
+		chest.reparent(body_art_anchor, true)
+	head_pivot.reparent(body_art_anchor, true)
+	leg_pivots[0].reparent(body_art_anchor, true)
+	leg_pivots[2].reparent(body_art_anchor, true)
 
 func _sync_beast_collision() -> void:
 	# Keep world-space collision sized to major growth milestones.
@@ -285,13 +306,21 @@ func _build_camera() -> void:
 	follow_camera.far = 230.0
 	follow_camera.current = true
 	follow_camera.global_position = beast.global_position + _camera_offset()
-	follow_camera.look_at(beast.global_position + Vector3(0, 0, -2.8), Vector3.UP)
+	follow_camera.look_at(_camera_look_target(), Vector3.UP)
 
 func _camera_offset() -> Vector3:
 	# Keep the approved view angle. Pull back in portrait so targets remain
 	# visible on the narrower screen without changing movement orientation.
 	var viewport_size := get_viewport().get_visible_rect().size
-	return CAMERA_OFFSET * (PORTRAIT_CAMERA_DISTANCE if viewport_size.y > viewport_size.x else 1.0)
+	# Scale only the distance, not the established portrait chase angle.
+	return CAMERA_OFFSET * (PORTRAIT_CAMERA_DISTANCE if viewport_size.y > viewport_size.x else 1.0) * maxf(1.0, growth_scale)
+
+func _camera_look_target() -> Vector3:
+	# Bigger and upright forms remain framed with the exact original camera
+	# angle and control mapping at hatchling size.
+	var vertical := (growth_scale - 1.0) * 0.65 + (growth_scale * 0.75 if upright_form else 0.0)
+	return beast.global_position + Vector3(0, vertical, -2.8 * maxf(1.0, growth_scale))
+
 
 func _build_population() -> void:
 	for i in range(22):
@@ -488,11 +517,20 @@ func _update_movement(delta: float) -> void:
 
 func _update_creature_animation(delta: float, moving: bool) -> void:
 	creature_idle_clock += delta
+	# A discrete anatomical transition at level 22, not a continuous stretch.
+	# Front limbs become elevated forelimbs; rear limbs keep ground contact.
+	if is_instance_valid(torso_pivot):
+		torso_pivot.rotation.x = lerpf(torso_pivot.rotation.x,
+			1.05 if upright_form else 0.0, minf(1.0, 3.5 * delta))
 	var gait_amplitude := (0.74 if sprint_active else 0.45) if moving else 0.0
 	for i in range(leg_pivots.size()):
 		var phase := run_phase + (0.0 if i == 0 or i == 3 else PI)
 		var limb := leg_pivots[i]
-		limb.rotation.x = lerpf(limb.rotation.x, sin(phase) * gait_amplitude, minf(1.0, 15.0 * delta))
+		var is_front := i == 0 or i == 2
+		var animation_swing := sin(phase) * gait_amplitude * (0.38 if upright_form and is_front else 1.0)
+		limb.rotation.x = lerpf(limb.rotation.x,
+			animation_swing + (-0.25 if upright_form and is_front else 0.0),
+			minf(1.0, 15.0 * delta))
 		# A tiny plant/recovery sway adds weight without changing locomotion.
 		limb.rotation.z = lerpf(limb.rotation.z,
 			0.035 * sin(phase + 0.4) if moving else 0.0, minf(1.0, 9.0 * delta))
@@ -514,7 +552,12 @@ func _update_creature_animation(delta: float, moving: bool) -> void:
 	var snap := sin(progress * PI) if bite_timer > 0.0 else 0.0
 	head_pivot.position.z = -1.22 - 0.67 * snap
 	# Keep existing moving head hitbox in sync with the feeding lunge.
-	head_collision_node.position.z = (-2.20 - 0.67 * snap) * growth_scale
+	if upright_form:
+		# Position the same head hit shape at the raised snout, using the real
+		# visual transform after skeletal pose and bite extension.
+		head_collision_node.position = beast.to_local(head_pivot.to_global(Vector3(0, -0.16, -1.11)))
+	else:
+		head_collision_node.position.z = (-2.20 - 0.67 * snap) * growth_scale
 	head_pivot.rotation.x = -0.13 * snap + (0.025 * sin(creature_idle_clock * 0.95) if not moving and bite_timer <= 0.0 else 0.0)
 	head_pivot.rotation.y = 0.025 * sin(creature_idle_clock * 0.70) if not moving else 0.0
 	jaw.rotation.x = -0.85 * maxf(0.0, sin(progress * PI)) if bite_timer > 0.0 else 0.0
@@ -888,9 +931,7 @@ func _choose_mutation(id: String) -> void:
 	stamina = max_stamina
 	sprint_locked = false
 	sprint_requested = false
-	if evolutions % 3 == 0:
-		growth_scale *= 1.25
-		_sync_beast_collision()
+	_apply_growth_milestone(evolutions)
 	beast_visual.scale = Vector3.ONE * growth_scale
 	choice_open = false
 	modal.visible = false
@@ -899,6 +940,17 @@ func _choose_mutation(id: String) -> void:
 	shedding.start_reveal()
 	# Remain paused until the new form is fully revealed.
 	touch_input.reset_input()
+
+func _apply_growth_milestone(level: int) -> void:
+	# Mutations are continuous. Size only changes at 5/10/16/22/28/34,
+	# then every six later evolutions. Keep progression deterministic.
+	if not GrowthProgression.is_growth_step(level):
+		return
+	growth_stage = GrowthProgression.stage_for(level)
+	growth_scale = GrowthProgression.target_scale(level)
+	upright_form = GrowthProgression.upright_for(level)
+	_sync_beast_collision()
+
 
 func _evolution_label(id: String) -> String:
 	match id:
@@ -919,7 +971,9 @@ func _record_evolution(id: String) -> void:
 		"step": evolutions + 1,
 		"mutation_id": id,
 		"label": _evolution_label(id),
-		"growth_milestone": int((evolutions + 1) / 3)
+		"growth_milestone": GrowthProgression.stage_for(evolutions + 1),
+		"size_changed": GrowthProgression.is_growth_step(evolutions + 1),
+		"form": GrowthProgression.form_name(evolutions + 1)
 	})
 
 
@@ -959,7 +1013,7 @@ func _apply_mutation_visual(id: String) -> void:
 	# Colour-consistent cumulative enhancements retain the approved mutation IDs.
 	var stage := int(mutation_visual_counts.get(id, 0))
 	mutation_visual_counts[id] = stage + 1
-	StylizedCreatureArt.add_mutation(beast_visual, head_pivot, leg_pivots, id, stage)
+	StylizedCreatureArt.add_mutation(body_art_anchor, head_pivot, leg_pivots, id, stage)
 
 func _update_camera(delta: float) -> void:
 	var goal := beast.global_position + _camera_offset()
@@ -968,7 +1022,7 @@ func _update_camera(delta: float) -> void:
 		goal.x += sin(camera_celebration_clock * 90.0) * camera_celebration_clock * 0.50
 		goal.z += cos(camera_celebration_clock * 75.0) * camera_celebration_clock * 0.35
 	follow_camera.global_position = follow_camera.global_position.lerp(goal, minf(1.0, 6.0 * delta))
-	follow_camera.look_at(beast.global_position + Vector3(0, 0, -2.8), Vector3.UP)
+	follow_camera.look_at(_camera_look_target(), Vector3.UP)
 
 func _update_hud() -> void:
 	var status := "EVOLVING %.1fs  |  DAMAGE %.0f/35" % [evolution_clock, evolution_damage] if evolving else ("GAME OVER" if game_over else "Hunt / feed / escape / evolve")
