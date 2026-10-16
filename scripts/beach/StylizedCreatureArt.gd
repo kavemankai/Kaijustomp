@@ -117,7 +117,7 @@ static func _plate(parent: Node3D, pos: Vector3, size: Vector3, tint: Color) -> 
 	var surface := SurfaceTool.new()
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
 	for i in range(5):
-		for index in [i, 5, (i + 1) % 5]:
+		for index in [i, (i + 1) % 5, 5]:
 			surface.add_vertex(points[index] * size)
 	surface.generate_normals()
 	var node := MeshInstance3D.new()

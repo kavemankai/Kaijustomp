@@ -26,6 +26,15 @@ func triangle_count(node: Node) -> int:
 	return count
 
 func run() -> void:
+	# Open plates must face outwards under Godot's clockwise front-face rule.
+	var plate_holder := Node3D.new()
+	root.add_child(plate_holder)
+	StylizedCreatureArt._plate(plate_holder,Vector3.ZERO,Vector3.ONE,Color.WHITE)
+	var plate: MeshInstance3D = plate_holder.get_child(0)
+	var normals: PackedVector3Array = plate.mesh.surface_get_arrays(0)[Mesh.ARRAY_NORMAL]
+	for normal in normals:
+		if not check(normal.y > 0,"Mutation plate is inside-out and invisible from above"): return
+	plate_holder.free()
 	var demo = load("res://scenes/BeachDemo.tscn").instantiate()
 	root.add_child(demo)
 	demo.set_physics_process(false)
