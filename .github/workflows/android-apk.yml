@@ -167,9 +167,9 @@ jobs:
         run: |
           set -euo pipefail
           cp "build/android/$APK_NAME" "build/android/Kaijustomp-latest.apk"
-          RELEASE_TAG="mobile-preview"
-          RELEASE_TITLE="Kaijustomp — latest Android test build"
-          RELEASE_NOTES="Latest Android debug APK from branch ${GITHUB_REF_NAME}, commit ${GITHUB_SHA}, run ${GITHUB_RUN_NUMBER}. Download Kaijustomp-latest.apk directly on Android; confirm its installation. This preview release uses a stable download tag, not the current commit as the source tag. If using per-run debug signing, an older installation might need uninstalling first."
+          RELEASE_TAG="mobile-preview-godot45"
+          RELEASE_TITLE="Kaijustomp — Android 16 KB compatible preview (Godot 4.5)"
+          RELEASE_NOTES="Godot 4.5 rebuild with automated 16 KiB native alignment verification. Latest Android debug APK from branch ${GITHUB_REF_NAME}, commit ${GITHUB_SHA}, run ${GITHUB_RUN_NUMBER}. Download Kaijustomp-latest.apk directly on Android; confirm its installation. This preview release uses a stable download tag, not the current commit as the source tag. If using per-run debug signing, an older installation might need uninstalling first."
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             gh release upload "$RELEASE_TAG" "build/android/Kaijustomp-latest.apk" --clobber
             gh release edit "$RELEASE_TAG" --title "$RELEASE_TITLE" --notes "$RELEASE_NOTES" --prerelease
