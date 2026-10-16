@@ -38,14 +38,22 @@ func _run_test() -> void:
 		_fail("Touching SPRINT did not enable the sprint state")
 		return
 	demo.touch_vector = Vector2(0, -1)
+	var start := demo.beast.global_position
 	var stamina_before: float = demo.stamina
 	demo._update_movement(0.12)
+	var sprint_distance := demo.beast.global_position.distance_to(start)
 	if not demo.sprint_active or demo.stamina >= stamina_before:
-		_fail("Sprint input did not increase movement speed and consume stamina")
+		_fail("Sprint input did not activate and consume stamina")
 		return
 	demo._input(tap)
 	if demo.sprint_requested:
 		_fail("Tapping SPRINT again did not turn it off")
+		return
+	demo.beast.global_position = start
+	demo._update_movement(0.12)
+	var walk_distance := demo.beast.global_position.distance_to(start)
+	if walk_distance < 0.01 or sprint_distance <= walk_distance * 1.9:
+		_fail("Touch sprint movement must be substantially faster than walking")
 		return
 	demo.touch_vector = Vector2.ZERO
 	# The head collision must cover the idle snout and extended bite pose.
