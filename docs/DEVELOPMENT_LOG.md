@@ -22,7 +22,7 @@ Official Godot `4.5.stable.official.876b29033` on Windows. Approved baseline imp
 
 Candidate imports and passes five tests: evolution, combat, stylised composition, growth milestones and growth gameplay. Actual OpenGL Compatibility renders inspected at levels 0, 6, 16, 22 and 46 at 540×960. Before fix, L22 snout forward had y≈0.86 (skyward) and L46 distance≈269 exceeded far=230. After fix, L22 forward is nearly horizontal and L46 fits an expanded far plane. Desktop screenshot checks are not phone visual approval.
 
-Android build/signature/package/alignment and exact source/run will be recorded after GitHub Actions completes. Local editor reports Android SDK build-tools unavailable; Android export uses the repository's matched Godot 4.5/SDK35 GitHub runner instead of the locally installed Godot 4.6. No connected phone has been tested.
+Local editor reports Android SDK build-tools unavailable; Android export uses the repository's matched Godot 4.5/SDK35 GitHub runner instead of the locally installed Godot 4.6. No connected phone has been tested.
 
 ### Measured shed-rendering follow-up
 
@@ -30,9 +30,15 @@ The first published candidate (Android build 83, source `e0a07ae`) passed both p
 
 `test_evolution.gd` now checks that the baked mesh retains the old form's complete vertex count, live palette colours remain unchanged, and the static remnant fades and expires. Reproduce draw-call/memory inspection using `godot --path . --script res://scripts/ci/profile_shed_rendering.gd` with a real renderer; headless results are not useful for this probe. A new candidate rebuild follows this measured optimisation.
 
+### Final candidate verification
+
+Published Android **85**, source `afb0c7ee8508f5331b5220fa6868679355f58672`, [Actions success](https://github.com/kavemankai/Kaijustomp/actions/runs/38907095501), [immutable release](https://github.com/kavemankai/Kaijustomp/releases/tag/creature-evolution-85-afb0c7e). PR Android run 86 and both full smoke runs 73/74 also pass. Signed v2/v3 ARM64 APK, package `com.kavemankai.kaijustomp.creaturepreview`, version code 85, 27,759,053 bytes. Published download independently passes ZIP CRC, required game-resource and native ELF alignment checks; SHA256 matches CI/GitHub asset digest: `139fda738b4b16e81ace7dfb37447de304fb475dc9f8585dce739291fc8702ab`.
+
+All implementation changes are committed and pushed. PR #7 stays draft; #5/#6 stay draft and unmerged. Stable release digest remains preserved. Final handover/test report and downloaded APK are copied to the user-facing outputs directory. Subsequent final verification documentation changes do not alter APK code. No Android installation/performance or player visual approval is claimed.
+
 ### Next actions
 
-1. Complete candidate Actions run; inspect every required check and download/verify the published APK against its checksum.
+1. Completed: inspected green candidate Actions checks and independently verified published APK/checksum.
 2. Phone install and natural L0–6 playtest beside the preserved approved app; judge responsiveness, visible mutations and one growth event.
 3. Judge L22 silhouette/stance/feeding from the actual portrait camera. Refine production gait only with feedback; no automatic draft merge.
 4. Profile Android frame pacing, memory and five-shed stress before claiming performance parity. Extreme size and finite beach boundaries remain a known limit.
