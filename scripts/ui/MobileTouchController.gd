@@ -19,6 +19,13 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_PASS
 
+func reset_input() -> void:
+	joystick_active = false
+	joystick_touch_index = -1
+	current_output = Vector2.ZERO
+	right_touch_time = 0.0
+	movement_vector_updated.emit(Vector2.ZERO)
+
 func _process(delta: float) -> void:
 	if right_touch_time > 0.0:
 		right_touch_time += delta

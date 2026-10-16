@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode blend_mix, cull_back, depth_draw_opaque, vertex_lighting;
+render_mode blend_mix, cull_disabled, depth_draw_opaque, vertex_lighting;
 
 uniform sampler2D albedo_tex : source_color, filter_nearest;
 uniform vec4 base_color : source_color = vec4(1.0);
