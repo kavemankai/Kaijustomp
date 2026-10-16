@@ -22,6 +22,8 @@ var shed_remnants: Array[Dictionary] = []
 var reveal_progress := 0.0
 var revealing := false
 var shards_spawned := false
+var aborting := false
+var abort_clock := 0.0
 var base_shell_scale := Vector3.ONE
 
 
@@ -36,6 +38,7 @@ func begin_shed(source: Node3D) -> void:
 	current_shell = null
 	original_visual = source
 	revealing = false
+	aborting = false
 	reveal_progress = 0.0
 	shards_spawned = false
 	active_shards.clear()
@@ -109,17 +112,15 @@ func update_shed_progress(progress: float) -> void:
 
 
 func abort_shed() -> void:
-	# Failure leaves no completed shed and does not alter older mutations.
+	# Short darkening/collapse effect marks a failed evolution. No shed is
+	# retained, and existing mutations/size are unaffected.
 	revealing = false
-	if is_instance_valid(current_shell):
-		current_shell.queue_free()
-	current_shell = null
-	shell_materials.clear()
-	original_colours.clear()
-	cracks.clear()
-	active_shards.clear()
+	aborting = is_instance_valid(current_shell)
+	abort_clock = 0.42
 	if is_instance_valid(original_visual):
 		original_visual.visible = true
+	for mark in cracks:
+		mark.visible = false
 
 
 func start_reveal() -> void:
@@ -144,7 +145,25 @@ func _process(delta: float) -> void:
 		_animate_reveal(delta)
 		if reveal_progress >= 1.0:
 			_complete_reveal()
-	elif not get_tree().paused:
+	elif aborting:
+		abort_clock = maxf(0.0, abort_clock - delta)
+		var fade := abort_clock / 0.42
+		if is_instance_valid(current_shell):
+			current_shell.scale = base_shell_scale * Vector3(1.0, fade, 1.0)
+			for material in shell_materials:
+				var colour := PALE_SKIN.darkened(0.63)
+				colour.a = fade * 0.85
+				material.albedo_color = colour
+		if abort_clock <= 0.0:
+			aborting = false
+			if is_instance_valid(current_shell):
+				current_shell.queue_free()
+			current_shell = null
+			shell_materials.clear()
+			original_colours.clear()
+			cracks.clear()
+			active_shards.clear()
+	if not get_tree().paused:
 		_age_remnants(delta)
 
 
@@ -156,7 +175,7 @@ func _animate_reveal(delta: float) -> void:
 	var p := reveal_progress
 	for i in range(shell_materials.size()):
 		var new_col := original_colours[i].lerp(PALE_SKIN, 0.96)
-		new_col.a = maxf(0.20, 1.0 - p * 0.8)
+		new_col.a = maxf(0.62, 1.0 - p * 0.38)
 		shell_materials[i].albedo_color = new_col
 	if is_instance_valid(current_shell):
 		current_shell.scale = base_shell_scale * Vector3(1.0 + p * 0.08, 1.0 - p * 0.68, 1.0 + p * 0.06)
@@ -241,6 +260,6 @@ func _age_remnants(delta: float) -> void:
 			for material in record["materials"]:
 				var mat: StandardMaterial3D = material
 				var colour := mat.albedo_color
-				colour.a = minf(colour.a, fade * 0.20)
+				colour.a = minf(colour.a, fade * 0.62)
 				mat.albedo_color = colour
 		shed_remnants[i] = record
