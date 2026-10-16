@@ -147,6 +147,17 @@ jobs:
             exit 1
           fi
 
+      - name: Verify sparse growth milestones and upright body transition
+        shell: bash
+        run: |
+          set -o pipefail
+          "$GODOT_BIN" --headless --path . --script res://scripts/ci/test_growth_milestones.gd \
+            2>&1 | tee "$RUNNER_TEMP/growth-test.log"
+          grep -q 'GROWTH TEST PASSED' "$RUNNER_TEMP/growth-test.log"
+          if grep -E 'SCRIPT ERROR|Parse Error|GROWTH TEST FAILED|Invalid call|Invalid access' "$RUNNER_TEMP/growth-test.log"; then
+            exit 1
+          fi
+
       - name: Export portrait Android debug APK
         shell: bash
         run: |
@@ -250,3 +261,27 @@ jobs:
           ASSET_SIZE=$(gh release view "$TAG" --json assets --jq '.assets[] | select(.name == "Kaijustomp-stylized-creature.apk") | .size')
           test "$LOCAL_SIZE" = "$ASSET_SIZE"
           echo "Phone APK: https://github.com/${GH_REPO}/releases/download/${TAG}/Kaijustomp-stylized-creature.apk" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish isolated staged-evolution preview APK
+        if: github.ref == 'refs/heads/feature/evolution-growth-milestones'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG="evolution-growth-preview"
+          cp "build/android/$APK_NAME" "build/android/Kaijustomp-growth-preview.apk"
+          NOTES="Growth pacing preview from commit ${GITHUB_SHA}, run ${GITHUB_RUN_NUMBER}: first size milestone L5, then L10/16, upright form at L22, further size growth L28/34 and every six. Regular mutations unchanged. Separate from approved beach APK and stylized creature preview. Build automated tests do not substitute for mobile gameplay/visual review."
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "build/android/Kaijustomp-growth-preview.apk" --clobber
+            gh release edit "$TAG" --title "Kaijustomp — Staged Growth Preview" --notes "$NOTES" --prerelease
+          else
+            gh release create "$TAG" "build/android/Kaijustomp-growth-preview.apk" \
+              --target "$GITHUB_SHA" --title "Kaijustomp — Staged Growth Preview" \
+              --notes "$NOTES" --prerelease
+          fi
+          LOCAL_SIZE=$(stat -c "%s" "build/android/Kaijustomp-growth-preview.apk")
+          ASSET_SIZE=$(gh release view "$TAG" --json assets --jq '.assets[] | select(.name == "Kaijustomp-growth-preview.apk") | .size')
+          test "$LOCAL_SIZE" = "$ASSET_SIZE"
+          echo "Preview APK: https://github.com/${GH_REPO}/releases/download/${TAG}/Kaijustomp-growth-preview.apk" >> "$GITHUB_STEP_SUMMARY"
