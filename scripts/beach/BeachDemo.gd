@@ -66,7 +66,8 @@ var evolution_damage := 0.0
 var choice_open := false
 var reveal_active := false
 var evolution_total := 6.0
-const NEIGHBOURHOOD_FAR_Z := -232.0
+const NEIGHBOURHOOD_FAR_Z := -512.0
+const SHOPPING_DISTRICT_Z := -320.0
 var evolution_history: Array[Dictionary] = []
 var shedding: EvolutionShedding
 var camera_celebration_clock := 0.0
@@ -76,6 +77,8 @@ var officers: Array[Dictionary] = []
 var buildings: Array[Dictionary] = []
 var debris: Array[Dictionary] = []
 var projectiles: Array[Dictionary] = []
+var cars: Array[Dictionary] = []
+const MAX_CARS := 20
 const MAX_PROJECTILES := 72
 # Seven coastal districts give roughly eight times the original 140-unit beach.
 const COAST_HALF_LENGTH := 560.0
@@ -90,6 +93,7 @@ var stats_label: Label
 var sprint_button: Button
 var evolve_button: Button
 var retry_button: Button
+var debug_evolve_button: Button
 var modal_shade: ColorRect
 var modal: CenterContainer
 var choice_column: VBoxContainer
@@ -108,6 +112,7 @@ func _ready() -> void:
 	randomize()
 	_build_lighting()
 	_build_beach()
+	_build_cars()
 	_build_creature()
 	shedding = EvolutionShedding.new()
 	add_child(shedding)
@@ -201,6 +206,25 @@ func _build_beach() -> void:
 			var colour := Color("e4c8a6") if (column + row) % 3 == 0 else (Color("cfdfcd") if (column + row) % 3 == 1 else Color("d3d5df"))
 			_add_building(at, Vector2(13, 12), 4.1 + float((column + row) % 2) * 0.6, colour,
 				"Coastal home", 2 if row < 2 else 3, 5 if row < 2 else 6, 4 if row < 2 else 5, 4 + (column + row) % 3)
+	# Expand further inland with two new residential streets. Keep the original
+	# 54 structures and their indices untouched for gameplay/tests.
+	for row in range(2):
+		for column in range(6):
+			var at := Vector3(-90.0 + float(column) * 36.0, 0, -243.0 - float(row) * 44.0)
+			var colour := Color("e2d9bf") if (column + row) % 2 == 0 else Color("c0d6d1")
+			_add_building(at, Vector2(13, 12), 4.3, colour, "Coastal home", 3, 6, 5, 5)
+	# Connected main-street shopping: 12 small premises and two bigger stores.
+	var businesses := ["Bakery", "Chemist", "Fish & Chips", "Bookshop", "Greengrocer", "Takeaway",
+		"Coffee Bar", "Surf Outlet", "Florist", "Newsagent", "Corner Mart", "Pet Shop"]
+	for row in range(2):
+		for column in range(6):
+			var at := Vector3(-105.0 + float(column) * 42.0, 0, -352.0 - float(row) * 52.0)
+			var name: String = businesses[row * 6 + column]
+			_add_building(at, Vector2(18, 15), 5.6, Color("d9c3a2"), name, 3, 7, 5, 5)
+	for side in [-1.0, 1.0]:
+		var at := Vector3(side * 75.0, 0, -468.0)
+		_add_building(at, Vector2(31, 22), 7.5, Color("becbc3"),
+			"Supermarket" if side < 0 else "Hardware Store", 4, 11, 6, 12)
 
 func _add_building(pos: Vector3, footprint: Vector2, height: float, col: Color, title: String, required_strength: int, hits: int, breakthrough_strength: int, occupants: int) -> void:
 	var root := Node3D.new()
@@ -208,6 +232,10 @@ func _add_building(pos: Vector3, footprint: Vector2, height: float, col: Color, 
 	add_child(root)
 	if title == "Coastal home":
 		CoastalArt.home(root, footprint, height, col)
+	elif title in ["Bakery", "Chemist", "Fish & Chips", "Bookshop", "Greengrocer", "Takeaway",
+		"Coffee Bar", "Surf Outlet", "Florist", "Newsagent", "Corner Mart", "Pet Shop",
+		"Supermarket", "Hardware Store"]:
+		CoastalArt.shop(root, footprint, height, title)
 	else:
 		CoastalArt.building(root, footprint, height, title)
 	# A visible MeshInstance3D is not an obstacle. Physical collision must
@@ -391,7 +419,7 @@ func _maintain_population(delta: float) -> void:
 		attempts += 1
 		var min_distance := maxf(42.0, growth_scale * 36.0)
 		var side := -1.0 if randi_range(0, 1) == 0 else 1.0
-		var spawn_z := randf_range(-211.0, -91.0) if beast.global_position.z < -82.0 else randf_range(-13.0, 17.0)
+		var spawn_z := clampf(beast.global_position.z + randf_range(-68.0, 68.0), NEIGHBOURHOOD_FAR_Z + 14.0, -91.0) if beast.global_position.z < -82.0 else randf_range(-13.0, 17.0)
 		var pos := Vector3(beast.global_position.x + side * randf_range(min_distance, min_distance + 48.0), 0, spawn_z)
 		if beast.global_position.z < -82.0:
 			pos.x = beast.global_position.x + randf_range(-70.0, 70.0)
@@ -490,6 +518,13 @@ func _build_ui() -> void:
 	_place_right_button(retry_button, -342, -263)
 	retry_button.visible = false
 	retry_button.pressed.connect(func() -> void: get_tree().reload_current_scene())
+	# Developer-only test shortcut. Shares the former restart slot while alive.
+	debug_evolve_button = Button.new()
+	debug_evolve_button.text = "DEBUG\nEVO"
+	_place_right_button(debug_evolve_button, -342, -263)
+	debug_evolve_button.visible = OS.has_feature("debug")
+	debug_evolve_button.pressed.connect(_debug_evolve)
+	debug_evolve_button.focus_mode = Control.FOCUS_NONE
 	modal_shade = ColorRect.new()
 	modal_shade.color = Color(.04,.10,.12,.58)
 	modal_shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -554,6 +589,20 @@ func _toggle_sprint() -> void:
 func _cost() -> int:
 	return 55 + evolutions * 25
 
+
+func _debug_evolve() -> void:
+	# Available only in test/debug builds. This starts a free evolution without
+	# changing regular feeding costs, then skips the dangerous countdown so
+	# testers can inspect growth/mutations rapidly. Choice and skin reveal stay
+	# intact, with no queued double-evolution during pause.
+	if not OS.has_feature("debug") or game_over or evolving or choice_open or reveal_active:
+		return
+	biomass = maxi(biomass, _cost())
+	_start_evolution()
+	if evolving:
+		_finish_evolution()
+
+
 func _physics_process(delta: float) -> void:
 	# The root runs during pause for UI, but no enemies, damage or movement do.
 	if reveal_active:
@@ -568,6 +617,7 @@ func _physics_process(delta: float) -> void:
 		_update_movement(delta)
 		_update_biting(delta)
 		_update_civilians(delta)
+		_update_cars(delta)
 		_maintain_population(delta)
 		if regeneration > 0:
 			hp = minf(max_hp, hp + float(regeneration) * 0.6 * delta)
@@ -622,6 +672,10 @@ func _update_movement(delta: float) -> void:
 			var index := _building_for_collider(contact.get_collider())
 			if index >= 0:
 				_attack_building(index, sprint_active)
+			else:
+				var car_index := _car_for_collider(contact.get_collider())
+				if car_index >= 0:
+					_attack_car(car_index, sprint_active)
 			var slide := contact.get_remainder().slide(contact.get_normal())
 			if slide.length_squared() > 0.000001:
 				beast.move_and_collide(slide)
@@ -1258,7 +1312,11 @@ func _update_hud() -> void:
 	stats_label.text = "HP %d/%d    BIOMASS %d/%d\nSTAMINA %d%%    EVOLUTIONS %d\n%s" % [
 		int(ceil(hp)), int(max_hp), biomass, _cost(), int(100.0 * stamina / max_stamina), evolutions, status
 	]
-	coastal_hud.update_state(hp, max_hp, stamina, max_stamina, biomass, _cost(), evolutions, status if evolving or game_over else ("COASTAL NEIGHBOURHOOD" if beast.global_position.z < -82.0 else ("COASTAL KAIJU" if upright_form else "COASTAL HATCHLING")))
+	var district_name := "SHOPPING DISTRICT" if beast.global_position.z < SHOPPING_DISTRICT_Z else ("COASTAL NEIGHBOURHOOD" if beast.global_position.z < -82.0 else ("COASTAL KAIJU" if upright_form else "COASTAL HATCHLING"))
+	coastal_hud.update_state(hp, max_hp, stamina, max_stamina, biomass, _cost(), evolutions, status if evolving or game_over else district_name)
+	if is_instance_valid(debug_evolve_button):
+		debug_evolve_button.visible = OS.has_feature("debug") and not game_over
+		debug_evolve_button.disabled = evolving or choice_open or reveal_active
 	evolve_button.visible = not evolving and not game_over and biomass >= _cost()
 	evolution_progress.visible = evolving
 	if evolving:
@@ -1282,6 +1340,9 @@ func _input(event: InputEvent) -> void:
 		if sprint_button.get_global_rect().has_point(event.position):
 			_toggle_sprint()
 			get_viewport().set_input_as_handled()
+		elif is_instance_valid(debug_evolve_button) and debug_evolve_button.visible and debug_evolve_button.get_global_rect().has_point(event.position):
+			_debug_evolve()
+			get_viewport().set_input_as_handled()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -1290,6 +1351,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			shedding.accelerate_reveal()
 		elif event.keycode == KEY_E:
 			_start_evolution()
+		elif event.keycode == KEY_F6:
+			_debug_evolve()
 		elif event.keycode == KEY_SHIFT:
 			_toggle_sprint()
 		elif event.keycode == KEY_R and game_over:
