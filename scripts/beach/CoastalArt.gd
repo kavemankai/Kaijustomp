@@ -187,7 +187,7 @@ static func scenery(parent: Node3D, coast_half_length: float = 70.0) -> void:
 	# Swimming flags identify this coast without a tropical-palm shorthand.
 	for district in range(-3, 4):
 		for local_x in [-17.0, 19.0]:
-			var x := float(district) * 150.0 + local_x
+			var x: float = float(district) * 150.0 + float(local_x)
 			var flag := Node3D.new()
 			parent.add_child(flag)
 			box(flag,Vector3(x,1.7,24),Vector3(.07,3.4,.07),CREAM)
@@ -195,7 +195,7 @@ static func scenery(parent: Node3D, coast_half_length: float = 70.0) -> void:
 			box(flag,Vector3(x+.48,2.55,24),Vector3(.96,.45,.035),Color("efc66c"))
 			merge(flag)
 		for local_x in [-62.0,-33.0,34.0,63.0]:
-			var x := float(district) * 150.0 + local_x
+			var x: float = float(district) * 150.0 + float(local_x)
 			if absf(x) >= coast_half_length - 3.0:
 				continue
 			var tree := Node3D.new()
