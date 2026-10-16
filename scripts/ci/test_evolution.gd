@@ -57,7 +57,7 @@ func _run_test() -> void:
 	if not demo.evolving:
 		_fail("Second evolution could not start")
 		return
-	demo._take_damage(40.0)
+	demo._take_damage(50.0)
 	if demo.evolving or demo.biomass != 0 or demo.armour != 1:
 		_fail("Failed evolution must lose all stored biomass, preserving mutations")
 		return
