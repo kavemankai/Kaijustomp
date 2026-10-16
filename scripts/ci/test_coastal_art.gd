@@ -15,7 +15,7 @@ func run() -> void:
 	root.add_child(demo)
 	demo.set_physics_process(false)
 	await process_frame
-	if not check(demo.buildings.size() == 6,"Art changed the playable building set"): return
+	if not check(demo.buildings.size() == 36,"Extended coastal districts or original buildings are missing"): return
 	for building in demo.buildings:
 		var node: Node3D = building["node"]
 		if not check(node.get_node_or_null("Architecture") != null,"Building missing combined artwork"): return
@@ -47,5 +47,5 @@ func run() -> void:
 				if not check(child.icon != null and bounds.encloses(child.get_global_rect()),"Mutation preview missing or card clipped"): return
 		if not check(cards == 7,"Seven-choice stress case was not exercised"): return
 	paused = false
-	print("COASTAL ART TEST PASSED: original buildings, batched cracks, bounded reusable effects, anatomical cards, 9:16 and 20:9 layout")
+	print("COASTAL ART TEST PASSED: extended buildings, batched cracks, bounded reusable effects, anatomical cards, 9:16 and 20:9 layout")
 	quit()

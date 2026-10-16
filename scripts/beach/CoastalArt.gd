@@ -137,30 +137,31 @@ static func building(root: Node3D, footprint: Vector2, height: float, title: Str
 	sign.outline_size = 0
 	root.add_child(sign)
 
-static func scenery(parent: Node3D) -> void:
+static func scenery(parent: Node3D, coast_half_length: float = 70.0) -> void:
 	# Fixed seed: art placement never consumes gameplay random choices.
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 79123
 	var land := Node3D.new()
 	land.name = "CoastalHorizon"
 	parent.add_child(land)
-	box(land,Vector3(0,-.50,-120),Vector3(700,.40,200),Color("94a18a"))
-	box(land,Vector3(0,-.36,170),Vector3(900,.42,300),Color("4f9da7"))
-	box(land,Vector3(-190,-.3,-24),Vector3(220,.5,100),Color("d9c79e"))
-	box(land,Vector3(190,-.3,-24),Vector3(220,.5,100),Color("d9c79e"))
-	# Shoreline bands and broad wet sand; no dense noisy ground texture.
-	box(land,Vector3(0,-.035,26),Vector3(600,.025,9),Color("c2bc9c"))
-	box(land,Vector3(0,-.03,32),Vector3(600,.025,5),Color("8ab9b4"))
+	var shoreline_width := coast_half_length * 2.0 + 300.0
+	box(land,Vector3(0,-.50,-120),Vector3(shoreline_width + 400.0,.40,200),Color("94a18a"))
+	box(land,Vector3(0,-.36,170),Vector3(shoreline_width + 400.0,.42,300),Color("4f9da7"))
+	box(land,Vector3(-coast_half_length-120.0,-.3,-24),Vector3(260,.5,100),Color("d9c79e"))
+	box(land,Vector3(coast_half_length+120.0,-.3,-24),Vector3(260,.5,100),Color("d9c79e"))
+	# One continuous shore and surf line along every coastal district.
+	box(land,Vector3(0,-.035,26),Vector3(shoreline_width,.025,9),Color("c2bc9c"))
+	box(land,Vector3(0,-.03,32),Vector3(shoreline_width,.025,5),Color("8ab9b4"))
 	for i in range(4):
-		box(land,Vector3(0,-.015,33+i*6),Vector3(600,.02,.18),Color("d0e5d5"))
-	for x in [-94.0,100.0]:
+		box(land,Vector3(0,-.015,33+i*6),Vector3(shoreline_width,.02,.18),Color("d0e5d5"))
+	for x in [-coast_half_length - 35.0, coast_half_length + 35.0]:
 		_headland(land,Vector3(x,-.05,-45))
 	merge(land)
-	for chunk_index in range(6):
+	for chunk_index in range(ceili(coast_half_length * 2.0 / 23.0)):
 		var chunk := Node3D.new()
 		chunk.name = "BeachCluster%d" % chunk_index
 		parent.add_child(chunk)
-		var x := -59.0+chunk_index*23.0
+		var x := -coast_half_length + 12.0 + chunk_index * 23.0
 		# Dune clusters and access fences outside the central hunt area.
 		for j in range(7):
 			var at := Vector3(x+rng.randf_range(-5,5),.10,20+rng.randf_range(-1,3))
@@ -184,26 +185,31 @@ static func scenery(parent: Node3D) -> void:
 			box(chunk,Vector3(x,.015,10.8),Vector3(1.5,.03,2.3),Color("c17d62"))
 		merge(chunk)
 	# Swimming flags identify this coast without a tropical-palm shorthand.
-	for x in [-17.0,19.0]:
-		var flag := Node3D.new()
-		parent.add_child(flag)
-		box(flag,Vector3(x,1.7,24),Vector3(.07,3.4,.07),CREAM)
-		box(flag,Vector3(x+.48,3.0,24),Vector3(.96,.45,.035),Color("d3674e"))
-		box(flag,Vector3(x+.48,2.55,24),Vector3(.96,.45,.035),Color("efc66c"))
-		merge(flag)
-	for x in [-62.0,-33.0,34.0,63.0]:
-		var tree := Node3D.new()
-		parent.add_child(tree)
-		box(tree,Vector3(x,3.6,-61),Vector3(.40,7.2,.40),Color("9b8970"))
-		for tier in range(5):
-			var mesh := CylinderMesh.new()
-			mesh.top_radius = .10
-			mesh.bottom_radius = 2.2-tier*.35
-			mesh.height = 2.2
-			mesh.radial_segments = 7
-			var crown := box(tree,Vector3(x,3.1+tier*1.05,-61),Vector3.ONE,Color("668777").lightened(tier*.025))
-			crown.mesh = mesh
-		merge(tree)
+	for district in range(-3, 4):
+		for local_x in [-17.0, 19.0]:
+			var x: float = float(district) * 150.0 + float(local_x)
+			var flag := Node3D.new()
+			parent.add_child(flag)
+			box(flag,Vector3(x,1.7,24),Vector3(.07,3.4,.07),CREAM)
+			box(flag,Vector3(x+.48,3.0,24),Vector3(.96,.45,.035),Color("d3674e"))
+			box(flag,Vector3(x+.48,2.55,24),Vector3(.96,.45,.035),Color("efc66c"))
+			merge(flag)
+		for local_x in [-62.0,-33.0,34.0,63.0]:
+			var x: float = float(district) * 150.0 + float(local_x)
+			if absf(x) >= coast_half_length - 3.0:
+				continue
+			var tree := Node3D.new()
+			parent.add_child(tree)
+			box(tree,Vector3(x,3.6,-61),Vector3(.40,7.2,.40),Color("9b8970"))
+			for tier in range(5):
+				var mesh := CylinderMesh.new()
+				mesh.top_radius = .10
+				mesh.bottom_radius = 2.2-tier*.35
+				mesh.height = 2.2
+				mesh.radial_segments = 7
+				var crown := box(tree,Vector3(x,3.1+tier*1.05,-61),Vector3.ONE,Color("668777").lightened(tier*.025))
+				crown.mesh = mesh
+			merge(tree)
 
 static func _headland(parent: Node3D, origin: Vector3) -> void:
 	var points := PackedVector3Array()

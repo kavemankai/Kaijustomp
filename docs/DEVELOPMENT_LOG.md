@@ -1,5 +1,10 @@
 # Development log
 
+## 2026-10-17 — longer beach and sustainable prey candidate
+
+Player approved the coastal art preview but ran out of people and room. On isolated `feature/extended-coast-population`, extend the horizontal game space from approximately 140 to 1,096 playable units within a continuous 1,120-unit coastline; preserve the six original buildings and add 30 destructible destinations across six new districts. Add bounded nearby crowd replenishment, local shelters and police response so exploration no longer strands prey or threats in the original centre. Preserve camera, touch controls, sprint and mutation/gameplay baseline. Introduce a new long-beach headless regression, full CI gate, and independently installable Android package and immutable preview release. See [LONG_BEACH.md](LONG_BEACH.md). This entry documents the candidate, not physical-device acceptance; the CI outcome must be checked before shipping.
+
+
 ## 2026-10-16 — creature/evolution takeover candidate
 
 Source: PR #6 `457d228`, including draft stylised PR #5. Approved baseline retained at `0f82ff9` (Godot 4.5 Android run 56 / mobile-preview-godot45). PR #4 remains rejected. Repository branches, all PRs, workflows, releases, source/tests and development history inspected through Git and GitHub API. Both current drafts had green CI before this work; no drafts merged.
