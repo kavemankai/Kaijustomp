@@ -2,7 +2,17 @@
 
 The beach prototype has a **Godot 4.3 Android debug APK** workflow for regular phone tests. It preserves the 9:16 portrait gameplay, camera, touch controls, and evolution work on the feature branch.
 
-## Download the latest APK
+## Direct installation from your phone
+
+**One-link download:** [Kaijustomp latest Android APK](https://github.com/kavemankai/Kaijustomp/releases/download/mobile-preview/Kaijustomp-latest.apk)
+
+This static URL downloads the latest successfully published APK **once the GitHub Actions build has completed successfully**. It is an APK file (not a ZIP). Tap the link on an Android phone, open the downloaded APK and confirm **Install**. The first time, Android may prompt you to allow installation from your browser or Files app under *Install unknown apps*. No webpage can bypass that Android security confirmation.
+
+If the link currently reports 404, the first preview release has not been published successfully yet. Open [Android debug APK Actions](https://github.com/kavemankai/Kaijustomp/actions/workflows/android-apk.yml), inspect the newest run and resolve its failure. The permanent release URL is not evidence that the APK already exists.
+
+**Updates:** The test APK uses per-run generated debug signing certificates until the optional stable test-signing key is configured below. Without the stable key, new versions can require uninstalling the old one, which may remove local saves. A shared test key is recommended if you want repeatable install-over-install updates.
+
+## Download the latest APK from build history
 
 1. Open [Android debug APK Actions](https://github.com/kavemankai/Kaijustomp/actions/workflows/android-apk.yml).
 2. Select the newest **successful (green)** workflow run for the branch `feature/beach-demo-elevated-camera`. A workflow run can take several minutes because it downloads Godot and Android tooling.
@@ -14,7 +24,7 @@ If the workflow is **red**, open the failed job's logs; there is no verified APK
 
 ## When it builds again
 
-The workflow automatically runs on **every branch that contains this workflow**, including `feature/beach-demo-elevated-camera` and future branches, and on tags beginning with `v` (e.g. `v0.1.1`). Failed game builds do not upload an APK; see their Actions logs for the cause.
+The workflow automatically runs on **every branch that contains this workflow**, including `feature/beach-demo-elevated-camera` and future branches, and on tags beginning with `v` (e.g. `v0.1.1`). After an APK passes export and signature checks, builds triggered from a branch also update the permanent `mobile-preview` GitHub release asset. Tagged builds still generate dated CI artifacts; the permanent link is for branch previews. Failed builds do not replace the last successful APK; see Actions logs for the cause.
 
 It can also be started manually using GitHub Actions → **Android debug APK** → **Run workflow** when GitHub exposes manual dispatch for the branch. Artifacts are retained for **30 days**, after which they can be regenerated from the source by starting another run.
 
@@ -39,6 +49,7 @@ Do not commit a keystore, signing passwords, or Android credentials. The project
 - It downloads the official Godot **4.3-stable** editor and **matching export templates**.
 - It imports the project headlessly, checks for GDScript parse errors, exports the `Android` debug preset from `export_presets.cfg`, and verifies the resulting APK with `apksigner` and Android package tools.
 - An APK is uploaded as a build artifact only if export and verification succeed.
+- Branch builds then publish the APK unchanged under the reusable name `Kaijustomp-latest.apk` at the `mobile-preview` GitHub prerelease. `GH_TOKEN` comes from the workflow's built-in GitHub token, using `contents: write` permission. No third-party storage account is needed.
 
 Source files:
 - `export_presets.cfg` — shared Android export options, kept in Git.
