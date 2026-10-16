@@ -143,17 +143,21 @@ static func neighbourhood(parent: Node3D) -> void:
 	var town := Node3D.new()
 	town.name = "CoastalNeighbourhood"
 	parent.add_child(town)
-	box(town,Vector3(0,-.34,-159),Vector3(270,.50,178),Color("a6ad86"))
+	box(town,Vector3(0,-.34,-290),Vector3(280,.50,452),Color("a6ad86"))
 	# Long access road from beach into the neighbourhood, then cross streets.
-	box(town,Vector3(0,-.057,-149),Vector3(13,.09,162),Color("626f71"))
-	for crossing in [-131.0,-175.0]:
-		box(town,Vector3(0,-.05,crossing),Vector3(230,.08,12),Color("626f71"))
+	box(town,Vector3(0,-.057,-290),Vector3(13,.09,420),Color("626f71"))
+	for crossing in [-131.0, -175.0, -263.0, -307.0, -377.0, -431.0, -493.0]:
+		box(town,Vector3(0,-.05,crossing),Vector3(236,.08,12),Color("626f71"))
+	# Shopping lots and short access aprons give the next zone a broader shape.
+	for x in [-71.0, 71.0]:
+		for z in [-354.0, -406.0, -464.0]:
+			box(town,Vector3(x,-.022,z),Vector3(38,.04,19),Color("c7c4b5"))
 	# Restrained paths and regularly spaced road markings.
 	for x in [-8.0,8.0]:
-		box(town,Vector3(x,.005,-153),Vector3(2.0,.05,154),Color("d7d1be"))
-	for z in range(-214,-77,14):
+		box(town,Vector3(x,.005,-289),Vector3(2.0,.05,415),Color("d7d1be"))
+	for z in range(-498,-77,14):
 		box(town,Vector3(0,.011,float(z)),Vector3(.30,.018,5),Color("e8dfbd"))
-	for crossing in [-131.0,-175.0]:
+	for crossing in [-131.0, -175.0, -263.0, -307.0, -377.0, -431.0, -493.0]:
 		for x in range(-108,109,16):
 			box(town,Vector3(float(x),.009,crossing),Vector3(5,.018,.26),Color("e8dfbd"))
 	merge(town,"NeighbourhoodRoads")
@@ -189,6 +193,55 @@ static func home(root: Node3D, footprint: Vector2, height: float, colour: Color)
 	box(root,Vector3(0,.16,d*.5-.20),Vector3(3.8,.24,2.3),Color("c8bdab"))
 	merge(root,"Architecture")
 	shadow(root,Vector2(w+1.6,d+1.6),Vector3(.15,.005,.25))
+
+# The same compact geometry/palette grammar as the coast, but commercial
+# frontages have readable signage, glazing and striped awnings.
+static func shop(root: Node3D, footprint: Vector2, height: float, title: String) -> void:
+	var w := footprint.x
+	var d := footprint.y
+	var wall := Color("e5cfb0") if title in ["Bakery","Fish & Chips","Coffee Bar"] else Color("c4d3cd")
+	box(root,Vector3(0,height*.5,0),Vector3(w,height,d),wall)
+	box(root,Vector3(0,height+.14,0),Vector3(w+.35,.28,d+.35),Color("648384"))
+	box(root,Vector3(0,height-.7,d*.5+.05),Vector3(w*.95,1.24,.15),INK)
+	for i in range(3):
+		var x := (float(i)-1.0)*w*.28
+		box(root,Vector3(x,2.0,d*.5+.12),Vector3(w*.225,2.65,.12),CREAM)
+		box(root,Vector3(x,2.0,d*.5+.19),Vector3(w*.205,2.40,.06),Color("6c9ca7"))
+	box(root,Vector3(0,1.13,d*.5+.25),Vector3(1.5,2.24,.08),INK)
+	var awning := box(root,Vector3(0,height*.70,d*.5+.5),Vector3(w*.88,.15,1.3),Color("cc886c"))
+	awning.rotation.x = -.10
+	for n in range(7):
+		box(root,Vector3((float(n)-3.0)*w*.11,height*.7+.07,d*.5+1.0),Vector3(w*.055,.025,.15),CREAM)
+	merge(root,"Architecture")
+	shadow(root,Vector2(w+1.4,d+1.4),Vector3(0,.005,0))
+	var sign := Label3D.new()
+	sign.name = "ShopSign"
+	sign.text = title.to_upper()
+	sign.font_size = 52
+	sign.pixel_size = .01 if w <= 20.0 else .014
+	sign.position = Vector3(0,height-.68,d*.5+.18)
+	sign.modulate = CREAM
+	sign.outline_size = 0
+	root.add_child(sign)
+
+
+static func car(root: Node3D, paint: Color) -> void:
+	# Four wheels, a strong low silhouette, windscreen and paired lights.
+	# All opaque parts are collapsed to one vertex-coloured renderer.
+	box(root,Vector3(0,.73,0),Vector3(2.12,.74,4.45),paint)
+	box(root,Vector3(0,1.32,.35),Vector3(1.78,.68,2.55),paint.lightened(.10))
+	box(root,Vector3(0,1.40,-.62),Vector3(1.68,.48,.12),Color("6b97a3"))
+	box(root,Vector3(0,1.40,1.43),Vector3(1.68,.40,.12),Color("6b97a3"))
+	for side in [-1.0,1.0]:
+		for z in [-1.45,1.45]:
+			box(root,Vector3(side*1.05,.43,z),Vector3(.35,.67,.86),INK)
+		for z in [-.55,.68]:
+			box(root,Vector3(side*.93,1.34,z),Vector3(.055,.42,.80),Color("6b97a3"))
+		box(root,Vector3(side*.71,.79,-2.24),Vector3(.42,.22,.09),Color("f8e8c1"))
+		box(root,Vector3(side*.71,.79,2.24),Vector3(.42,.22,.09),Color("c76d5f"))
+	merge(root,"CarBody")
+	shadow(root,Vector2(2.9,5.3),Vector3(0,.005,0))
+
 
 static func scenery(parent: Node3D, coast_half_length: float = 70.0) -> void:
 	# Fixed seed: art placement never consumes gameplay random choices.
