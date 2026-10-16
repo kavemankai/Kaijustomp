@@ -10,6 +10,15 @@ func _fail(message: String) -> void:
 	paused = false
 	quit(1)
 
+func _vertices(node: Node) -> int:
+	var total := 0
+	if node is MeshInstance3D:
+		for surface in range(node.mesh.get_surface_count()):
+			total += node.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX].size()
+	for child in node.get_children():
+		total += _vertices(child)
+	return total
+
 
 func _run_test() -> void:
 	var packed: PackedScene = load("res://scenes/BeachDemo.tscn")
@@ -19,6 +28,9 @@ func _run_test() -> void:
 	var demo: Variant = packed.instantiate()
 	root.add_child(demo)
 	await process_frame
+	var old_vertices := _vertices(demo.beast_visual)
+	var body: MeshInstance3D = demo.beast_visual.find_child("MainTealBody", true, false)
+	var body_colour: Color = body.material_override.albedo_color
 	demo.biomass = 80
 	demo._start_evolution()
 	if not demo.evolving or demo.shedding.current_shell == null:
@@ -52,6 +64,14 @@ func _run_test() -> void:
 	if demo.shedding.shed_remnants.size() != 1:
 		_fail("Completed evolution must leave behind one old skin")
 		return
+	var remnant: Node3D = demo.shedding.shed_remnants[0]["node"]
+	var baked: MeshInstance3D = remnant.get_node_or_null("BakedSkin")
+	if baked == null or _vertices(baked) != old_vertices:
+		_fail("Static remnant bake lost prior creature geometry")
+		return
+	if body.material_override.albedo_color != body_colour:
+		_fail("Shared live palette changed while shedding")
+		return
 	demo.biomass = 90
 	demo._start_evolution()
 	if not demo.evolving:
@@ -64,5 +84,14 @@ func _run_test() -> void:
 	if demo.shedding.shed_remnants.size() != 1:
 		_fail("Failed evolution must not add a permanent shed")
 		return
-	print("EVOLUTION TEST PASSED: old-form snapshot, choice pause, tap reveal, history, carryover, failed evolution")
+	demo.shedding.shed_remnants[0]["age"] = 37.0
+	demo.shedding._age_remnants(0.0)
+	if baked.material_override.albedo_color.a >= 0.62:
+		_fail("Baked remnant did not fade")
+		return
+	demo.shedding._age_remnants(4.0)
+	if not demo.shedding.shed_remnants.is_empty():
+		_fail("Baked remnant exceeded its lifetime")
+		return
+	print("EVOLUTION TEST PASSED: old-form snapshot, choice pause, tap reveal, history, carryover, failed evolution, full-geometry bake and fade")
 	quit(0)

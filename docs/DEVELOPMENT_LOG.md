@@ -24,6 +24,12 @@ Candidate imports and passes five tests: evolution, combat, stylised composition
 
 Android build/signature/package/alignment and exact source/run will be recorded after GitHub Actions completes. Local editor reports Android SDK build-tools unavailable; Android export uses the repository's matched Godot 4.5/SDK35 GitHub runner instead of the locally installed Godot 4.6. No connected phone has been tested.
 
+### Measured shed-rendering follow-up
+
+The first published candidate (Android build 83, source `e0a07ae`) passed both push and PR workflows, including signature/package/native alignment. A subsequent desktop stress probe found ~163 scene draw calls without skins versus 708 with five skins. Finished remnants now bake the complete old geometry into one pale surface while cracks/fragments remain separate. On the same RTX 3050 Compatibility setup the resulting five-skin scene used ~286 draw calls (roughly 60% fewer than 708) and static engine memory ~43.96 MiB versus ~48.35 MiB before baking. These small desktop probes are not Android FPS, GPU memory or sustained frame-time measurements; procedural world randomness can change base counts slightly. Construction still has a one-off cost and must be profiled on device.
+
+`test_evolution.gd` now checks that the baked mesh retains the old form's complete vertex count, live palette colours remain unchanged, and the static remnant fades and expires. Reproduce draw-call/memory inspection using `godot --path . --script res://scripts/ci/profile_shed_rendering.gd` with a real renderer; headless results are not useful for this probe. A new candidate rebuild follows this measured optimisation.
+
 ### Next actions
 
 1. Complete candidate Actions run; inspect every required check and download/verify the published APK against its checksum.
