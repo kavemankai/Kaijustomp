@@ -1,6 +1,6 @@
 # Android APK builds — Kaijustomp
 
-The beach prototype has a **Godot 4.3 Android debug APK** workflow for regular phone tests. It preserves the 9:16 portrait gameplay, camera, touch controls, and evolution work on the feature branch.
+The beach prototype has a **Godot 4.5 Android debug APK** workflow for regular phone tests. It preserves the 9:16 portrait gameplay, camera, touch controls, and evolution work on the feature branch.
 
 ## Direct installation from your phone
 
@@ -14,7 +14,7 @@ If the link currently reports 404, the first preview release has not been publis
 
 ## If the downloaded APK is tiny or won't install
 
-**Do not try installing a file that is only a few KB.** It may be an error page or failed download saved with an `.apk` filename rather than an Android application. Godot 4.3's native runtime ordinarily makes a real installable APK many megabytes.
+**Do not try installing a file that is only a few KB.** It may be an error page or failed download saved with an `.apk` filename rather than an Android application. Godot's native runtime ordinarily makes a real installable APK many megabytes.
 
 1. Check Android **Files → Downloads → file details**. An APK from this pipeline must now be at least **12 MB** or the build is rejected automatically.
 2. In GitHub Actions, open the latest **successful** `Android debug APK` workflow run. If there is no green successful run, the permanent release URL should not be trusted yet.
@@ -22,7 +22,7 @@ If the link currently reports 404, the first preview release has not been publis
 4. If the APK is larger than 12 MB but Android says **App not installed**, an older APK signed with a different debug key may already be installed. Back up any save data before uninstalling the old build. Then retry.
 5. If Android refuses to open the package, try opening it from **Files**, and allow **Install unknown apps** for Files or your browser if prompted. Do not turn off Play Protect or other device security.
 
-The workflow now refuses to publish exports smaller than 12 MB, checks the ZIP contents (Android manifest, DEX and ARM64 engine library), verifies the Android signature and launcher package, and confirms that GitHub saved the complete asset. These checks do not replace a real-device install test.
+The workflow now refuses to publish exports smaller than 12 MB, checks the ZIP contents (Android manifest, DEX and ARM64 engine library), checks all ARM64 engine libraries for **16 KiB memory-page alignment**, verifies the Android signature and launcher package, and confirms that GitHub saved the complete asset. These checks do not replace a real-device install test.
 
 ## Download the latest APK from build history
 
@@ -57,9 +57,9 @@ Do not commit a keystore, signing passwords, or Android credentials. The project
 
 ## How builds work
 
-- GitHub Actions uses Ubuntu, JDK 17 and Android SDK platform/build tools 34.
-- It downloads the official Godot **4.3-stable** editor and **matching export templates**.
-- It imports the project headlessly, checks for GDScript parse errors, exports the `Android` debug preset from `export_presets.cfg`, and verifies the resulting APK with `apksigner` and Android package tools.
+- GitHub Actions uses Ubuntu, JDK 17 and Android SDK platform/build tools 35.
+- It downloads the official Godot **4.5-stable** editor and **matching export templates**.
+- It imports the project headlessly, checks for GDScript parse errors, exports the `Android` debug preset from `export_presets.cfg`, verifies **16 KiB ELF alignment** of every ARM64 native library, and verifies the resulting APK with `apksigner` and Android package tools.
 - An APK is uploaded as a build artifact only if export and verification succeed.
 - Branch builds then publish the APK unchanged under the reusable name `Kaijustomp-latest.apk` at the `mobile-preview` GitHub prerelease. `GH_TOKEN` comes from the workflow's built-in GitHub token, using `contents: write` permission. No third-party storage account is needed.
 
@@ -72,3 +72,15 @@ Source files:
 ## Before distributing a finished game
 
 Create a separate production release process using a dedicated private release signing key and an **Android App Bundle (AAB)** for Google Play. Do not treat these debug APKs as production releases.
+
+## Android 16 / 16 KiB compatibility diagnosis (2026-10-16)
+
+The uploaded phone-test file `Kaijustomp-latest (1).apk` was inspected directly. Its ZIP archive was intact, **24,221,281 bytes** (23.10 MiB), contained an Android manifest, DEX bytecode, Godot 4.3 engine libraries and debug signing. The manifest showed package `com.kavemankai.kaijustomp`, version `0.1.8-debug`, `minSdkVersion=21`, `targetSdkVersion=34`, portrait orientation and the ARM64 architecture. No corruption was detected.
+
+**Confirmed defect:** both `lib/arm64-v8a/libgodot_android.so` and `lib/arm64-v8a/libc++_shared.so` contain ELF `PT_LOAD` segments aligned at `0x1000` (4 KiB). This does **not** satisfy 16 KiB native page alignment required on 16 KiB page-size Android devices, and can prevent installation or launch on those devices. This is a known Godot 4.3 Android-export limitation resolved in Godot 4.5.
+
+**Pipeline change:** use Godot 4.5 editor **and matching Android export templates**, SDK 35, and the pure-Python `scripts/ci/verify_android_16k.py` check before publishing the APK. The existing 24.2 MB file is **not** repaired; it must be rebuilt using the new workflow. A successful pipeline proves build structure and native alignment but is not equivalent to an on-device installation test.
+
+**Another possible installer issue:** CI makes a fresh debug signing certificate per run unless `KAIJUSTOMP_DEBUG_KEYSTORE_BASE64` is configured. Android refuses an in-place update to an APK with the same package name but a different signing certificate. Preserve save data before uninstalling an older build, and set the stable test-signing secret for future updates.
+
+If installation still fails, record Android's **exact error message** (e.g. `App not installed`, `Package appears invalid`, or a permissions/installer prompt), whether an older Kaijustomp app is already present, and whether the device is in 16 KiB page-size mode.
