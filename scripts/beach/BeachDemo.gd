@@ -233,7 +233,7 @@ func _build_cars() -> void:
 	var colours := [Color("bf6555"), Color("e6d6b0"), Color("668d9b"), Color("a5b39b")]
 	for index in range(4):
 		var x := -3.25 if index % 2 == 0 else 3.25
-		var z := [-127.0, -225.0, -337.0, -446.0][index]
+		var z: float = [-127.0, -225.0, -337.0, -446.0][index]
 		_add_car(Vector3(x, 0, z), true, -1 if index % 2 == 0 else 1, colours[index])
 	for z in [-346.0, -401.0]:
 		for x in [-9.0, 9.0]:
