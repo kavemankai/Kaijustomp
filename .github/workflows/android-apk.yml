@@ -6,13 +6,20 @@ on:
       - '**'
     tags:
       - 'v*'
+  pull_request:
+    paths:
+      - 'scripts/**'
+      - 'scenes/**'
+      - 'project.godot'
+      - 'export_presets.cfg'
+      - '.github/workflows/android-apk.yml'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
-  group: android-debug-${{ github.ref }}
+  group: kaijustomp-apk-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -20,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
-      GODOT_VERSION: '4.3'
+      GODOT_VERSION: '4.5'
       GODOT_CHANNEL: stable
 
     steps:
@@ -36,7 +43,7 @@ jobs:
       - name: Configure Android SDK
         uses: android-actions/setup-android@v4
         with:
-          packages: 'platform-tools platforms;android-34 build-tools;34.0.0'
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
 
       - name: Install matching Godot editor and export templates
         shell: bash
@@ -86,7 +93,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$HOME/.config/godot"
-          cat > "$HOME/.config/godot/editor_settings-4.3.tres" <<EOF
+          cat > "$HOME/.config/godot/editor_settings-4.5.tres" <<EOF
           [gd_resource type="EditorSettings" format=3]
 
           [resource]
@@ -107,6 +114,28 @@ jobs:
             exit 1
           fi
 
+      - name: Verify evolution shedding before publishing APK
+        shell: bash
+        run: |
+          set -o pipefail
+          "$GODOT_BIN" --headless --path . --script res://scripts/ci/test_evolution.gd \
+            2>&1 | tee "$RUNNER_TEMP/evolution-test.log"
+          grep -q 'EVOLUTION TEST PASSED' "$RUNNER_TEMP/evolution-test.log"
+          if grep -E 'SCRIPT ERROR|Parse Error|EVOLUTION TEST FAILED|Invalid call|Invalid access' "$RUNNER_TEMP/evolution-test.log"; then
+            exit 1
+          fi
+
+      - name: Verify building collision, destruction and projectile cover
+        shell: bash
+        run: |
+          set -o pipefail
+          "$GODOT_BIN" --headless --path . --script res://scripts/ci/test_beach_combat.gd \
+            2>&1 | tee "$RUNNER_TEMP/beach-combat-test.log"
+          grep -q 'DESTRUCTION TEST PASSED' "$RUNNER_TEMP/beach-combat-test.log"
+          if grep -E 'SCRIPT ERROR|Parse Error|DESTRUCTION TEST FAILED|Invalid call|Invalid access' "$RUNNER_TEMP/beach-combat-test.log"; then
+            exit 1
+          fi
+
       - name: Export portrait Android debug APK
         shell: bash
         run: |
@@ -119,7 +148,18 @@ jobs:
           "$GODOT_BIN" --headless --path . --export-debug "Android" "build/android/$APK" \
             2>&1 | tee "$RUNNER_TEMP/godot-export.log"
           test -s "build/android/$APK"
+          FILE_BYTES=$(stat -c "%s" "build/android/$APK")
+          if [ "$FILE_BYTES" -lt 12000000 ]; then
+            echo "APK too small, refusing publication"
+            exit 1
+          fi
           unzip -t "build/android/$APK" > /dev/null
+          python3 scripts/ci/verify_android_16k.py "build/android/$APK"
+          # Check the APK contains an Android manifest and native ARM64 engine.
+          unzip -Z -1 "build/android/$APK" > "$RUNNER_TEMP/apk-entries.txt"
+          grep -qx "AndroidManifest.xml" "$RUNNER_TEMP/apk-entries.txt"
+          grep -qx "classes.dex" "$RUNNER_TEMP/apk-entries.txt"
+          grep -Eq "^lib/arm64-v8a/.*[.]so$" "$RUNNER_TEMP/apk-entries.txt"
           if grep -E 'SCRIPT ERROR|Parse Error' "$RUNNER_TEMP/godot-export.log"; then
             echo "::error::Godot reported a script error during export"
             exit 1
@@ -130,9 +170,12 @@ jobs:
         run: |
           set -euo pipefail
           APK="build/android/$APK_NAME"
-          "$ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner" verify --verbose "$APK"
-          "$ANDROID_SDK_ROOT/build-tools/34.0.0/aapt" dump badging "$APK" \
-            | grep -E '^(package:|application-label:|launchable-activity:|native-code:)'
+          "$ANDROID_SDK_ROOT/build-tools/35.0.0/apksigner" verify --verbose "$APK"
+          "$ANDROID_SDK_ROOT/build-tools/35.0.0/aapt" dump badging "$APK" > "$RUNNER_TEMP/apk-badging.txt"
+          grep -E '^(package:|application-label:|launchable-activity:|native-code:)' "$RUNNER_TEMP/apk-badging.txt"
+          grep -q "name='com.kavemankai.kaijustomp'" "$RUNNER_TEMP/apk-badging.txt"
+          grep -q '^launchable-activity:' "$RUNNER_TEMP/apk-badging.txt"
+          grep -q "arm64-v8a" "$RUNNER_TEMP/apk-badging.txt"
           sha256sum "$APK"
 
       - name: Upload installable APK
@@ -143,3 +186,32 @@ jobs:
           if-no-files-found: error
           compression-level: 0
           retention-days: 30
+
+      - name: Publish direct-install APK link (preview)
+        if: github.ref == 'refs/heads/feature/beach-demo-elevated-camera' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          cp "build/android/$APK_NAME" "build/android/Kaijustomp-latest.apk"
+          RELEASE_TAG="mobile-preview-godot45"
+          RELEASE_TITLE="Kaijustomp — Android 16 KB compatible preview (Godot 4.5)"
+          RELEASE_NOTES="Godot 4.5 rebuild with automated 16 KiB native alignment verification. Latest Android debug APK from branch ${GITHUB_REF_NAME}, commit ${GITHUB_SHA}, run ${GITHUB_RUN_NUMBER}. Download Kaijustomp-latest.apk directly on Android; confirm its installation. This preview release uses a stable download tag, not the current commit as the source tag. If using per-run debug signing, an older installation might need uninstalling first."
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "build/android/Kaijustomp-latest.apk" --clobber
+            gh release edit "$RELEASE_TAG" --title "$RELEASE_TITLE" --notes "$RELEASE_NOTES" --prerelease
+          else
+            gh release create "$RELEASE_TAG" "build/android/Kaijustomp-latest.apk" \
+              --target "$GITHUB_SHA" --title "$RELEASE_TITLE" \
+              --notes "$RELEASE_NOTES" --prerelease
+          fi
+          LOCAL_SIZE=$(stat -c "%s" "build/android/Kaijustomp-latest.apk")
+          ASSET_SIZE=$(gh release view "$RELEASE_TAG" --json assets --jq '.assets[] | select(.name == "Kaijustomp-latest.apk") | .size')
+          if [ "$LOCAL_SIZE" != "$ASSET_SIZE" ]; then
+            echo "Published APK size does not match the verified local APK."
+            exit 1
+          fi
+          echo "Verified published APK size: $LOCAL_SIZE bytes" >> "$GITHUB_STEP_SUMMARY"
+          echo "Direct phone link: https://github.com/${GH_REPO}/releases/download/${RELEASE_TAG}/Kaijustomp-latest.apk" >> "$GITHUB_STEP_SUMMARY"

@@ -15,21 +15,29 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: Download Godot 4.3
+      - name: Download Godot 4.5
         run: |
-          curl -fLsS --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+          curl -fLsS --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot/releases/download/4.5-stable/Godot_v4.5-stable_linux.x86_64.zip
           mkdir -p /tmp/godot
           unzip -q /tmp/godot.zip -d /tmp/godot
-          chmod +x /tmp/godot/Godot_v4.3-stable_linux.x86_64
+          chmod +x /tmp/godot/Godot_v4.5-stable_linux.x86_64
       - name: Import project and parse scripts
         shell: bash
         run: |
           set -o pipefail
-          /tmp/godot/Godot_v4.3-stable_linux.x86_64 --headless --editor --path . --quit 2>&1 | tee import.log
+          /tmp/godot/Godot_v4.5-stable_linux.x86_64 --headless --editor --path . --quit 2>&1 | tee import.log
           if grep -E 'SCRIPT ERROR|Parse Error' import.log; then exit 1; fi
       - name: Launch beach scene for 60 physics frames
         shell: bash
         run: |
           set -o pipefail
-          /tmp/godot/Godot_v4.3-stable_linux.x86_64 --headless --path . --quit-after 60 2>&1 | tee launch.log
+          /tmp/godot/Godot_v4.5-stable_linux.x86_64 --headless --path . --quit-after 60 2>&1 | tee launch.log
           if grep -E 'SCRIPT ERROR|Parse Error|Invalid call|Invalid access' launch.log; then exit 1; fi
+      - name: Exercise evolution and shedding regression
+        shell: bash
+        run: |
+          set -o pipefail
+          /tmp/godot/Godot_v4.5-stable_linux.x86_64 --headless --path . --script res://scripts/ci/test_evolution.gd \
+            2>&1 | tee evolution-test.log
+          grep -q 'EVOLUTION TEST PASSED' evolution-test.log
+          if grep -E 'SCRIPT ERROR|Parse Error|EVOLUTION TEST FAILED|Invalid call|Invalid access' evolution-test.log; then exit 1; fi

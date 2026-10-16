@@ -15,7 +15,10 @@ const BITE_SECONDS := 0.55
 const CAMERA_OFFSET := Vector3(14.0, 25.0, 22.0)
 const PORTRAIT_CAMERA_DISTANCE := 1.48
 
-var beast: Node3D
+var beast: CharacterBody3D
+var beast_collision_shape: CapsuleShape3D
+var head_collision_shape: SphereShape3D
+var head_collision_node: CollisionShape3D
 var beast_visual: Node3D
 var jaw: Node3D
 var head_pivot: Node3D
@@ -52,11 +55,18 @@ var evolving := false
 var evolution_clock := 0.0
 var evolution_damage := 0.0
 var choice_open := false
+var reveal_active := false
+var evolution_total := 6.0
+var evolution_history: Array[Dictionary] = []
+var shedding: EvolutionShedding
+var camera_celebration_clock := 0.0
 
 var civilians: Array[Dictionary] = []
 var officers: Array[Dictionary] = []
 var buildings: Array[Dictionary] = []
 var debris: Array[Dictionary] = []
+var projectiles: Array[Dictionary] = []
+const MAX_PROJECTILES := 72
 
 var ui_layer: CanvasLayer
 var stats_label: Label
@@ -65,13 +75,20 @@ var evolve_button: Button
 var retry_button: Button
 var modal: CenterContainer
 var choice_column: VBoxContainer
+var evolution_progress: ProgressBar
+var reveal_input_layer: Control
+var reveal_hint: Label
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	Engine.max_fps = 60
 	randomize()
 	_build_lighting()
 	_build_beach()
 	_build_creature()
+	shedding = EvolutionShedding.new()
+	add_child(shedding)
+	shedding.reveal_finished.connect(_on_reveal_finished)
 	_build_camera()
 	_build_population()
 	_build_ui()
@@ -134,12 +151,16 @@ func _build_beach() -> void:
 		_box(self, Vector3(x, 0.16, z), Vector3(0.5, 0.32, 0.5), Color(0.52, 0.50, 0.36))
 	for p in [Vector3(-32, 0, 7), Vector3(28, 0, 9), Vector3(51, 0, -11)]:
 		_sphere(self, p + Vector3(0, 0.85, 0), 1.2, Color(0.39, 0.38, 0.34))
-	_add_building(Vector3(-21, 0, -40), Vector2(13, 11), 4.6, Color(0.76, 0.46, 0.34), "Cafe")
-	_add_building(Vector3(22, 0, -37), Vector2(10, 9), 4.0, Color(0.55, 0.67, 0.70), "Beach shop")
-	_add_building(Vector3(-45, 0, -54), Vector2(14, 12), 7.5, Color(0.65, 0.56, 0.62), "Apartments")
-	_add_building(Vector3(45, 0, -54), Vector2(14, 12), 7.0, Color(0.64, 0.62, 0.49), "Hotel")
+	# Weak beach structures are the first demolition targets; larger buildings
+	# require more Strength evolutions. Every structure has baseline occupants.
+	_add_building(Vector3(-6, 0, -35), Vector2(5, 5), 2.9, Color(0.71, 0.58, 0.34), "Beach kiosk", 1, 3, 3, 2)
+	_add_building(Vector3(7, 0, -47), Vector2(6, 5), 3.1, Color(0.59, 0.51, 0.38), "Wooden shed", 1, 3, 3, 1)
+	_add_building(Vector3(-21, 0, -40), Vector2(13, 11), 4.6, Color(0.76, 0.46, 0.34), "Cafe", 2, 5, 4, 5)
+	_add_building(Vector3(22, 0, -37), Vector2(10, 9), 4.0, Color(0.55, 0.67, 0.70), "Beach shop", 2, 4, 4, 3)
+	_add_building(Vector3(-45, 0, -54), Vector2(14, 12), 7.5, Color(0.65, 0.56, 0.62), "Apartments", 3, 7, 5, 10)
+	_add_building(Vector3(45, 0, -54), Vector2(14, 12), 7.0, Color(0.64, 0.62, 0.49), "Hotel", 3, 7, 5, 12)
 
-func _add_building(pos: Vector3, footprint: Vector2, height: float, col: Color, title: String) -> void:
+func _add_building(pos: Vector3, footprint: Vector2, height: float, col: Color, title: String, required_strength: int, hits: int, breakthrough_strength: int, occupants: int) -> void:
 	var root := Node3D.new()
 	root.position = pos
 	add_child(root)
@@ -147,12 +168,78 @@ func _add_building(pos: Vector3, footprint: Vector2, height: float, col: Color, 
 	_box(root, Vector3(0, height + 0.18, 0), Vector3(footprint.x + 0.5, 0.35, footprint.y + 0.5), col.darkened(0.24))
 	for x in [-1.0, 1.0]:
 		_box(root, Vector3(x * footprint.x * 0.25, height * 0.60, footprint.y * 0.51), Vector3(1.6, 1.8, 0.14), Color(0.23, 0.37, 0.45))
-	buildings.append({"node": root, "position": pos, "half": footprint * 0.5, "hits": 3, "destroyed": false, "hidden": 0, "name": title})
+	# A visible MeshInstance3D is not an obstacle. Physical collision must
+	# remain active until the building actually collapses.
+	var crack_layers := _build_building_cracks(root, footprint, height)
+	var solid := StaticBody3D.new()
+	solid.collision_layer = 1
+	solid.collision_mask = 1
+	root.add_child(solid)
+	var blocker := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(footprint.x, height, footprint.y)
+	blocker.shape = shape
+	blocker.position.y = height * 0.5
+	solid.add_child(blocker)
+	buildings.append({
+		"node": root, "collider": solid, "position": pos,
+		"half": footprint * 0.5, "hits": float(hits), "max_hits": float(hits),
+		"crack_layers": crack_layers, "crack_stage": 0, "destroyed": false,
+		"hidden": occupants, "base_occupants": occupants, "name": title,
+		"required_strength": required_strength, "breakthrough_strength": breakthrough_strength
+	})
+
+
+# Each crack stage is added only as the building is hit. Keep them slightly
+# proud of the four wall surfaces so they remain visible without z-fighting.
+func _build_building_cracks(root: Node3D, footprint: Vector2, height: float) -> Array[Node3D]:
+	var stages: Array[Node3D] = []
+	for stage in range(3):
+		var layer := Node3D.new()
+		layer.name = "CracksStage%d" % (stage + 1)
+		layer.visible = false
+		root.add_child(layer)
+		for face in range(4):
+			for fork in range(stage + 2):
+				var u := (float(fork) - float(stage + 1) * 0.5) * 0.24
+				var y := height * (0.72 - float(fork) * 0.105)
+				var crack_len := minf(0.72, height * 0.19)
+				for segment in range(2):
+					var diagonal := 0.48 if (fork + segment + face) % 2 == 0 else -0.40
+					var offset := float(segment) * crack_len * 0.23
+					var ink := Color(0.17, 0.14, 0.13)
+					if face < 2:
+						var z := (footprint.y * 0.5 + 0.075) * (1.0 if face == 0 else -1.0)
+						var x := u * footprint.x + offset * diagonal
+						var line := _box(layer, Vector3(x, clampf(y - offset, 0.18, height - 0.14), z), Vector3(0.065, crack_len * 0.65, 0.045), ink)
+						line.rotation.z = diagonal
+					else:
+						var x := (footprint.x * 0.5 + 0.075) * (1.0 if face == 2 else -1.0)
+						var z := u * footprint.y + offset * diagonal
+						var side_line := _box(layer, Vector3(x, clampf(y - offset, 0.18, height - 0.14), z), Vector3(0.045, crack_len * 0.65, 0.065), ink)
+						side_line.rotation.x = diagonal
+		stages.append(layer)
+	return stages
+
 
 func _build_creature() -> void:
-	beast = Node3D.new()
+	beast = CharacterBody3D.new()
+	beast.collision_layer = 1
+	beast.collision_mask = 1
 	beast.position = Vector3(0, 0, 18)
 	add_child(beast)
+	# Upright capsule provides swept, orientation-independent wall collision.
+	# Its broad footprint protects the head and torso, including while sprinting.
+	beast_collision_shape = CapsuleShape3D.new()
+	var body_collision := CollisionShape3D.new()
+	body_collision.shape = beast_collision_shape
+	beast.add_child(body_collision)
+	# The projecting snout needs an independent collider, especially during bites.
+	head_collision_shape = SphereShape3D.new()
+	head_collision_node = CollisionShape3D.new()
+	head_collision_node.shape = head_collision_shape
+	beast.add_child(head_collision_node)
+	_sync_beast_collision()
 	beast_visual = Node3D.new()
 	beast.add_child(beast_visual)
 	var green := Color(0.22, 0.42, 0.19)
@@ -195,6 +282,16 @@ func _build_creature() -> void:
 		tail_parent = segment
 	for z in [-0.9, -0.25, 0.42]:
 		_box(beast_visual, Vector3(0, 1.67, z), Vector3(0.18, 0.40, 0.25), Color(0.33, 0.51, 0.29))
+
+func _sync_beast_collision() -> void:
+	# Keep world-space collision sized to major growth milestones.
+	beast_collision_shape.radius = 1.85 * growth_scale
+	beast_collision_shape.height = 3.70 * growth_scale
+	var shape_node: CollisionShape3D = beast.get_child(0)
+	shape_node.position.y = 1.85 * growth_scale
+	head_collision_shape.radius = 0.82 * growth_scale
+	head_collision_node.position = Vector3(0, 0.94 * growth_scale, -2.20 * growth_scale)
+
 
 func _build_camera() -> void:
 	follow_camera = Camera3D.new()
@@ -253,10 +350,21 @@ func _build_ui() -> void:
 	stats_label.add_theme_constant_override("shadow_offset_x", 2)
 	stats_label.add_theme_constant_override("shadow_offset_y", 2)
 	ui_layer.add_child(stats_label)
+	evolution_progress = ProgressBar.new()
+	evolution_progress.position = Vector2(18, 128)
+	evolution_progress.size = Vector2(238, 20)
+	evolution_progress.show_percentage = false
+	evolution_progress.min_value = 0
+	evolution_progress.max_value = 100
+	evolution_progress.visible = false
+	ui_layer.add_child(evolution_progress)
 	sprint_button = Button.new()
 	sprint_button.text = "SPRINT"
 	_place_right_button(sprint_button, -164, -83)
+	# Mouse/keyboard clicks retain normal Button behavior; native touchscreen
+	# presses also work while a second finger remains on the movement joystick.
 	sprint_button.pressed.connect(_toggle_sprint)
+	sprint_button.focus_mode = Control.FOCUS_NONE
 	sprint_button.add_theme_color_override("font_disabled_color", Color(0.69, 0.68, 0.65))
 	evolve_button = Button.new()
 	evolve_button.text = "EVOLVE"
@@ -278,6 +386,27 @@ func _build_ui() -> void:
 	choice_column = VBoxContainer.new()
 	choice_column.add_theme_constant_override("separation", 9)
 	panel.add_child(choice_column)
+
+	# Full-screen interaction is present only during the safe, paused reveal.
+	reveal_input_layer = Control.new()
+	reveal_input_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	reveal_input_layer.mouse_filter = Control.MOUSE_FILTER_STOP
+	reveal_input_layer.visible = false
+	reveal_input_layer.gui_input.connect(_on_reveal_input)
+	ui_layer.add_child(reveal_input_layer)
+	reveal_hint = Label.new()
+	reveal_hint.text = "TAP TO BREAK FREE\nOR WATCH THE SKIN SHED"
+	reveal_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	reveal_hint.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	reveal_hint.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	reveal_hint.offset_top = 150
+	reveal_hint.offset_bottom = 224
+	reveal_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	reveal_hint.add_theme_font_size_override("font_size", 23)
+	reveal_hint.add_theme_color_override("font_shadow_color", Color.BLACK)
+	reveal_hint.add_theme_constant_override("shadow_offset_x", 2)
+	reveal_hint.add_theme_constant_override("shadow_offset_y", 2)
+	reveal_input_layer.add_child(reveal_hint)
 
 func _place_right_button(btn: Button, upper: int, lower: int) -> void:
 	btn.anchor_left = 1.0
@@ -303,7 +432,8 @@ func _cost() -> int:
 	return 55 + evolutions * 25
 
 func _physics_process(delta: float) -> void:
-	if game_over or choice_open:
+	# The root runs during pause for UI, but no enemies, damage or movement do.
+	if game_over or choice_open or reveal_active:
 		return
 	if evolving:
 		evolution_clock -= delta
@@ -315,6 +445,7 @@ func _physics_process(delta: float) -> void:
 		if regeneration > 0:
 			hp = minf(max_hp, hp + float(regeneration) * 0.6 * delta)
 	_update_police(delta)
+	_update_projectiles(delta)
 	_update_debris(delta)
 	if evolving and evolution_clock <= 0.0 and not game_over:
 		_finish_evolution()
@@ -355,17 +486,17 @@ func _update_movement(delta: float) -> void:
 		var next_pos := beast.global_position + direction * speed * delta
 		next_pos.x = clampf(next_pos.x, -70.0, 70.0)
 		next_pos.z = clampf(next_pos.z, -67.0, 26.0)
-		var building_idx := _blocking_building(next_pos)
-		if building_idx < 0:
-			beast.global_position = next_pos
-		elif strength > 0:
-			strike_timer -= delta
-			if strength >= 3:
-				_damage_building(building_idx, 3)
-				beast.global_position = next_pos
-			elif strike_timer <= 0.0:
-				_damage_building(building_idx, 1)
-				strike_timer = 0.70
+		# move_and_collide performs a swept physics test, including sprint frames.
+		# Sliding preserves responsive movement along the face of an obstacle.
+		var motion := next_pos - beast.global_position
+		var contact := beast.move_and_collide(motion)
+		if contact != null:
+			var index := _building_for_collider(contact.get_collider())
+			if index >= 0:
+				_attack_building(index, sprint_active)
+			var slide := contact.get_remainder().slide(contact.get_normal())
+			if slide.length_squared() > 0.000001:
+				beast.move_and_collide(slide)
 		run_phase += delta * (18.0 if sprint_active else 11.0) * maxf(0.4, stick.length())
 	strike_timer = maxf(0.0, strike_timer - delta)
 	_update_creature_animation(delta, moving)
@@ -388,6 +519,8 @@ func _update_creature_animation(delta: float, moving: bool) -> void:
 	var progress := 1.0 - clampf(bite_timer / maxf(0.05, bite_duration), 0.0, 1.0)
 	var snap := sin(progress * PI) if bite_timer > 0.0 else 0.0
 	head_pivot.position.z = -1.22 - 0.67 * snap
+	# Track bite extension instead of allowing the snout to pass through walls.
+	head_collision_node.position.z = (-2.20 - 0.67 * snap) * growth_scale
 	head_pivot.rotation.x = -0.13 * snap
 	jaw.rotation.x = -0.85 * maxf(0.0, sin(progress * PI)) if bite_timer > 0.0 else 0.0
 	if is_instance_valid(prey_in_mouth):
@@ -396,6 +529,13 @@ func _update_creature_animation(delta: float, moving: bool) -> void:
 		if bite_timer <= delta:
 			prey_in_mouth.queue_free()
 			prey_in_mouth = null
+
+func _building_for_collider(collider: Object) -> int:
+	for i in range(buildings.size()):
+		if not buildings[i]["destroyed"] and buildings[i]["collider"] == collider:
+			return i
+	return -1
+
 
 func _blocking_building(pos: Vector3) -> int:
 	for i in range(buildings.size()):
@@ -408,9 +548,34 @@ func _blocking_building(pos: Vector3) -> int:
 			return i
 	return -1
 
-func _damage_building(index: int, hits: int) -> void:
+func _attack_building(index: int, running: bool) -> void:
 	var b: Dictionary = buildings[index]
-	b["hits"] = int(b["hits"]) - hits
+	if b["destroyed"]:
+		return
+	# Weak forms always chip away at even heavy buildings. High tier buildings
+	# take many minutes at baseline strength, but the first hit shows a crack.
+	if running and strength >= int(b["breakthrough_strength"]):
+		_damage_building(index, float(b["hits"]))
+	elif strike_timer <= 0.0:
+		var strength_gap := int(b["required_strength"]) - strength
+		var damage := 0.015 / pow(2.0, float(strength_gap - 1)) if strength_gap > 0 else float(1 + (-strength_gap) * 2)
+		_damage_building(index, damage)
+		strike_timer = 0.70
+
+
+func _damage_building(index: int, hits: float) -> void:
+	var b: Dictionary = buildings[index]
+	if b["destroyed"]:
+		return
+	b["hits"] = float(b["hits"]) - hits
+	if b["hits"] < float(b["max_hits"]):
+		var damage_fraction := 1.0 - maxf(0.0, float(b["hits"])) / float(b["max_hits"])
+		var stage := mini(3, maxi(1, ceili(damage_fraction * 3.0)))
+		if stage > int(b["crack_stage"]):
+			var layers: Array[Node3D] = b["crack_layers"]
+			for i in range(stage):
+				layers[i].visible = true
+			b["crack_stage"] = stage
 	if b["hits"] <= 0:
 		b["destroyed"] = true
 		var source: Vector3 = b["position"]
@@ -418,8 +583,18 @@ func _damage_building(index: int, hits: int) -> void:
 		root.queue_free()
 		_make_debris(source, 12)
 		alert += 17.0
+		# Everyone already inside, plus people who sheltered during the run,
+		# is released on collapse. Spawn outside the original footprint.
+		var half: Vector2 = b["half"]
 		for j in range(int(b["hidden"])):
-			_spawn_civilian(source + Vector3(randf_range(-9, 9), 0, randf_range(-9, 9)))
+			var side := j % 4
+			var spawn_offset := Vector3.ZERO
+			match side:
+				0: spawn_offset = Vector3(half.x + 2.0, 0, randf_range(-half.y, half.y))
+				1: spawn_offset = Vector3(-half.x - 2.0, 0, randf_range(-half.y, half.y))
+				2: spawn_offset = Vector3(randf_range(-half.x, half.x), 0, half.y + 2.0)
+				3: spawn_offset = Vector3(randf_range(-half.x, half.x), 0, -half.y - 2.0)
+			_spawn_civilian(source + spawn_offset)
 		b["hidden"] = 0
 		Input.vibrate_handheld(65)
 	buildings[index] = b
@@ -544,11 +719,71 @@ func _update_police(delta: float) -> void:
 		if distance < 21.0:
 			cop["cooldown"] = float(cop["cooldown"]) - delta
 			if cop["cooldown"] <= 0.0:
-				var hit_chance := 0.35 if sprint_active else (0.68 if touch_vector.length_squared() > 0.05 or Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down").length_squared() > 0.05 else 1.0)
-				if randf() <= hit_chance:
-					_take_damage(16.0 if cop["swat"] else 10.0)
+				# Every shot creates a real moving projectile. Aim error only
+				# changes its trajectory; damage happens on physical impact.
+				var origin := unit.global_position + Vector3(0, 1.55, 0)
+				var aim := beast.global_position + Vector3(0, 1.75 * growth_scale, 0)
+				var move_aim := sprint_active or touch_vector.length_squared() > 0.05 or Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down").length_squared() > 0.05
+				var spread := 2.15 if sprint_active else (1.1 if move_aim else 0.24)
+				aim += Vector3(randf_range(-spread, spread), randf_range(-spread * 0.45, spread * 0.45), randf_range(-spread, spread))
+				_spawn_projectile(origin, (aim - origin).normalized(), bool(cop["swat"]))
 				cop["cooldown"] = 1.3 if cop["swat"] else 2.0
 		officers[i] = cop
+
+func _spawn_projectile(origin: Vector3, direction: Vector3, heavy: bool) -> void:
+	# A bright tracer is part of the actual projectile, not a cosmetic hitscan.
+	# A strict cap prevents gunfire from overloading a low-end Android device.
+	if projectiles.size() >= MAX_PROJECTILES:
+		var expired: Dictionary = projectiles.pop_front()
+		var old_visual: Node3D = expired["node"]
+		old_visual.queue_free()
+	var tint := Color(1.0, 0.30, 0.12) if heavy else Color(1.0, 0.90, 0.25)
+	var travel := direction.normalized()
+	var root := Node3D.new()
+	root.position = origin
+	add_child(root)
+	root.look_at(origin + travel, Vector3.UP)
+	var streak := BoxMesh.new()
+	streak.size = Vector3(0.18, 0.18, 1.0) if heavy else Vector3(0.12, 0.12, 0.75)
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.albedo_color = tint
+	mat.emission_enabled = true
+	mat.emission = tint
+	streak.material = mat
+	var visual := MeshInstance3D.new()
+	visual.mesh = streak
+	visual.position.z = 0.40
+	root.add_child(visual)
+	projectiles.append({
+		"node": root, "velocity": travel * (43.0 if heavy else 36.0),
+		"damage": 16.0 if heavy else 10.0, "lifetime": 1.8
+	})
+
+
+func _update_projectiles(delta: float) -> void:
+	for i in range(projectiles.size() - 1, -1, -1):
+		var shot: Dictionary = projectiles[i]
+		var visual: Node3D = shot["node"]
+		var start: Vector3 = visual.global_position
+		var destination: Vector3 = start + Vector3(shot["velocity"]) * delta
+		var query := PhysicsRayQueryParameters3D.create(start, destination, 1)
+		var result := get_world_3d().direct_space_state.intersect_ray(query)
+		shot["lifetime"] = float(shot["lifetime"]) - delta
+		if not result.is_empty():
+			visual.global_position = result["position"]
+			if result["collider"] == beast:
+				_take_damage(float(shot["damage"]))
+			# Any intact building intercepts shots; no damage passes through.
+			visual.queue_free()
+			projectiles.remove_at(i)
+		elif shot["lifetime"] <= 0.0:
+			visual.queue_free()
+			projectiles.remove_at(i)
+		else:
+			visual.global_position = destination
+			projectiles[i] = shot
+
 
 func _take_damage(raw: float) -> void:
 	if game_over:
@@ -562,10 +797,12 @@ func _take_damage(raw: float) -> void:
 		game_over = true
 		if evolving:
 			_reset_evolution_pose()
+			shedding.abort_shed()
 		evolving = false
 		retry_button.visible = true
 	elif evolving and evolution_damage >= 35.0:
 		_reset_evolution_pose()
+		shedding.abort_shed()
 		evolving = false
 		biomass = 0
 		evolution_damage = 0.0
@@ -579,6 +816,7 @@ func _update_evolution_animation(delta: float) -> void:
 	beast_visual.rotation.z = beat * 0.025
 	beast_visual.scale = Vector3.ONE * growth_scale * (1.0 + 0.018 * maxf(0.0, beat))
 	head_pivot.rotation.x = 0.07 * sin(evolution_visual_clock * 8.0)
+	shedding.update_shed_progress(1.0 - evolution_clock / maxf(0.01, evolution_total))
 
 func _reset_evolution_pose() -> void:
 	beast_visual.position = Vector3.ZERO
@@ -587,14 +825,16 @@ func _reset_evolution_pose() -> void:
 	head_pivot.rotation.x = 0.0
 
 func _start_evolution() -> void:
-	if game_over or evolving or choice_open or biomass < _cost():
+	if game_over or evolving or choice_open or reveal_active or biomass < _cost():
 		return
 	evolving = true
 	sprint_requested = false
 	sprint_active = false
 	evolution_damage = 0.0
 	evolution_visual_clock = 0.0
-	evolution_clock = 6.0 + float(evolutions) * 1.5
+	evolution_total = 6.0 + float(evolutions) * 1.5
+	evolution_clock = evolution_total
+	shedding.begin_shed(beast_visual)
 
 func _finish_evolution() -> void:
 	evolving = false
@@ -605,15 +845,20 @@ func _finish_evolution() -> void:
 	for child in choice_column.get_children():
 		child.queue_free()
 	var header := Label.new()
-	header.text = "EVOLUTION COMPLETE\nChoose ONE mutation"
+	header.text = "SKIN READY TO SHED\nChoose ONE mutation"
 	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	choice_column.add_child(header)
+	var history_label := Label.new()
+	history_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	history_label.add_theme_font_size_override("font_size", 14)
+	history_label.text = _evolution_history_summary()
+	choice_column.add_child(history_label)
 	var pool: Array[Dictionary] = [
 		{"id": "armour", "name": "Hardened Scales", "detail": "Reduce incoming damage"},
 		{"id": "speed", "name": "Fleet Limbs", "detail": "Run faster"},
 		{"id": "stamina", "name": "Endurance", "detail": "Larger sprint reserve"},
 		{"id": "jaw", "name": "Rapid Feeding", "detail": "Shorter feeding slowdown"},
-		{"id": "strength", "name": "Brutal Strength", "detail": "Start damaging building walls"},
+		{"id": "strength", "name": "Brutal Strength", "detail": "Damage buildings much faster"},
 		{"id": "health", "name": "Dense Flesh", "detail": "Increase maximum health"}
 	]
 	if evolutions >= 2:
@@ -641,6 +886,7 @@ func _choose_mutation(id: String) -> void:
 		"health": max_hp += 25.0
 		"regen": regeneration += 1
 	_apply_mutation_visual(id)
+	_record_evolution(id)
 	biomass = maxi(0, biomass - _cost())
 	evolutions += 1
 	hp = max_hp
@@ -649,11 +895,70 @@ func _choose_mutation(id: String) -> void:
 	sprint_requested = false
 	if evolutions % 3 == 0:
 		growth_scale *= 1.25
+		_sync_beast_collision()
 	beast_visual.scale = Vector3.ONE * growth_scale
 	choice_open = false
 	modal.visible = false
+	reveal_active = true
+	reveal_input_layer.visible = true
+	shedding.start_reveal()
+	# Remain paused until the new form is fully revealed.
+	touch_input.reset_input()
+
+func _evolution_label(id: String) -> String:
+	match id:
+		"armour": return "Hardened Scales"
+		"speed": return "Fleet Limbs"
+		"stamina": return "Endurance"
+		"jaw": return "Rapid Feeding"
+		"strength": return "Brutal Strength"
+		"health": return "Dense Flesh"
+		"regen": return "Regeneration"
+	return id
+
+
+func _record_evolution(id: String) -> void:
+	# Ordered entries deliberately retain the mutation ID and size milestone:
+	# these will form the nodes/edges of the future evolution tree or web.
+	evolution_history.append({
+		"step": evolutions + 1,
+		"mutation_id": id,
+		"label": _evolution_label(id),
+		"growth_milestone": int((evolutions + 1) / 3)
+	})
+
+
+func _evolution_history_summary() -> String:
+	if evolution_history.is_empty():
+		return "YOUR EVOLUTION PATH\nFirst adaptation"
+	var summary := "YOUR EVOLUTION PATH"
+	var start := maxi(0, evolution_history.size() - 4)
+	for i in range(start, evolution_history.size()):
+		var item: Dictionary = evolution_history[i]
+		summary += "\n%d  %s" % [int(item["step"]), String(item["label"])]
+	return summary
+
+
+func _on_reveal_input(event: InputEvent) -> void:
+	if not reveal_active:
+		return
+	if event is InputEventScreenTouch and event.pressed:
+		shedding.accelerate_reveal()
+		reveal_input_layer.accept_event()
+	elif event is InputEventMouseButton and event.pressed:
+		shedding.accelerate_reveal()
+		reveal_input_layer.accept_event()
+
+
+func _on_reveal_finished() -> void:
+	reveal_active = false
+	reveal_input_layer.visible = false
+	reveal_hint.text = "TAP TO BREAK FREE\nOR WATCH THE SKIN SHED"
+	camera_celebration_clock = 0.22
+	Input.vibrate_handheld(85)
 	get_tree().paused = false
 	touch_input.reset_input()
+
 
 func _apply_mutation_visual(id: String) -> void:
 	# Each chosen mutation adds a *small* persistent physical detail.
@@ -713,6 +1018,10 @@ func _apply_mutation_visual(id: String) -> void:
 
 func _update_camera(delta: float) -> void:
 	var goal := beast.global_position + _camera_offset()
+	if camera_celebration_clock > 0.0:
+		camera_celebration_clock = maxf(0.0, camera_celebration_clock - delta)
+		goal.x += sin(camera_celebration_clock * 90.0) * camera_celebration_clock * 0.50
+		goal.z += cos(camera_celebration_clock * 75.0) * camera_celebration_clock * 0.35
 	follow_camera.global_position = follow_camera.global_position.lerp(goal, minf(1.0, 6.0 * delta))
 	follow_camera.look_at(beast.global_position + Vector3(0, 0, -2.8), Vector3.UP)
 
@@ -722,6 +1031,9 @@ func _update_hud() -> void:
 		int(ceil(hp)), int(max_hp), biomass, _cost(), int(100.0 * stamina / max_stamina), evolutions, status
 	]
 	evolve_button.visible = not evolving and not game_over and biomass >= _cost()
+	evolution_progress.visible = evolving
+	if evolving:
+		evolution_progress.value = 100.0 * (1.0 - evolution_clock / maxf(0.01, evolution_total))
 	sprint_button.disabled = evolving or game_over or sprint_locked
 	if sprint_locked:
 		sprint_button.text = "RECHARGING\n%d%%" % int(100.0 * stamina / max_stamina)
@@ -733,9 +1045,21 @@ func _update_hud() -> void:
 		sprint_button.text = "SPRINT"
 		sprint_button.modulate = Color.WHITE
 
+func _input(event: InputEvent) -> void:
+	# Button.pressed is unreliable with simultaneous screen touches on some
+	# phones. Handle only the on-screen Sprint rectangle on touch-down; prevent
+	# that touch from also generating a release/click toggle.
+	if event is InputEventScreenTouch and event.pressed and is_instance_valid(sprint_button):
+		if sprint_button.get_global_rect().has_point(event.position):
+			_toggle_sprint()
+			get_viewport().set_input_as_handled()
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_E:
+		if event.keycode == KEY_SPACE and reveal_active:
+			shedding.accelerate_reveal()
+		elif event.keycode == KEY_E:
 			_start_evolution()
 		elif event.keycode == KEY_SHIFT:
 			_toggle_sprint()
