@@ -447,14 +447,7 @@ func _update_movement(delta: float) -> void:
 		if contact != null:
 			var index := _building_for_collider(contact.get_collider())
 			if index >= 0:
-				var building: Dictionary = buildings[index]
-				if strength >= int(building["required_strength"]):
-					strike_timer -= delta
-					if sprint_active and strength >= int(building["breakthrough_strength"]):
-						_damage_building(index, int(building["hits"]))
-					elif strike_timer <= 0.0:
-						_damage_building(index, 1)
-						strike_timer = 0.70
+				_attack_building(index, sprint_active)
 			var slide := contact.get_remainder().slide(contact.get_normal())
 			if slide.length_squared() > 0.000001:
 				beast.move_and_collide(slide)
@@ -506,6 +499,20 @@ func _blocking_building(pos: Vector3) -> int:
 		if absf(pos.x - center.x) < half.x + 0.70 and absf(pos.z - center.z) < half.y + 0.70:
 			return i
 	return -1
+
+func _attack_building(index: int, running: bool) -> void:
+	var b: Dictionary = buildings[index]
+	if b["destroyed"] or strength < int(b["required_strength"]):
+		return
+	# Natural progression: repeated attacks, stronger one-hit attacks, then
+	# automatic sprint breakthrough without adding a mobile attack button.
+	if running and strength >= int(b["breakthrough_strength"]):
+		_damage_building(index, int(b["hits"]))
+	elif strike_timer <= 0.0:
+		var extra_strength := strength - int(b["required_strength"])
+		_damage_building(index, 1 + extra_strength * 2)
+		strike_timer = 0.70
+
 
 func _damage_building(index: int, hits: int) -> void:
 	var b: Dictionary = buildings[index]
