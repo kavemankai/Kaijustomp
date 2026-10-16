@@ -136,6 +136,17 @@ jobs:
             exit 1
           fi
 
+      - name: Verify styled creature silhouette and cumulative mutations
+        shell: bash
+        run: |
+          set -o pipefail
+          "$GODOT_BIN" --headless --path . --script res://scripts/ci/test_stylized_creature.gd \
+            2>&1 | tee "$RUNNER_TEMP/stylized-creature-test.log"
+          grep -q 'STYLIZED CREATURE TEST PASSED' "$RUNNER_TEMP/stylized-creature-test.log"
+          if grep -E 'SCRIPT ERROR|Parse Error|STYLIZED CREATURE TEST FAILED|Invalid call|Invalid access' "$RUNNER_TEMP/stylized-creature-test.log"; then
+            exit 1
+          fi
+
       - name: Export portrait Android debug APK
         shell: bash
         run: |
@@ -215,3 +226,27 @@ jobs:
           fi
           echo "Verified published APK size: $LOCAL_SIZE bytes" >> "$GITHUB_STEP_SUMMARY"
           echo "Direct phone link: https://github.com/${GH_REPO}/releases/download/${RELEASE_TAG}/Kaijustomp-latest.apk" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish isolated colourful creature APK
+        if: github.ref == 'refs/heads/feature/stylized-creature-colour-polish'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG="stylized-creature-preview"
+          cp "build/android/$APK_NAME" "build/android/Kaijustomp-stylized-creature.apk"
+          NOTES="Stylised colour-based hero creature preview, commit ${GITHUB_SHA}, run ${GITHUB_RUN_NUMBER}. Unchanged approved gameplay, world, camera and colliders. Tested headless but awaiting player visual judgement on Android. Existing stable beach APK not overwritten."
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "build/android/Kaijustomp-stylized-creature.apk" --clobber
+            gh release edit "$TAG" --title "Kaijustomp — Stylised Creature Preview" --notes "$NOTES" --prerelease
+          else
+            gh release create "$TAG" "build/android/Kaijustomp-stylized-creature.apk" \
+              --target "$GITHUB_SHA" --title "Kaijustomp — Stylised Creature Preview" \
+              --notes "$NOTES" --prerelease
+          fi
+          LOCAL_SIZE=$(stat -c "%s" "build/android/Kaijustomp-stylized-creature.apk")
+          ASSET_SIZE=$(gh release view "$TAG" --json assets --jq '.assets[] | select(.name == "Kaijustomp-stylized-creature.apk") | .size')
+          test "$LOCAL_SIZE" = "$ASSET_SIZE"
+          echo "Phone APK: https://github.com/${GH_REPO}/releases/download/${TAG}/Kaijustomp-stylized-creature.apk" >> "$GITHUB_STEP_SUMMARY"
