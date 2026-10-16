@@ -4,7 +4,9 @@ The beach prototype has a **Godot 4.5 Android debug APK** workflow for regular p
 
 ## Direct installation from your phone
 
-**One-link download:** [Kaijustomp latest Android APK](https://github.com/kavemankai/Kaijustomp/releases/download/mobile-preview/Kaijustomp-latest.apk)
+**Important:** The original `mobile-preview` release contains an older Godot 4.3 APK with ARM64 native libraries aligned to 4 KiB. Do not install that build on an Android device requiring 16 KiB pages. The new `mobile-preview-godot45` link below remains unavailable until a successfully verified Godot 4.5 workflow run publishes it.
+
+**One-link download:** [Kaijustomp latest Android APK](https://github.com/kavemankai/Kaijustomp/releases/download/mobile-preview-godot45/Kaijustomp-latest.apk)
 
 This static URL downloads the latest successfully published APK **once the GitHub Actions build has completed successfully**. It is an APK file (not a ZIP). Tap the link on an Android phone, open the downloaded APK and confirm **Install**. The first time, Android may prompt you to allow installation from your browser or Files app under *Install unknown apps*. No webpage can bypass that Android security confirmation.
 
@@ -18,7 +20,7 @@ If the link currently reports 404, the first preview release has not been publis
 
 1. Check Android **Files → Downloads → file details**. An APK from this pipeline must now be at least **12 MB** or the build is rejected automatically.
 2. In GitHub Actions, open the latest **successful** `Android debug APK` workflow run. If there is no green successful run, the permanent release URL should not be trusted yet.
-3. If the run is red, expand its failed step (import, export, signing, verification or publishing) and report the first error. A missing `mobile-preview` release means no verified direct APK has been published.
+3. If the run is red, expand its failed step (import, export, signing, verification or publishing) and report the first error. A missing `mobile-preview-godot45` release means no verified direct APK has been published.
 4. If the APK is larger than 12 MB but Android says **App not installed**, an older APK signed with a different debug key may already be installed. Back up any save data before uninstalling the old build. Then retry.
 5. If Android refuses to open the package, try opening it from **Files**, and allow **Install unknown apps** for Files or your browser if prompted. Do not turn off Play Protect or other device security.
 
@@ -36,7 +38,7 @@ If the workflow is **red**, open the failed job's logs; there is no verified APK
 
 ## When it builds again
 
-The workflow automatically runs on **every branch that contains this workflow**, including `feature/beach-demo-elevated-camera` and future branches, and on tags beginning with `v` (e.g. `v0.1.1`). After an APK passes export and signature checks, builds from the approved beach demo branch (and later main/master) update the permanent `mobile-preview` GitHub release asset. Builds from other feature branches retain their separate CI artifacts. Tagged builds still generate dated CI artifacts; the permanent link is for branch previews. Failed builds do not replace the last successful APK; see Actions logs for the cause.
+The workflow automatically runs on **every branch that contains this workflow**, including `feature/beach-demo-elevated-camera` and future branches, and on tags beginning with `v` (e.g. `v0.1.1`). After an APK passes export and signature checks, builds from the approved beach demo branch (and later main/master) update the permanent `mobile-preview-godot45` GitHub release asset. Builds from other feature branches retain their separate CI artifacts. Tagged builds still generate dated CI artifacts; the permanent link is for branch previews. Failed builds do not replace the last successful APK; see Actions logs for the cause.
 
 It can also be started manually using GitHub Actions → **Android debug APK** → **Run workflow** when GitHub exposes manual dispatch for the branch. Artifacts are retained for **30 days**, after which they can be regenerated from the source by starting another run.
 
@@ -61,7 +63,7 @@ Do not commit a keystore, signing passwords, or Android credentials. The project
 - It downloads the official Godot **4.5-stable** editor and **matching export templates**.
 - It imports the project headlessly, checks for GDScript parse errors, exports the `Android` debug preset from `export_presets.cfg`, verifies **16 KiB ELF alignment** of every ARM64 native library, and verifies the resulting APK with `apksigner` and Android package tools.
 - An APK is uploaded as a build artifact only if export and verification succeed.
-- Branch builds then publish the APK unchanged under the reusable name `Kaijustomp-latest.apk` at the `mobile-preview` GitHub prerelease. `GH_TOKEN` comes from the workflow's built-in GitHub token, using `contents: write` permission. No third-party storage account is needed.
+- Branch builds then publish the APK unchanged under the reusable name `Kaijustomp-latest.apk` at the `mobile-preview-godot45` GitHub prerelease. `GH_TOKEN` comes from the workflow's built-in GitHub token, using `contents: write` permission. No third-party storage account is needed.
 
 Source files:
 - `export_presets.cfg` — shared Android export options, kept in Git.
