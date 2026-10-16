@@ -12,6 +12,18 @@ If the link currently reports 404, the first preview release has not been publis
 
 **Updates:** The test APK uses per-run generated debug signing certificates until the optional stable test-signing key is configured below. Without the stable key, new versions can require uninstalling the old one, which may remove local saves. A shared test key is recommended if you want repeatable install-over-install updates.
 
+## If the downloaded APK is tiny or won't install
+
+**Do not try installing a file that is only a few KB.** It may be an error page or failed download saved with an `.apk` filename rather than an Android application. Godot 4.3's native runtime ordinarily makes a real installable APK many megabytes.
+
+1. Check Android **Files → Downloads → file details**. An APK from this pipeline must now be at least **12 MB** or the build is rejected automatically.
+2. In GitHub Actions, open the latest **successful** `Android debug APK` workflow run. If there is no green successful run, the permanent release URL should not be trusted yet.
+3. If the run is red, expand its failed step (import, export, signing, verification or publishing) and report the first error. A missing `mobile-preview` release means no verified direct APK has been published.
+4. If the APK is larger than 12 MB but Android says **App not installed**, an older APK signed with a different debug key may already be installed. Back up any save data before uninstalling the old build. Then retry.
+5. If Android refuses to open the package, try opening it from **Files**, and allow **Install unknown apps** for Files or your browser if prompted. Do not turn off Play Protect or other device security.
+
+The workflow now refuses to publish exports smaller than 12 MB, checks the ZIP contents (Android manifest, DEX and ARM64 engine library), verifies the Android signature and launcher package, and confirms that GitHub saved the complete asset. These checks do not replace a real-device install test.
+
 ## Download the latest APK from build history
 
 1. Open [Android debug APK Actions](https://github.com/kavemankai/Kaijustomp/actions/workflows/android-apk.yml).
@@ -24,7 +36,7 @@ If the workflow is **red**, open the failed job's logs; there is no verified APK
 
 ## When it builds again
 
-The workflow automatically runs on **every branch that contains this workflow**, including `feature/beach-demo-elevated-camera` and future branches, and on tags beginning with `v` (e.g. `v0.1.1`). After an APK passes export and signature checks, builds triggered from a branch also update the permanent `mobile-preview` GitHub release asset. Tagged builds still generate dated CI artifacts; the permanent link is for branch previews. Failed builds do not replace the last successful APK; see Actions logs for the cause.
+The workflow automatically runs on **every branch that contains this workflow**, including `feature/beach-demo-elevated-camera` and future branches, and on tags beginning with `v` (e.g. `v0.1.1`). After an APK passes export and signature checks, builds from the approved beach demo branch (and later main/master) update the permanent `mobile-preview` GitHub release asset. Builds from other feature branches retain their separate CI artifacts. Tagged builds still generate dated CI artifacts; the permanent link is for branch previews. Failed builds do not replace the last successful APK; see Actions logs for the cause.
 
 It can also be started manually using GitHub Actions → **Android debug APK** → **Run workflow** when GitHub exposes manual dispatch for the branch. Artifacts are retained for **30 days**, after which they can be regenerated from the source by starting another run.
 
