@@ -61,7 +61,7 @@ Do not commit a keystore, signing passwords, or Android credentials. The project
 
 - GitHub Actions uses Ubuntu, JDK 17 and Android SDK platform/build tools 35.
 - It downloads the official Godot **4.5-stable** editor and **matching export templates**.
-- It imports the project headlessly, checks for GDScript parse errors, exports the `Android` debug preset from `export_presets.cfg`, verifies **16 KiB ELF alignment** of every ARM64 native library, and verifies the resulting APK with `apksigner` and Android package tools.
+- It imports the project headlessly, checks for GDScript parse errors, runs the headless **evolution/shedding regression** (snapshot, paused choice, tap reveal, history and failure), exports the `Android` debug preset from `export_presets.cfg`, verifies **16 KiB ELF alignment** of every ARM64 native library, and verifies the resulting APK with `apksigner` and Android package tools.
 - An APK is uploaded as a build artifact only if export and verification succeed.
 - Branch builds then publish the APK unchanged under the reusable name `Kaijustomp-latest.apk` at the `mobile-preview-godot45` GitHub prerelease. `GH_TOKEN` comes from the workflow's built-in GitHub token, using `contents: write` permission. No third-party storage account is needed.
 
