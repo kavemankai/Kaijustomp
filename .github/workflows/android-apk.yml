@@ -3,9 +3,7 @@ name: Android debug APK
 on:
   push:
     branches:
-      - feature/beach-demo-elevated-camera
-      - main
-      - master
+      - '**'
     tags:
       - 'v*'
   workflow_dispatch:
