@@ -9,10 +9,10 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
-  group: android-debug-${{ github.ref }}
+  group: kaijustomp-apk-publish
   cancel-in-progress: true
 
 jobs:
@@ -143,3 +143,25 @@ jobs:
           if-no-files-found: error
           compression-level: 0
           retention-days: 30
+
+      - name: Publish direct-install APK link (preview)
+        if: startsWith(github.ref, 'refs/heads/')
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          cp "build/android/$APK_NAME" "build/android/Kaijustomp-latest.apk"
+          RELEASE_TAG="mobile-preview"
+          RELEASE_TITLE="Kaijustomp — latest Android test build"
+          RELEASE_NOTES="Latest Android debug APK from branch ${GITHUB_REF_NAME}, commit ${GITHUB_SHA}, run ${GITHUB_RUN_NUMBER}. Download Kaijustomp-latest.apk directly on Android; confirm its installation. This preview release uses a stable download tag, not the current commit as the source tag. If using per-run debug signing, an older installation might need uninstalling first."
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "build/android/Kaijustomp-latest.apk" --clobber
+            gh release edit "$RELEASE_TAG" --title "$RELEASE_TITLE" --notes "$RELEASE_NOTES" --prerelease
+          else
+            gh release create "$RELEASE_TAG" "build/android/Kaijustomp-latest.apk" \
+              --target "$GITHUB_SHA" --title "$RELEASE_TITLE" \
+              --notes "$RELEASE_NOTES" --prerelease
+          fi
+          echo "Direct phone link: https://github.com/${GH_REPO}/releases/download/${RELEASE_TAG}/Kaijustomp-latest.apk" >> "$GITHUB_STEP_SUMMARY"
