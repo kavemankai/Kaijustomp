@@ -4,7 +4,7 @@ Branch: feature/beach-demo-elevated-camera. This is a **separate scene** from th
 
 ## Play
 
-Open in Godot 4.3 (4.2+ should be compatible) and run the project. The branch changes `run/main_scene` to `res://scenes/BeachDemo.tscn`. The original scene remains at `res://MainGame.tscn`.
+Open in Godot 4.3 (4.2+ should be compatible) and run the project. The game is now **portrait-only (9:16 base, 540 × 960)** with mobile orientation locked to portrait. Desktop preview opens at 405 × 720. The portrait viewport expands on taller phones to avoid letterboxing. The branch changes `run/main_scene` to `res://scenes/BeachDemo.tscn`. The original scene remains at `res://MainGame.tscn`.
 
 - Desktop: WASD / arrow keys to move, **tap Shift** to toggle sprint on/off, press E to evolve, R to restart after death.
 - Mobile: drag the left half of the screen to steer; **tap SPRINT** to toggle on/off; press EVOLVE once sufficient biomass is collected.
@@ -12,13 +12,14 @@ Open in Godot 4.3 (4.2+ should be compatible) and run the project. The branch ch
 
 ## Intended feel and rules
 
-- Elevated three-quarter camera, with follow smoothing and movement relative to the camera.
+- Approved elevated three-quarter camera angle, with follow smoothing and movement relative to the camera. In portrait the camera backs out slightly to preserve an adequate view of nearby threats.
 - Great-white-sized quadrupedal creature with responsive directional turning, alternating four-leg gait, animated tail/body sway, stamina-limited toggle sprint and a 0.55 s feeding slowdown.
 - Guaranteed one-at-a-time auto-bite inside a forward cone, with an obvious forward head lunge, jaw opening, prey pulled into the mouth and a short swallow/shrink animation.
 - Civilians have varied reaction times and running speeds; some seek shelter inside buildings.
 - Feeding gives +12 biomass and +15 health. Police bites give +16 biomass.
 - First evolution costs 55 biomass. Extra biomass increases the number of mutation choices, but grants only one mutation. The rest carries forward.
-- Evolutions lock movement for 6 s initially; each successful pop adds 1.5 s. Cumulative damage of 35 during the process cancels the evolution and loses the entire saved biomass; death ends the run. A successful evolution heals fully.
+- Every chosen mutation adds a **subtle permanent physical detail** (armour scutes, limb markings, jaw ridge, claws, body bulges or regenerative spots). Repeated upgrades accumulate; the monster never resets to a new appearance. Actual body scaling remains milestone-based, once every three evolution pops in this prototype.
+- Evolutions lock movement for 6 s initially; each successful pop adds 1.5 s. The creature crouches and visibly pulses/shivers in this placeholder animation. Cumulative damage of 35 during the process cancels the evolution and loses the entire saved biomass; death ends the run. A successful evolution heals fully.
 - Base creature has 100 HP and an officer's **landed** pistol shot deals 10 damage. Armour progressively reduces this damage.
 - Level 0 cannot damage buildings. First strength upgrade enables a 3-hit attack; later strength upgrades enable breakthrough on contact.
 - Civilians inside destroyed buildings are exposed; debris disappears.
@@ -38,7 +39,9 @@ This is a **prototype implementation and has not been run or profiled in Godot o
 7. Collect 55+ biomass, evolve, then confirm mutation selection, full heal and carry-over.
 8. Take 35 damage while evolving: reserve should reset to zero; existing mutations should persist.
 9. Pick Brutal Strength, break a café wall in three hits; confirm civilians emerge and debris despawns.
-10. Profile frame pacing and HUD layout in Android portrait and landscape.
+10. Test in Android **portrait** at 9:16 and taller aspect ratios (e.g. 20:9). Confirm no letterboxing or clipped mutation choices; verify joystick left and sprint/evolve controls on the right do not interfere.
+11. Profile Android frame pacing and check notch/gesture-bar safe areas on a real device.
+12. Choose two consecutive mutations and confirm both subtle mesh additions remain visible; verify a failed evolution leaves previous changes intact.
 
 ## Architectural next steps
 
@@ -51,3 +54,12 @@ Split the single scene script into player, civilian, response, world, evolution 
 - **Problem:** holding sprint is unsuitable for mobile. **Change:** tap-to-toggle with button highlighting, automatic stop at zero stamina, disabled/grey button until fully recharged.
 - **Problem:** feeding felt functionally okay but had no readable visual. **Change:** head lunge, jaw rotation, target retained briefly as it moves into the mouth and shrinks on swallow.
 - **Status:** changes committed; Android feel and Godot startup **not yet verified** from this environment. Test on device before refining art.
+
+## Playtest feedback / iteration 3 (2026-10-16)
+
+- **Approved:** all mutations produce small, accumulating physical changes; major size growth is a separate milestone mechanic.
+- **Requested:** portrait mobile play. Set Godot project base size to **540 × 960**, desktop preview **405 × 720**, Android orientation **portrait**, stretch mode **canvas_items** with **expand** aspect.
+- **Camera:** same elevated three-quarter angle, with a portrait-distance multiplier to preserve scene visibility.
+- **UI:** top HUD inset more generously; existing right-hand sprint, evolve and restart controls remain anchored to the lower-right. Existing left-half touch joystick remains available.
+- **Evolution:** each chosen mutation adds corresponding permanent low-poly details. A small pulsing/crouching transformation animation occurs while the creature is vulnerable. This is intentionally not a new full character rig or polished VFX.
+- **Important:** code is committed; actual Godot 4.3 startup and Android portrait/GUI sizing still require device testing. If the game retains an old orientation after installation, uninstall the previous APK and reinstall the portrait build.
