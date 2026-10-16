@@ -141,8 +141,11 @@ jobs:
           set -euo pipefail
           APK="build/android/$APK_NAME"
           "$ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner" verify --verbose "$APK"
-          "$ANDROID_SDK_ROOT/build-tools/34.0.0/aapt" dump badging "$APK" \
-            | grep -E '^(package:|application-label:|launchable-activity:|native-code:)'
+          "$ANDROID_SDK_ROOT/build-tools/34.0.0/aapt" dump badging "$APK" > "$RUNNER_TEMP/apk-badging.txt"
+          grep -E '^(package:|application-label:|launchable-activity:|native-code:)' "$RUNNER_TEMP/apk-badging.txt"
+          grep -q "name='com.kavemankai.kaijustomp'" "$RUNNER_TEMP/apk-badging.txt"
+          grep -q '^launchable-activity:' "$RUNNER_TEMP/apk-badging.txt"
+          grep -q "arm64-v8a" "$RUNNER_TEMP/apk-badging.txt"
           sha256sum "$APK"
 
       - name: Upload installable APK
