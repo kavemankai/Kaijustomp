@@ -125,6 +125,11 @@ jobs:
             exit 1
           fi
           unzip -t "build/android/$APK" > /dev/null
+          # Check the APK contains an Android manifest and native ARM64 engine.
+          unzip -Z -1 "build/android/$APK" > "$RUNNER_TEMP/apk-entries.txt"
+          grep -qx "AndroidManifest.xml" "$RUNNER_TEMP/apk-entries.txt"
+          grep -qx "classes.dex" "$RUNNER_TEMP/apk-entries.txt"
+          grep -Eq "^lib/arm64-v8a/.*[.]so$" "$RUNNER_TEMP/apk-entries.txt"
           if grep -E 'SCRIPT ERROR|Parse Error' "$RUNNER_TEMP/godot-export.log"; then
             echo "::error::Godot reported a script error during export"
             exit 1
