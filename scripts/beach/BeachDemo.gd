@@ -236,7 +236,7 @@ func _build_cars() -> void:
 		var z := [-127.0, -225.0, -337.0, -446.0][index]
 		_add_car(Vector3(x, 0, z), true, -1 if index % 2 == 0 else 1, colours[index])
 	for z in [-346.0, -401.0]:
-		for x in [-13.0, 13.0]:
+		for x in [-9.0, 9.0]:
 			_add_car(Vector3(x, 0, z), false, 0, colours[absi(int(x + z)) % colours.size()])
 	for z in [-451.0, -482.0]:
 		for x in [-47.0, -33.0, 33.0, 47.0]:
@@ -248,6 +248,7 @@ func _add_car(pos: Vector3, moving: bool, direction: int, colour: Color) -> void
 	var root := Node3D.new()
 	root.name = "MovingCar" if moving else "ParkedCar"
 	root.position = pos
+	root.rotation.y = PI if moving and direction > 0 else 0.0
 	add_child(root)
 	CoastalArt.car(root, colour)
 	var solid := AnimatableBody3D.new()
@@ -312,6 +313,7 @@ func _update_cars(delta: float) -> void:
 		elif node.position.z > -96.0:
 			direction = -1
 		car["direction"] = direction
+		node.rotation.y = PI if direction > 0 else 0.0
 		# Cars stop rather than intersecting a player on foot; the player can
 		# damage them with the same walk/sprint contact controls as buildings.
 		var candidate := node.position + Vector3(0, 0, float(direction) * float(car["speed"]) * delta)
