@@ -1,6 +1,6 @@
 extends Node3D
 # Kaijustomp beach vertical slice: intentionally isolated from the old auto-shooter.
-# All art is generated as simple low-poly geometry so the game feel can be tested first.
+# Authored hero assets and a coastal art layer preserve the approved gameplay contract.
 
 const BASE_HP := 100.0
 const BASE_WALK := 11.0
@@ -80,11 +80,17 @@ var stats_label: Label
 var sprint_button: Button
 var evolve_button: Button
 var retry_button: Button
+var modal_shade: ColorRect
 var modal: CenterContainer
 var choice_column: VBoxContainer
 var evolution_progress: ProgressBar
 var reveal_input_layer: Control
 var reveal_hint: Label
+var coastal_hud: CoastalHUD
+var sun_light: DirectionalLight3D
+var ground_shadow: MeshInstance3D
+var coastal_effects: CoastalEffects
+var previous_step := -1
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -99,6 +105,8 @@ func _ready() -> void:
 	_build_camera()
 	_build_population()
 	_build_ui()
+	coastal_effects = CoastalEffects.new()
+	add_child(coastal_effects)
 
 func _material(col: Color) -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()
@@ -132,32 +140,29 @@ func _sphere(parent: Node3D, pos: Vector3, radius: float, col: Color) -> MeshIns
 func _build_lighting() -> void:
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color(0.59, 0.76, 0.85)
+	env.background_color = Color("b2c9c6")
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.76, 0.76, 0.73)
+	env.ambient_light_color = Color("c7ddd8")
+	env.ambient_light_energy = 0.65
 	var world := WorldEnvironment.new()
 	world.environment = env
 	add_child(world)
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-50, -35, 0)
-	sun.light_energy = 1.1
+	sun.light_energy = 1.0
+	sun.light_color = Color("fff1d4")
+	sun_light = sun
 	sun.shadow_enabled = false # mobile-first; profile before enabling shadows
 	add_child(sun)
 
 func _build_beach() -> void:
-	_box(self, Vector3(0, -0.3, -12), Vector3(160, 0.5, 125), Color(0.82, 0.71, 0.48))
-	_box(self, Vector3(0, -0.36, 60), Vector3(180, 0.42, 78), Color(0.12, 0.39, 0.59))
-	_box(self, Vector3(0, -0.06, -27), Vector3(150, 0.10, 8), Color(0.31, 0.35, 0.37))
-	_box(self, Vector3(0, 0.015, -18), Vector3(150, 0.12, 4.5), Color(0.51, 0.42, 0.31))
-	_box(self, Vector3(0, -0.08, -51), Vector3(150, 0.14, 39), Color(0.43, 0.48, 0.40))
+	_box(self, Vector3(0, -0.3, -24), Vector3(160, 0.5, 100), Color("d9c79e"))
+	_box(self, Vector3(0, -0.06, -27), Vector3(150, 0.10, 8), Color("687a7a"))
+	_box(self, Vector3(0, 0.015, -18), Vector3(150, 0.12, 4.5), Color("c8bea5"))
+	_box(self, Vector3(0, -0.08, -51), Vector3(150, 0.14, 39), Color("94a18a"))
 	for x in range(-6, 7):
 		_box(self, Vector3(float(x) * 11.0, 0.02, -27), Vector3(4.2, 0.03, 0.20), Color(0.76, 0.70, 0.50))
-	for i in range(16):
-		var x := randf_range(-58.0, 58.0)
-		var z := randf_range(-8.0, 15.0)
-		_box(self, Vector3(x, 0.16, z), Vector3(0.5, 0.32, 0.5), Color(0.52, 0.50, 0.36))
-	for p in [Vector3(-32, 0, 7), Vector3(28, 0, 9), Vector3(51, 0, -11)]:
-		_sphere(self, p + Vector3(0, 0.85, 0), 1.2, Color(0.39, 0.38, 0.34))
+	CoastalArt.scenery(self)
 	# Weak beach structures are the first demolition targets; larger buildings
 	# require more Strength evolutions. Every structure has baseline occupants.
 	_add_building(Vector3(-6, 0, -35), Vector2(5, 5), 2.9, Color(0.71, 0.58, 0.34), "Beach kiosk", 1, 3, 3, 2)
@@ -171,10 +176,7 @@ func _add_building(pos: Vector3, footprint: Vector2, height: float, col: Color, 
 	var root := Node3D.new()
 	root.position = pos
 	add_child(root)
-	_box(root, Vector3(0, height * 0.5, 0), Vector3(footprint.x, height, footprint.y), col)
-	_box(root, Vector3(0, height + 0.18, 0), Vector3(footprint.x + 0.5, 0.35, footprint.y + 0.5), col.darkened(0.24))
-	for x in [-1.0, 1.0]:
-		_box(root, Vector3(x * footprint.x * 0.25, height * 0.60, footprint.y * 0.51), Vector3(1.6, 1.8, 0.14), Color(0.23, 0.37, 0.45))
+	CoastalArt.building(root, footprint, height, title)
 	# A visible MeshInstance3D is not an obstacle. Physical collision must
 	# remain active until the building actually collapses.
 	var crack_layers := _build_building_cracks(root, footprint, height)
@@ -225,6 +227,7 @@ func _build_building_cracks(root: Node3D, footprint: Vector2, height: float) -> 
 						var z := u * footprint.y + offset * diagonal
 						var side_line := _box(layer, Vector3(x, clampf(y - offset, 0.18, height - 0.14), z), Vector3(0.045, crack_len * 0.65, 0.065), ink)
 						side_line.rotation.x = diagonal
+		CoastalArt.merge(layer, "Fractures")
 		stages.append(layer)
 	return stages
 
@@ -288,6 +291,8 @@ func _build_creature() -> void:
 	head_pivot.reparent(body_art_anchor, true)
 	leg_pivots[0].reparent(body_art_anchor, true)
 	leg_pivots[2].reparent(body_art_anchor, true)
+	creature_rig["visual"].update_pose(false)
+	ground_shadow = CoastalArt.shadow(beast, Vector2(3.1, 6.7), Vector3(0,0,.35))
 
 func _sync_beast_collision() -> void:
 	# Keep world-space collision sized to major growth milestones.
@@ -333,11 +338,7 @@ func _person(pos: Vector3, uniform: bool = false) -> Node3D:
 	var node := Node3D.new()
 	node.position = pos
 	add_child(node)
-	var colour := Color(0.17, 0.28, 0.54) if uniform else Color.from_hsv(randf(), 0.45, 0.82)
-	_box(node, Vector3(0, 1.08, 0), Vector3(0.45, 0.83, 0.32), colour)
-	_sphere(node, Vector3(0, 1.66, 0), 0.23, Color(0.67, 0.48, 0.35))
-	for x in [-0.14, 0.14]:
-		_box(node, Vector3(x, 0.36, 0), Vector3(0.15, 0.70, 0.16), colour.darkened(0.25))
+	CoastalArt.person(node, uniform, randi_range(0, 19))
 	return node
 
 func _spawn_civilian(pos: Vector3) -> void:
@@ -346,7 +347,6 @@ func _spawn_civilian(pos: Vector3) -> void:
 
 func _spawn_officer(pos: Vector3, swat: bool = false) -> void:
 	var node := _person(pos, true)
-	_box(node, Vector3(0, 1.9, 0), Vector3(0.44, 0.18, 0.44), Color(0.12, 0.15, 0.23))
 	officers.append({"node": node, "cooldown": randf_range(0.3, 1.4), "swat": swat})
 
 func _build_ui() -> void:
@@ -365,8 +365,24 @@ func _build_ui() -> void:
 	stats_label.add_theme_constant_override("shadow_offset_x", 2)
 	stats_label.add_theme_constant_override("shadow_offset_y", 2)
 	ui_layer.add_child(stats_label)
+	stats_label.hide()
+	coastal_hud = CoastalHUD.new()
+	ui_layer.add_child(coastal_hud)
+	var quality := OptionButton.new()
+	quality.position = Vector2(318, 24)
+	quality.size = Vector2(120, 32)
+	quality.add_item("Smooth")
+	quality.add_item("Battery")
+	quality.add_item("Rich")
+	quality.theme = CoastalHUD.theme()
+	quality.item_selected.connect(func(index: int) -> void:
+		Engine.max_fps = 30 if index == 1 else 60
+		sun_light.shadow_enabled = index == 2
+		get_viewport().msaa_3d = Viewport.MSAA_DISABLED if index == 1 else Viewport.MSAA_2X
+	)
+	ui_layer.add_child(quality)
 	evolution_progress = ProgressBar.new()
-	evolution_progress.position = Vector2(18, 128)
+	evolution_progress.position = Vector2(18, 166)
 	evolution_progress.size = Vector2(238, 20)
 	evolution_progress.show_percentage = false
 	evolution_progress.min_value = 0
@@ -390,6 +406,12 @@ func _build_ui() -> void:
 	_place_right_button(retry_button, -342, -263)
 	retry_button.visible = false
 	retry_button.pressed.connect(func() -> void: get_tree().reload_current_scene())
+	modal_shade = ColorRect.new()
+	modal_shade.color = Color(.04,.10,.12,.58)
+	modal_shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	modal_shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	modal_shade.hide()
+	ui_layer.add_child(modal_shade)
 	modal = CenterContainer.new()
 	modal.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	modal.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -397,6 +419,7 @@ func _build_ui() -> void:
 	ui_layer.add_child(modal)
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(350, 0)
+	panel.theme = CoastalHUD.theme()
 	modal.add_child(panel)
 	choice_column = VBoxContainer.new()
 	choice_column.add_theme_constant_override("separation", 9)
@@ -432,6 +455,7 @@ func _place_right_button(btn: Button, upper: int, lower: int) -> void:
 	btn.offset_right = -18
 	btn.offset_top = upper
 	btn.offset_bottom = lower
+	btn.theme = CoastalHUD.theme()
 	btn.add_theme_font_size_override("font_size", 19)
 	ui_layer.add_child(btn)
 
@@ -506,6 +530,7 @@ func _update_movement(delta: float) -> void:
 		next_pos.z = clampf(next_pos.z, -67.0, 26.0)
 		# move_and_collide performs a swept physics test, including sprint frames.
 		# Sliding preserves responsive movement along the face of an obstacle.
+		var previous_position := beast.global_position
 		var motion := next_pos - beast.global_position
 		var contact := beast.move_and_collide(motion)
 		if contact != null:
@@ -515,7 +540,7 @@ func _update_movement(delta: float) -> void:
 			var slide := contact.get_remainder().slide(contact.get_normal())
 			if slide.length_squared() > 0.000001:
 				beast.move_and_collide(slide)
-		run_phase += delta * (18.0 if sprint_active else 11.0) * maxf(0.4, stick.length())
+		run_phase += beast.global_position.distance_to(previous_position) * TAU / (2.5 * maxf(1.0, growth_scale))
 	strike_timer = maxf(0.0, strike_timer - delta)
 	_update_creature_animation(delta, moving)
 	bite_timer = maxf(0.0, bite_timer - delta)
@@ -562,7 +587,13 @@ func _update_creature_animation(delta: float, moving: bool) -> void:
 		tail.rotation.y = lerpf(tail.rotation.y, sway, minf(1.0, 8.0 * delta))
 	var progress := 1.0 - clampf(bite_timer / maxf(0.05, bite_duration), 0.0, 1.0)
 	var snap := sin(progress * PI) if bite_timer > 0.0 else 0.0
-	head_pivot.position.z = -1.22 - 0.67 * snap
+	if upright_form:
+		# Reach down toward ground prey; convert the intended vertical reach
+		# into the tilted torso space. Collision is sampled from this final pose.
+		var reach := Basis(Vector3.RIGHT, -torso_pivot.rotation.x) * Vector3(0, -.95 * snap, -.67 * snap)
+		head_pivot.position = Vector3(0, 1.13, -1.22) + reach
+	else:
+		head_pivot.position = Vector3(0, 1.13, -1.22 - .67 * snap)
 	# Neck counter-rotation keeps eyes and jaws facing prey in the upright form.
 	head_pivot.rotation.x = (-torso_pivot.rotation.x if upright_form else 0.0) - 0.13 * snap + (0.025 * sin(creature_idle_clock * 0.95) if not moving and bite_timer <= 0.0 else 0.0)
 	head_pivot.rotation.y = 0.025 * sin(creature_idle_clock * 0.70) if not moving else 0.0
@@ -578,6 +609,14 @@ func _update_creature_animation(delta: float, moving: bool) -> void:
 		if bite_timer <= delta:
 			prey_in_mouth.queue_free()
 			prey_in_mouth = null
+
+	creature_rig["visual"].update_pose(upright_form, moving, run_phase)
+	var step := int(run_phase / PI)
+	if moving and step != previous_step and is_instance_valid(coastal_effects):
+		previous_step = step
+		coastal_effects.burst(beast.global_position + Vector3(0, .12, 0), 2, growth_scale)
+	if is_instance_valid(ground_shadow):
+		ground_shadow.scale = Vector3(growth_scale, 1, growth_scale)
 
 func _building_for_collider(collider: Object) -> int:
 	for i in range(buildings.size()):
@@ -616,6 +655,11 @@ func _damage_building(index: int, hits: float) -> void:
 	var b: Dictionary = buildings[index]
 	if b["destroyed"]:
 		return
+	if is_instance_valid(coastal_effects):
+		var center: Vector3 = b["position"]
+		var half_size: Vector2 = b["half"]
+		var at := Vector3(clampf(beast.position.x, center.x-half_size.x, center.x+half_size.x), 1, clampf(beast.position.z, center.z-half_size.y, center.z+half_size.y))
+		coastal_effects.burst(at, 5, growth_scale, true)
 	b["hits"] = float(b["hits"]) - hits
 	if b["hits"] < float(b["max_hits"]):
 		var damage_fraction := 1.0 - maxf(0.0, float(b["hits"])) / float(b["max_hits"])
@@ -649,7 +693,8 @@ func _damage_building(index: int, hits: float) -> void:
 	buildings[index] = b
 
 func _make_debris(at: Vector3, count: int) -> void:
-	for i in range(count):
+	coastal_effects.burst(at + Vector3(0,1,0), 10, 2.0)
+	for i in range(mini(count, maxi(0,48-debris.size()))):
 		var root := Node3D.new()
 		root.position = at + Vector3(randf_range(-3.0, 3.0), randf_range(0.5, 3.0), randf_range(-3.0, 3.0))
 		add_child(root)
@@ -746,6 +791,7 @@ func _update_civilians(delta: float) -> void:
 				if _blocking_building(new_pos) < 0:
 					person.global_position = new_pos
 				person.rotation.y = atan2(-travel.x, -travel.z)
+		CoastalArt.animate_person(person, creature_idle_clock * 12.0 + float(i), bool(c["panic"]) and float(c["delay"]) <= 0.0)
 		civilians[i] = c
 
 func _update_police(delta: float) -> void:
@@ -782,6 +828,7 @@ func _update_police(delta: float) -> void:
 				aim += Vector3(randf_range(-spread, spread), randf_range(-spread * 0.45, spread * 0.45), randf_range(-spread, spread))
 				_spawn_projectile(origin, (aim - origin).normalized(), bool(cop["swat"]))
 				cop["cooldown"] = 1.3 if cop["swat"] else 2.0
+		CoastalArt.animate_person(unit, creature_idle_clock * 9.0 + float(i), distance > 12.0 and distance < 45.0)
 		officers[i] = cop
 
 func _spawn_projectile(origin: Vector3, direction: Vector3, heavy: bool) -> void:
@@ -877,6 +924,7 @@ func _reset_evolution_pose() -> void:
 	beast_visual.rotation.z = 0.0
 	beast_visual.scale = Vector3.ONE * growth_scale
 	head_pivot.rotation.x = -torso_pivot.rotation.x if upright_form else 0.0
+	creature_rig["visual"].update_pose(upright_form)
 
 func _start_evolution() -> void:
 	if game_over or evolving or choice_open or reveal_active or biomass < _cost():
@@ -896,6 +944,7 @@ func _finish_evolution() -> void:
 	choice_open = true
 	get_tree().paused = true
 	modal.visible = true
+	modal_shade.show()
 	for child in choice_column.get_children():
 		child.queue_free()
 	var header := Label.new()
@@ -923,8 +972,13 @@ func _finish_evolution() -> void:
 	for i in range(number_of_choices):
 		var mutation: Dictionary = pool[i]
 		var button := Button.new()
-		button.custom_minimum_size = Vector2(300, 48)
-		button.text = "%s\n%s" % [mutation["name"], mutation["detail"]]
+		button.custom_minimum_size = Vector2(350, 76)
+		button.add_theme_font_size_override("font_size", 14)
+		button.add_theme_constant_override("icon_max_width", 42)
+		var region: String = {"armour":"BACK PLATES", "speed":"LIMBS", "stamina":"RIB GILLS", "jaw":"JAWS", "strength":"FORECLAWS", "health":"CHEST", "regen":"FLANKS"}[mutation["id"]]
+		var rank := int(mutation_visual_counts.get(mutation["id"],0)) + 1
+		button.icon = MutationIcons.texture(String(mutation["id"]), rank)
+		button.text = "%s  /  %d\n%s\n%s" % [mutation["name"], rank, region, mutation["detail"]]
 		button.pressed.connect(_choose_mutation.bind(String(mutation["id"])))
 		choice_column.add_child(button)
 
@@ -951,6 +1005,7 @@ func _choose_mutation(id: String) -> void:
 	beast_visual.scale = Vector3.ONE * growth_scale
 	choice_open = false
 	modal.visible = false
+	modal_shade.hide()
 	reveal_active = true
 	reveal_input_layer.visible = true
 	shedding.start_reveal()
@@ -1066,6 +1121,7 @@ func _apply_mutation_visual(id: String) -> void:
 	var stage := int(mutation_visual_counts.get(id, 0))
 	mutation_visual_counts[id] = stage + 1
 	StylizedCreatureArt.add_mutation(body_art_anchor, head_pivot, leg_pivots, id, stage)
+	creature_rig["visual"].update_pose(upright_form)
 
 func _update_camera(delta: float) -> void:
 	var goal := beast.global_position + _camera_offset()
@@ -1082,6 +1138,7 @@ func _update_hud() -> void:
 	stats_label.text = "HP %d/%d    BIOMASS %d/%d\nSTAMINA %d%%    EVOLUTIONS %d\n%s" % [
 		int(ceil(hp)), int(max_hp), biomass, _cost(), int(100.0 * stamina / max_stamina), evolutions, status
 	]
+	coastal_hud.update_state(hp, max_hp, stamina, max_stamina, biomass, _cost(), evolutions, status if evolving or game_over else ("COASTAL KAIJU" if upright_form else "COASTAL HATCHLING"))
 	evolve_button.visible = not evolving and not game_over and biomass >= _cost()
 	evolution_progress.visible = evolving
 	if evolving:

@@ -1,5 +1,7 @@
 # Evolution progression
 
+Current art candidate: the imported 19-bone quad/upright meshes and bounded mutation tiers are documented in [ART_DIRECTION.md](ART_DIRECTION.md). The adapter preserves the progression policy below. Supporting feet use a distance-driven stance/swing solve; upright feeding now reaches down with collision sampled from the final head pose. Previous references to a procedural rig describe the gameplay pivots, which now drive the skinned assets.
+
 Godot 4.5 beach prototype. Mutation level counts completed evolution choices, starting at zero. Costs remain `55 + 25 * completed_evolutions`. One mutation per completed choice; surplus biomass carries over. Health, armour, speed, stamina, jaw, strength and regeneration remain cumulative. Damage interruptions never remove prior mutations.
 
 | Level | Relative growth | Cumulative size | Form |

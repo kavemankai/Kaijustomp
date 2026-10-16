@@ -1,3 +1,7 @@
+# Current art candidate - 2026-10-17
+
+Work continues on `feature/sculpted-coastal-art`, based on the takeover branch below. Read [ART_DIRECTION.md](ART_DIRECTION.md) first for the current assets, runtime adapter, mutation appearance rules, test coverage and phone acceptance limits. Both `.blend` masters and exported `.glb` assets are tracked. Do not switch back to the primitive assembly or use renderer-count minimums as an art test. The stable release is not an art candidate and must remain unchanged.
+
 # Kaijustomp takeover — 16 October 2026
 
 ## Current verified candidate

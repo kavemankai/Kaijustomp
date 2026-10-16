@@ -1,3 +1,7 @@
+## Sculpted coastal art candidate
+
+The `feature/sculpted-coastal-art` branch implements the current creature and beach art direction. Read [the visual specification and pipeline](docs/ART_DIRECTION.md), with actual Godot captures and physical-phone acceptance notes. It uses authored GLBs and bounded mutation appearances; approved movement, camera and growth policy remain the baseline. The Android art preview has a separate package and does not replace the stable release.
+
 # Kaijustomp
 
 Current playable game: **Godot 4.5 Compatibility, Android portrait beach/evolution prototype**. Begin with [takeover status](docs/CODEX_HANDOVER.md), [growth contract](docs/EVOLUTION_PROGRESSION.md), [development log](docs/DEVELOPMENT_LOG.md) and [beach controls](docs/BEACH_DEMO.md). Run `project.godot` / `scenes/BeachDemo.tscn`. WASD/arrows or left touch joystick move; Shift/right SPRINT toggles sprint; E/EVOLVE starts a vulnerable evolution when enough biomass is available. Feeding and structure attacks are automatic. Mutation selection and the shedding reveal pause gameplay.

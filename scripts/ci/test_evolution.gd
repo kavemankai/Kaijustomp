@@ -12,9 +12,11 @@ func _fail(message: String) -> void:
 
 func _vertices(node: Node) -> int:
 	var total := 0
-	if node is MeshInstance3D:
+	if node is MeshInstance3D and node.is_visible_in_tree() and not node.get_meta("exclude_shed", false):
 		for surface in range(node.mesh.get_surface_count()):
-			total += node.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX].size()
+			var arrays: Array = node.mesh.surface_get_arrays(surface)
+			var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX] if arrays[Mesh.ARRAY_INDEX] != null else PackedInt32Array()
+			total += indices.size() if not indices.is_empty() else arrays[Mesh.ARRAY_VERTEX].size()
 	for child in node.get_children():
 		total += _vertices(child)
 	return total
@@ -29,8 +31,8 @@ func _run_test() -> void:
 	root.add_child(demo)
 	await process_frame
 	var old_vertices := _vertices(demo.beast_visual)
-	var body: MeshInstance3D = demo.beast_visual.find_child("MainTealBody", true, false)
-	var body_colour: Color = body.material_override.albedo_color
+	var body: MeshInstance3D = CreatureVisual.renderers(demo.creature_rig["visual"].forms[0])[0]
+	var body_colour: Color = body.get_active_material(0).albedo_color
 	demo.biomass = 80
 	demo._start_evolution()
 	if not demo.evolving or demo.shedding.current_shell == null:
@@ -69,7 +71,7 @@ func _run_test() -> void:
 	if baked == null or _vertices(baked) != old_vertices:
 		_fail("Static remnant bake lost prior creature geometry")
 		return
-	if body.material_override.albedo_color != body_colour:
+	if body.get_active_material(0).albedo_color != body_colour:
 		_fail("Shared live palette changed while shedding")
 		return
 	demo.biomass = 90
