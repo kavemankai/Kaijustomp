@@ -2,12 +2,14 @@ name: Beach demo Godot smoke test
 
 on:
   push:
-    branches: [feature/beach-demo-elevated-camera]
+    branches: [feature/beach-demo-elevated-camera, feature/creature-growth-takeover]
   pull_request:
     paths:
       - 'scripts/beach/**'
       - 'scenes/BeachDemo.tscn'
       - 'project.godot'
+      - 'scripts/ci/**'
+      - '.github/workflows/beach-demo-smoke.yml'
 
 jobs:
   godot-smoke:
@@ -33,11 +35,13 @@ jobs:
           set -o pipefail
           /tmp/godot/Godot_v4.5-stable_linux.x86_64 --headless --path . --quit-after 60 2>&1 | tee launch.log
           if grep -E 'SCRIPT ERROR|Parse Error|Invalid call|Invalid access' launch.log; then exit 1; fi
-      - name: Exercise evolution and shedding regression
+      - name: Exercise complete beach regression suite
         shell: bash
         run: |
-          set -o pipefail
-          /tmp/godot/Godot_v4.5-stable_linux.x86_64 --headless --path . --script res://scripts/ci/test_evolution.gd \
-            2>&1 | tee evolution-test.log
-          grep -q 'EVOLUTION TEST PASSED' evolution-test.log
-          if grep -E 'SCRIPT ERROR|Parse Error|EVOLUTION TEST FAILED|Invalid call|Invalid access' evolution-test.log; then exit 1; fi
+          set -euo pipefail
+          for TEST in test_evolution test_beach_combat test_stylized_creature test_growth_milestones test_growth_gameplay; do
+            timeout 90 /tmp/godot/Godot_v4.5-stable_linux.x86_64 --headless --path . --script "res://scripts/ci/$TEST.gd" \
+              2>&1 | tee "$TEST.log"
+            grep -q 'TEST PASSED' "$TEST.log"
+            if grep -E 'SCRIPT ERROR|Parse Error|TEST FAILED|Invalid call|Invalid access' "$TEST.log"; then exit 1; fi
+          done
