@@ -1,5 +1,10 @@
 # Development log
 
+## 2026-10-17 — extend suburbs, shopping districts, cars and free debug evolution
+
+Player confirmed the first suburb works. This experimental stacked branch `feature/expanded-suburb-shops-cars-debug` extends the same world with two extra residential rows, 12 small shops and two large stores, connected streets and vehicle parking. Adds capped moving and parked physical cars with smash/driver-release, local people and police. A debug-build-only right-hand **DEBUG EVO** button and F6 keyboard equivalent allow fast mutation selection without feeding, with original history, skin reveal and growth milestones preserved. Isolates a separate APK package and immutable release from the approved build; nine mandatory Godot tests plus Android packaging checks. See [SHOPPING_CARS_DEBUG.md](SHOPPING_CARS_DEBUG.md). Android play feel, visual approval and device performance remain acceptance gates.
+
+
 ## 2026-10-17 — player-approved long beach, cocoon and neighbourhood preview
 
 Player confirmed the extended beach works and requested a stronger cocoon, faster evolution, and the next section. On isolated `feature/cocoon-evolution-coastal-suburb`, add Reinforced Cocoon and Rapid Metamorphosis as evolution mutations with tiered art, capped seven-card portrait selection, stronger damage interruption tolerance and reduced vulnerable evolution timer. Preserve original pause, reveal, bite, movement and camera. Build Banksia Heights directly inland, 18 solid destructible homes, connecting streets, local food replenishment and police response. Add full regression + isolated Android publishing gates, leave long beach preview intact. Details and physical-phone acceptance in [SUBURB_EVOLUTION.md](SUBURB_EVOLUTION.md).
