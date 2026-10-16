@@ -119,6 +119,11 @@ jobs:
           "$GODOT_BIN" --headless --path . --export-debug "Android" "build/android/$APK" \
             2>&1 | tee "$RUNNER_TEMP/godot-export.log"
           test -s "build/android/$APK"
+          FILE_BYTES=$(stat -c "%s" "build/android/$APK")
+          if [ "$FILE_BYTES" -lt 12000000 ]; then
+            echo "APK too small, refusing publication"
+            exit 1
+          fi
           unzip -t "build/android/$APK" > /dev/null
           if grep -E 'SCRIPT ERROR|Parse Error' "$RUNNER_TEMP/godot-export.log"; then
             echo "::error::Godot reported a script error during export"
