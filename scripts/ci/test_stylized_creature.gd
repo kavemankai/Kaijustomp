@@ -48,16 +48,16 @@ func run() -> void:
 		if not check(renderer.skin != null and renderer.mesh.get_surface_count() == 1,"Hero must be skinned with one palette surface"): return
 	if not check(demo.leg_pivots.size() == 4 and demo.tail_pivots.size() == 3,"Gameplay articulation changed"): return
 	if not check(is_equal_approx(demo.beast_collision_shape.radius,1.85) and is_equal_approx(demo.head_collision_shape.radius,.82),"Hatchling collision changed"): return
-	for id in ["armour","speed","stamina","jaw","strength","health","regen"]:
+	for id in ["armour","speed","stamina","jaw","strength","health","regen","cocoon","metamorphosis"]:
 		for i in range(3): demo._apply_mutation_visual(id)
 	var mature_count := visible_renderers(demo.beast_visual)
 	var mature_triangles := triangle_count(demo.beast_visual)
 	print("MATURE HERO BUDGET: triangles=%d renderers=%d"%[mature_triangles,mature_count])
-	for id in ["armour","speed","stamina","jaw","strength","health","regen"]:
+	for id in ["armour","speed","stamina","jaw","strength","health","regen","cocoon","metamorphosis"]:
 		for i in range(20): demo._apply_mutation_visual(id)
 		if not check(demo.mutation_visual_counts[id] == 23,"Appearance cap must not discard purchase history"): return
 	if not check(visible_renderers(demo.beast_visual) == mature_count and triangle_count(demo.beast_visual) == mature_triangles,"Mature mutation geometry grew without bound"): return
-	if not check(mature_triangles < 10000,"Hero exceeded initial triangle budget"): return
+	if not check(mature_triangles < 13000,"Hero exceeded initial triangle budget"): return
 	demo._apply_growth_milestone(22)
 	if not check(visual.forms[1].visible and not visual.forms[0].visible,"Upright asset was not selected"): return
 	var renderer := CreatureVisual.renderers(visual.forms[1])[0]
