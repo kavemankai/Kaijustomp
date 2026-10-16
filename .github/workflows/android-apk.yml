@@ -6,6 +6,13 @@ on:
       - '**'
     tags:
       - 'v*'
+  pull_request:
+    paths:
+      - 'scripts/**'
+      - 'scenes/**'
+      - 'project.godot'
+      - 'export_presets.cfg'
+      - '.github/workflows/android-apk.yml'
   workflow_dispatch:
 
 permissions:
