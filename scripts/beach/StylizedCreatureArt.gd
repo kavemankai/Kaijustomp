@@ -15,12 +15,17 @@ const MOUTH := Color("#472B49")
 const TONGUE := Color("#E66B83")
 const EYE_GOLD := Color("#FFCD65")
 const WHITE := Color("#FFF7D8")
+static var _materials: Dictionary = {}
 
 static func _mat(tint: Color, sheen: float = 0.72) -> StandardMaterial3D:
+	var key := "%s/%.3f" % [tint.to_html(), sheen]
+	if _materials.has(key):
+		return _materials[key]
 	var material := StandardMaterial3D.new()
 	material.albedo_color = tint
 	material.roughness = sheen
 	material.metallic = 0.0
+	_materials[key] = material
 	return material
 
 static func _oval(parent: Node3D, name: String, pos: Vector3, radii: Vector3, tint: Color, facets: int = 16) -> MeshInstance3D:
@@ -97,6 +102,8 @@ static func build(body: Node3D, head: Node3D, jaw: Node3D, legs: Array[Node3D], 
 		_oval(breathing, "ShoulderAccent", Vector3(side * 0.70, 1.31, -0.88),
 			Vector3(0.16, 0.18, 0.29), RIDGE)
 
+	var lower_limbs: Array[Node3D] = []
+	var paws: Array[Node3D] = []
 	for i in range(legs.size()):
 		var joint: Node3D = legs[i]
 		joint.name = "FrontLeg%d" % i if i % 2 == 0 else "BackLeg%d" % i
@@ -113,6 +120,22 @@ static func build(body: Node3D, head: Node3D, jaw: Node3D, legs: Array[Node3D], 
 			var x := outer * 0.17 + float(claw - 1) * 0.22
 			_cone(joint, "IvoryClaw%d" % claw, Vector3(x, -0.98, -0.55),
 				0.28, 0.079, WHITE, -PI * 0.5, 6)
+		# Articulated knee and ankle, with identical quadruped rest geometry.
+		var knee := Node3D.new()
+		knee.name = "Knee"
+		joint.add_child(knee)
+		knee.position = Vector3(outer * 0.10, -0.55, 0.0)
+		var ankle := Node3D.new()
+		ankle.name = "Ankle"
+		knee.add_child(ankle)
+		ankle.position = Vector3(outer * 0.07, -0.42, -0.19)
+		for child in joint.get_children():
+			if child.name == "Forearm":
+				child.reparent(knee, true)
+			elif child.name == "StrongPaw" or String(child.name).begins_with("IvoryClaw"):
+				child.reparent(ankle, true)
+		lower_limbs.append(knee)
+		paws.append(ankle)
 
 	# Bony brows, large expressive eyes and an intentionally graphic jawline.
 	_oval(head, "BroadSkull", Vector3(0, 0.01, -0.30), Vector3(0.71, 0.42, 0.70), BODY)
@@ -161,7 +184,7 @@ static func build(body: Node3D, head: Node3D, jaw: Node3D, legs: Array[Node3D], 
 			_cone(section, "TaperedTailTip", Vector3(0, -0.13, 1.21),
 				0.80, 0.19, DEEP, PI * 0.5, 9)
 
-	return {"breathing": breathing}
+	return {"breathing": breathing, "lower_limbs": lower_limbs, "paws": paws}
 
 static func add_mutation(body: Node3D, head: Node3D, legs: Array[Node3D], id: String, stage: int) -> void:
 	# Every enhancement is an authored palette-consistent extension to the
@@ -192,9 +215,12 @@ static func add_mutation(body: Node3D, head: Node3D, legs: Array[Node3D], id: St
 		"strength":
 			for index in [0, 2]:
 				var foreleg: Node3D = legs[index]
+				var talons := Node3D.new()
+				foreleg.add_child(talons)
 				for claw in range(3):
-					_cone(foreleg, "GrowingTalons", Vector3(float(claw - 1) * 0.22, -0.99, -0.69 - lift),
+					_cone(talons, "GrowingTalons", Vector3(float(claw - 1) * 0.22, -0.99, -0.69 - lift),
 						0.23 + lift, 0.07, BELLY, -PI * 0.5, 5)
+				talons.reparent(foreleg.get_node("Knee/Ankle"), true)
 		"health":
 			for side in [-1.0, 1.0]:
 				_oval(body, "MusclePlate", Vector3(side * 0.78, 1.11, z),

@@ -19,6 +19,7 @@ var beast: CharacterBody3D
 var beast_collision_shape: CapsuleShape3D
 var head_collision_shape: SphereShape3D
 var head_collision_node: CollisionShape3D
+var body_collision_node: CollisionShape3D
 var beast_visual: Node3D
 var jaw: Node3D
 var head_pivot: Node3D
@@ -236,9 +237,9 @@ func _build_creature() -> void:
 	add_child(beast)
 	# Approved swept collision, body physics and snout extension untouched.
 	beast_collision_shape = CapsuleShape3D.new()
-	var body_collision := CollisionShape3D.new()
-	body_collision.shape = beast_collision_shape
-	beast.add_child(body_collision)
+	body_collision_node = CollisionShape3D.new()
+	body_collision_node.shape = beast_collision_shape
+	beast.add_child(body_collision_node)
 	head_collision_shape = SphereShape3D.new()
 	head_collision_node = CollisionShape3D.new()
 	head_collision_node.shape = head_collision_shape
@@ -292,8 +293,7 @@ func _sync_beast_collision() -> void:
 	# Keep world-space collision sized to major growth milestones.
 	beast_collision_shape.radius = 1.85 * growth_scale
 	beast_collision_shape.height = 3.70 * growth_scale
-	var shape_node: CollisionShape3D = beast.get_child(0)
-	shape_node.position.y = 1.85 * growth_scale
+	body_collision_node.position.y = 1.85 * growth_scale
 	head_collision_shape.radius = 0.82 * growth_scale
 	head_collision_node.position = Vector3(0, 0.94 * growth_scale, -2.20 * growth_scale)
 
@@ -313,13 +313,15 @@ func _camera_offset() -> Vector3:
 	# visible on the narrower screen without changing movement orientation.
 	var viewport_size := get_viewport().get_visible_rect().size
 	# Scale only the distance, not the established portrait chase angle.
-	return CAMERA_OFFSET * (PORTRAIT_CAMERA_DISTANCE if viewport_size.y > viewport_size.x else 1.0) * maxf(1.0, growth_scale)
+	return CAMERA_OFFSET * (PORTRAIT_CAMERA_DISTANCE if viewport_size.y > viewport_size.x else 1.0) * maxf(1.0, growth_scale) + Vector3(0, _camera_height(), 0)
+
+func _camera_height() -> float:
+	return (growth_scale - 1.0) * 0.65 + (growth_scale * 0.75 if upright_form else 0.0)
 
 func _camera_look_target() -> Vector3:
 	# Bigger and upright forms remain framed with the exact original camera
 	# angle and control mapping at hatchling size.
-	var vertical := (growth_scale - 1.0) * 0.65 + (growth_scale * 0.75 if upright_form else 0.0)
-	return beast.global_position + Vector3(0, vertical, -2.8 * maxf(1.0, growth_scale))
+	return beast.global_position + Vector3(0, _camera_height(), -2.8 * maxf(1.0, growth_scale))
 
 
 func _build_population() -> void:
@@ -446,6 +448,9 @@ func _cost() -> int:
 
 func _physics_process(delta: float) -> void:
 	# The root runs during pause for UI, but no enemies, damage or movement do.
+	if reveal_active:
+		_update_camera(delta)
+		return
 	if game_over or choice_open or reveal_active:
 		return
 	if evolving:
@@ -528,9 +533,16 @@ func _update_creature_animation(delta: float, moving: bool) -> void:
 		var limb := leg_pivots[i]
 		var is_front := i == 0 or i == 2
 		var animation_swing := sin(phase) * gait_amplitude * (0.38 if upright_form and is_front else 1.0)
+		# Independent shoulder compensation keeps arms hanging forward rather
+		# than rotating them up with the chest. Hind knees support the new mass.
+		var stance := -torso_pivot.rotation.x - 0.25 if upright_form and is_front else (0.20 if upright_form else 0.0)
 		limb.rotation.x = lerpf(limb.rotation.x,
-			animation_swing + (-0.25 if upright_form and is_front else 0.0),
+			animation_swing + stance,
 			minf(1.0, 15.0 * delta))
+		var knee: Node3D = creature_rig["lower_limbs"][i]
+		var paw: Node3D = creature_rig["paws"][i]
+		knee.rotation.x = -0.20 + maxf(0.0, -sin(phase)) * gait_amplitude * 0.65 if upright_form and not is_front else 0.0
+		paw.rotation.x = -limb.rotation.x - knee.rotation.x if upright_form and not is_front else 0.0
 		# A tiny plant/recovery sway adds weight without changing locomotion.
 		limb.rotation.z = lerpf(limb.rotation.z,
 			0.035 * sin(phase + 0.4) if moving else 0.0, minf(1.0, 9.0 * delta))
@@ -551,16 +563,15 @@ func _update_creature_animation(delta: float, moving: bool) -> void:
 	var progress := 1.0 - clampf(bite_timer / maxf(0.05, bite_duration), 0.0, 1.0)
 	var snap := sin(progress * PI) if bite_timer > 0.0 else 0.0
 	head_pivot.position.z = -1.22 - 0.67 * snap
-	# Keep existing moving head hitbox in sync with the feeding lunge.
-	if upright_form:
-		# Position the same head hit shape at the raised snout, using the real
-		# visual transform after skeletal pose and bite extension.
-		head_collision_node.position = beast.to_local(head_pivot.to_global(Vector3(0, -0.16, -1.11)))
-	else:
-		head_collision_node.position.z = (-2.20 - 0.67 * snap) * growth_scale
-	head_pivot.rotation.x = -0.13 * snap + (0.025 * sin(creature_idle_clock * 0.95) if not moving and bite_timer <= 0.0 else 0.0)
+	# Neck counter-rotation keeps eyes and jaws facing prey in the upright form.
+	head_pivot.rotation.x = (-torso_pivot.rotation.x if upright_form else 0.0) - 0.13 * snap + (0.025 * sin(creature_idle_clock * 0.95) if not moving and bite_timer <= 0.0 else 0.0)
 	head_pivot.rotation.y = 0.025 * sin(creature_idle_clock * 0.70) if not moving else 0.0
 	jaw.rotation.x = -0.85 * maxf(0.0, sin(progress * PI)) if bite_timer > 0.0 else 0.0
+	# Sample AFTER all transforms, never the previous frame's head pose.
+	if upright_form:
+		head_collision_node.position = beast.to_local(head_pivot.to_global(Vector3(0, -0.16, -1.11)))
+	else:
+		head_collision_node.position = Vector3(0, 0.94, -2.20 - 0.67 * snap) * growth_scale
 	if is_instance_valid(prey_in_mouth):
 		prey_in_mouth.position = prey_in_mouth.position.lerp(Vector3(0, -0.43, -1.16), minf(1.0, 18.0 * delta))
 		prey_in_mouth.scale = Vector3.ONE * maxf(0.02, 1.0 - progress * 1.2)
@@ -665,11 +676,12 @@ func _update_biting(_delta: float) -> void:
 	if bite_timer > 0.0:
 		return
 	var facing := -beast.global_transform.basis.z
+	var reach := _bite_reach()
 	for i in range(civilians.size() - 1, -1, -1):
 		var npc: Node3D = civilians[i]["node"]
 		var toward := npc.global_position - beast.global_position
 		toward.y = 0.0
-		if toward.length_squared() <= BITE_RANGE * BITE_RANGE and facing.dot(toward.normalized()) >= BITE_CONE_DOT:
+		if toward.length_squared() <= reach * reach and facing.dot(toward.normalized()) >= BITE_CONE_DOT:
 			civilians.remove_at(i)
 			_capture_and_feed(npc, 12)
 			return
@@ -677,10 +689,14 @@ func _update_biting(_delta: float) -> void:
 		var cop: Node3D = officers[i]["node"]
 		var toward := cop.global_position - beast.global_position
 		toward.y = 0.0
-		if toward.length_squared() <= BITE_RANGE * BITE_RANGE and facing.dot(toward.normalized()) >= BITE_CONE_DOT:
+		if toward.length_squared() <= reach * reach and facing.dot(toward.normalized()) >= BITE_CONE_DOT:
 			officers.remove_at(i)
 			_capture_and_feed(cop, 16)
 			return
+
+func _bite_reach() -> float:
+	# Preserve hatchling reach/cone. Raised jaws must still collect ground prey.
+	return maxf(BITE_RANGE * growth_scale, -head_collision_node.position.z + head_collision_shape.radius * 0.8) if upright_form else BITE_RANGE * growth_scale
 
 func _capture_and_feed(prey: Node3D, amount: int) -> void:
 	# Remove the target from AI updates immediately, but keep its mesh for
@@ -853,14 +869,14 @@ func _update_evolution_animation(delta: float) -> void:
 	beast_visual.position.y = -0.12 + 0.045 * beat
 	beast_visual.rotation.z = beat * 0.025
 	beast_visual.scale = Vector3.ONE * growth_scale * (1.0 + 0.018 * maxf(0.0, beat))
-	head_pivot.rotation.x = 0.07 * sin(evolution_visual_clock * 8.0)
+	head_pivot.rotation.x = (-torso_pivot.rotation.x if upright_form else 0.0) + 0.07 * sin(evolution_visual_clock * 8.0)
 	shedding.update_shed_progress(1.0 - evolution_clock / maxf(0.01, evolution_total))
 
 func _reset_evolution_pose() -> void:
 	beast_visual.position = Vector3.ZERO
 	beast_visual.rotation.z = 0.0
 	beast_visual.scale = Vector3.ONE * growth_scale
-	head_pivot.rotation.x = 0.0
+	head_pivot.rotation.x = -torso_pivot.rotation.x if upright_form else 0.0
 
 func _start_evolution() -> void:
 	if game_over or evolving or choice_open or reveal_active or biomass < _cost():
@@ -949,7 +965,43 @@ func _apply_growth_milestone(level: int) -> void:
 	growth_stage = GrowthProgression.stage_for(level)
 	growth_scale = GrowthProgression.target_scale(level)
 	upright_form = GrowthProgression.upright_for(level)
+	beast_visual.scale = Vector3.ONE * growth_scale
+	# The reveal runs while gameplay is paused: pose must be ready beforehand.
+	torso_pivot.rotation.x = 1.05 if upright_form else 0.0
+	_update_creature_animation(1.0, false)
 	_sync_beast_collision()
+	_update_creature_animation(0.0, false)
+	_resolve_growth_clearance()
+
+func _resolve_growth_clearance() -> void:
+	# Shape expansion is not swept by move_and_collide. Resolve only the new
+	# overlap at an evolution milestone, without damage or per-frame searches.
+	var origin := beast.global_position
+	if _growth_position_clear(origin):
+		return
+	for ring in range(1, 33):
+		for direction in range(16):
+			var angle := TAU * float(direction) / 16.0
+			var candidate := origin + Vector3(cos(angle), 0, sin(angle)) * float(ring) * 0.5
+			if absf(candidate.x) > 70.0 or candidate.z < -67.0 or candidate.z > 26.0:
+				continue
+			if _growth_position_clear(candidate):
+				beast.global_position = candidate
+				return
+	push_warning("No local growth clearance; beach has outgrown its supported scale")
+
+func _growth_position_clear(position: Vector3) -> bool:
+	var query := PhysicsShapeQueryParameters3D.new()
+	query.collision_mask = beast.collision_mask
+	query.exclude = [beast.get_rid()]
+	query.margin = 0.04
+	for collider in [body_collision_node, head_collision_node]:
+		query.shape = collider.shape
+		query.transform = beast.global_transform * collider.transform
+		query.transform.origin += position - beast.global_position
+		if not beast.get_world_3d().direct_space_state.intersect_shape(query, 1).is_empty():
+			return false
+	return true
 
 
 func _evolution_label(id: String) -> String:
@@ -1017,6 +1069,7 @@ func _apply_mutation_visual(id: String) -> void:
 
 func _update_camera(delta: float) -> void:
 	var goal := beast.global_position + _camera_offset()
+	follow_camera.far = maxf(230.0, 230.0 * growth_scale)
 	if camera_celebration_clock > 0.0:
 		camera_celebration_clock = maxf(0.0, camera_celebration_clock - delta)
 		goal.x += sin(camera_celebration_clock * 90.0) * camera_celebration_clock * 0.50
