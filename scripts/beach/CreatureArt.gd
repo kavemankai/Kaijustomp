@@ -13,12 +13,12 @@ const CREASE := Color(0.14, 0.18, 0.14)
 const BONE := Color(0.79, 0.74, 0.58)
 const EYE := Color(0.76, 0.57, 0.19)
 
-static func _mat(col: Color, rough: float = 0.88) -> StandardMaterial3D:
+static func _mat(col: Color, rough: float = 0.88, use_vertex_colour: bool = false) -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = col
 	mat.roughness = rough
 	mat.metallic = 0.0
-	mat.vertex_color_use_as_albedo = true
+	mat.vertex_color_use_as_albedo = use_vertex_colour
 	return mat
 
 static func _ball(parent: Node3D, pos: Vector3, radius: Vector3, col: Color) -> MeshInstance3D:
@@ -49,7 +49,7 @@ static func _spur(parent: Node3D, pos: Vector3, height: float, width: float, col
 	node.material_override = _mat(col)
 	parent.add_child(node)
 
-static func _loft(parent: Node3D, points: Array[Vector3], widths: Array[Vector2], col: Color, segments: int = 14) -> MeshInstance3D:
+static func _loft(parent: Node3D, points: Array, widths: Array, col: Color, segments: int = 14) -> MeshInstance3D:
 	# Ring loft replaces rigid boxes with a continuous tapered reptilian silhouette.
 	assert(points.size() == widths.size())
 	assert(points.size() >= 2)
@@ -89,7 +89,7 @@ static func _loft(parent: Node3D, points: Array[Vector3], widths: Array[Vector2]
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 	var render := MeshInstance3D.new()
 	render.mesh = mesh
-	render.material_override = _mat(col)
+	render.material_override = _mat(col, 0.88, true)
 	parent.add_child(render)
 	return render
 
