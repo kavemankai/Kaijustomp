@@ -228,13 +228,11 @@ func _build_creature() -> void:
 	beast.collision_mask = 1
 	beast.position = Vector3(0, 0, 18)
 	add_child(beast)
-	# Upright capsule provides swept, orientation-independent wall collision.
-	# Its broad footprint protects the head and torso, including while sprinting.
+	# Preserve the tested capsule/snout physics while upgrading visuals.
 	beast_collision_shape = CapsuleShape3D.new()
 	var body_collision := CollisionShape3D.new()
 	body_collision.shape = beast_collision_shape
 	beast.add_child(body_collision)
-	# The projecting snout needs an independent collider, especially during bites.
 	head_collision_shape = SphereShape3D.new()
 	head_collision_node = CollisionShape3D.new()
 	head_collision_node.shape = head_collision_shape
@@ -242,46 +240,30 @@ func _build_creature() -> void:
 	_sync_beast_collision()
 	beast_visual = Node3D.new()
 	beast.add_child(beast_visual)
-	var green := Color(0.22, 0.42, 0.19)
-	_box(beast_visual, Vector3(0, 1.02, 0), Vector3(1.75, 1.18, 3.0), green)
-	# Four pivoted legs make direction changes read as a scurry, not a sliding tank.
 	leg_pivots.clear()
 	for x in [-0.78, 0.78]:
 		for z in [-0.87, 0.94]:
 			var hip := Node3D.new()
 			hip.position = Vector3(x, 1.0, z)
 			beast_visual.add_child(hip)
-			_box(hip, Vector3(0, -0.46, 0), Vector3(0.50, 1.05, 0.58), green.darkened(0.17))
-			_box(hip, Vector3(0, -0.96, -0.13), Vector3(0.58, 0.16, 0.65), green.darkened(0.24))
 			leg_pivots.append(hip)
-
 	head_pivot = Node3D.new()
 	head_pivot.position = Vector3(0, 1.13, -1.22)
 	beast_visual.add_child(head_pivot)
-	_box(head_pivot, Vector3(0, -0.04, -0.45), Vector3(1.36, 0.74, 1.46), green.lightened(0.10))
-	_box(head_pivot, Vector3(0, -0.24, -1.18), Vector3(1.03, 0.31, 0.93), green)
-	for x in [-0.48, 0.48]:
-		_sphere(head_pivot, Vector3(x, 0.23, -0.85), 0.17, Color(0.96, 0.73, 0.16))
-		_sphere(head_pivot, Vector3(x * 0.48, -0.09, -1.61), 0.072, Color(0.10, 0.15, 0.10))
 	jaw = Node3D.new()
 	jaw.position = Vector3(0, -0.45, -0.95)
 	head_pivot.add_child(jaw)
-	_box(jaw, Vector3(0, -0.05, -0.25), Vector3(1.04, 0.20, 1.13), Color(0.48, 0.52, 0.28))
-	_box(jaw, Vector3(0, 0.06, -0.36), Vector3(0.78, 0.04, 0.76), Color(0.57, 0.18, 0.22))
-
-	# Jointed tail swings opposite the hips at speed.
 	tail_pivots.clear()
 	var tail_parent: Node3D = beast_visual
 	for i in range(3):
 		var segment := Node3D.new()
 		segment.position = Vector3(0, 0.98 if i == 0 else -0.13, 1.24 if i == 0 else 0.91)
 		tail_parent.add_child(segment)
-		var taper := 1.0 - float(i) * 0.27
-		_box(segment, Vector3(0, 0, 0.39), Vector3(0.86 * taper, 0.62 * taper, 1.06), green.darkened(0.08 + float(i) * 0.06))
 		tail_pivots.append(segment)
 		tail_parent = segment
-	for z in [-0.9, -0.25, 0.42]:
-		_box(beast_visual, Vector3(0, 1.67, z), Vector3(0.18, 0.40, 0.25), Color(0.33, 0.51, 0.29))
+	# Geometry is modular and follows all established animation pivots.
+	CreatureArt.build(beast_visual, head_pivot, jaw, leg_pivots, tail_pivots)
+
 
 func _sync_beast_collision() -> void:
 	# Keep world-space collision sized to major growth milestones.
@@ -961,60 +943,12 @@ func _on_reveal_finished() -> void:
 
 
 func _apply_mutation_visual(id: String) -> void:
-	# Each chosen mutation adds a *small* persistent physical detail.
-	# Repeating one mutation adds further details instead of replacing
-	# the creature or changing its overall size.
+	# Mutations are additive anatomy on the appropriate moving joint;
+	# the existing evolution selection/history and shedding remain intact.
 	var stage := int(mutation_visual_counts.get(id, 0))
 	mutation_visual_counts[id] = stage + 1
-	var slot := stage % 5
-	var tier := floori(float(stage) / 5.0)
-	var lift := minf(0.20, float(tier) * 0.065)
-	match id:
-		"armour":
-			for side in [-1.0, 1.0]:
-				_box(beast_visual,
-					Vector3(side * 0.54, 1.64 + lift, -0.96 + float(slot) * 0.48),
-					Vector3(0.42, 0.13, 0.32),
-					Color(0.33, 0.48, 0.29).darkened(minf(0.28, float(tier) * 0.08)))
-		"speed":
-			# New tendon markings along the outer edge of each moving leg.
-			for hip in leg_pivots:
-				_box(hip,
-					Vector3(0, -0.23 - float(slot % 3) * 0.22, -0.31 - lift),
-					Vector3(0.37, 0.10, 0.12),
-					Color(0.60, 0.68, 0.26))
-		"stamina":
-			for side in [-1.0, 1.0]:
-				_box(beast_visual,
-					Vector3(side * (0.90 + lift), 1.15, -0.96 + float(slot) * 0.46),
-					Vector3(0.10, 0.26, 0.23),
-					Color(0.47, 0.65, 0.24))
-		"jaw":
-			for side in [-1.0, 1.0]:
-				_box(head_pivot,
-					Vector3(side * 0.53, -0.24, -0.54 - float(slot) * 0.23),
-					Vector3(0.16, 0.20 + lift, 0.17),
-					Color(0.74, 0.72, 0.53))
-		"strength":
-			for index in [0, 2]:
-				var foreleg := leg_pivots[index]
-				for claw in [-1.0, 0.0, 1.0]:
-					_box(foreleg,
-						Vector3(claw * 0.17, -1.02, -0.34 - float(slot) * 0.075),
-						Vector3(0.10, 0.13 + lift, 0.23),
-						Color(0.72, 0.68, 0.46))
-		"health":
-			for side in [-1.0, 1.0]:
-				_sphere(beast_visual,
-					Vector3(side * 0.83, 1.10, -0.94 + float(slot) * 0.47),
-					0.17 + lift * 0.14,
-					Color(0.28, 0.46, 0.22))
-		"regen":
-			for side in [-1.0, 1.0]:
-				_sphere(beast_visual,
-					Vector3(side * 0.32, 1.68 + lift, -1.00 + float(slot) * 0.47),
-					0.13,
-					Color(0.55, 0.86, 0.43))
+	CreatureArt.add_mutation(beast_visual, head_pivot, leg_pivots, id, stage)
+
 
 func _update_camera(delta: float) -> void:
 	var goal := beast.global_position + _camera_offset()
