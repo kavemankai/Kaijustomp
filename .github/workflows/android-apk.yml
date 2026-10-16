@@ -226,3 +226,25 @@ jobs:
           fi
           echo "Verified published APK size: $LOCAL_SIZE bytes" >> "$GITHUB_STEP_SUMMARY"
           echo "Direct phone link: https://github.com/${GH_REPO}/releases/download/${RELEASE_TAG}/Kaijustomp-latest.apk" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish isolated creature-polish phone APK
+        if: github.ref == 'refs/heads/feature/creature-polish-pass-1'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          PREVIEW_TAG="creature-polish-preview"
+          cp "build/android/$APK_NAME" "build/android/Kaijustomp-creature-preview.apk"
+          NOTES="Creature-only preview APK built from commit ${GITHUB_SHA} (run ${GITHUB_RUN_NUMBER}). Body, head, limb and tail meshes upgraded without altering movement or collision; generated creature Foley and cumulative evolution details included. Phone feel and audio quality still require hands-on validation. The established mobile-preview release remains unchanged."
+          if gh release view "$PREVIEW_TAG" >/dev/null 2>&1; then
+            gh release upload "$PREVIEW_TAG" "build/android/Kaijustomp-creature-preview.apk" --clobber
+            gh release edit "$PREVIEW_TAG" --notes "$NOTES" --prerelease
+          else
+            gh release create "$PREVIEW_TAG" "build/android/Kaijustomp-creature-preview.apk" --target "$GITHUB_SHA" --title "Kaijustomp Creature Polish Preview" --notes "$NOTES" --prerelease
+          fi
+          LOCAL_SIZE=$(stat -c "%s" "build/android/Kaijustomp-creature-preview.apk")
+          ASSET_SIZE=$(gh release view "$PREVIEW_TAG" --json assets --jq '.assets[] | select(.name == "Kaijustomp-creature-preview.apk") | .size')
+          test "$LOCAL_SIZE" = "$ASSET_SIZE"
+          echo "Creature preview APK: https://github.com/${GH_REPO}/releases/download/${PREVIEW_TAG}/Kaijustomp-creature-preview.apk" >> "$GITHUB_STEP_SUMMARY"
