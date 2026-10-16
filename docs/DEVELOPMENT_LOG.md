@@ -42,3 +42,10 @@ All implementation changes are committed and pushed. PR #7 stays draft; #5/#6 st
 2. Phone install and natural L0–6 playtest beside the preserved approved app; judge responsiveness, visible mutations and one growth event.
 3. Judge L22 silhouette/stance/feeding from the actual portrait camera. Refine production gait only with feedback; no automatic draft merge.
 4. Profile Android frame pacing, memory and five-shed stress before claiming performance parity. Extreme size and finite beach boundaries remain a known limit.
+
+
+## 2026-10-17 - Sculpted coastal art candidate
+
+Implemented the accepted art direction on `feature/sculpted-coastal-art`, based on the creature/growth takeover candidate. Added editable Blender masters, GLB export source, two skinned forms, visual adapter with planted stride and downward feeding, bounded cumulative mutation appearances, coastal architecture/props/shoreline, ground shadows, quality choices, compact HUD and anatomical cards. Added pooled dust/impact effects and consolidated completed skin fragments.
+
+Updated the old mesh-count tests to validate real asset/rig contracts, appearance bounds, deformed snapshots and foot planting. Added coastal-art regression coverage and repeatable engine capture/showcase scripts. Android CI consumes exported GLBs and publishes only an isolated `com.kavemankai.kaijustomp.artpreview` prerelease. Stable release and previous draft branches remain untouched. See ART_DIRECTION.md for pipeline, rendering budgets and outstanding physical Android/player acceptance.

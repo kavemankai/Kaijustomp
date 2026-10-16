@@ -46,19 +46,19 @@ func begin_shed(source: Node3D) -> void:
 	original_colours.clear()
 	cracks.clear()
 
-	# duplicate() retains the complete prior geometry and mutation details.
+	# Snapshot only the visible form, with skeletal deformation already baked.
 	# Materials are overridden on the copy only, so the live creature stays intact.
-	current_shell = source.duplicate() as Node3D
+	current_shell = CreatureVisual.snapshot(source)
 	add_child(current_shell)
 	current_shell.global_transform = source.global_transform
 	base_shell_scale = current_shell.scale
 	var renderers: Array[MeshInstance3D] = []
 	_collect_renderers(current_shell, renderers)
 	for renderer in renderers:
-		var old_colour := Color(0.25, 0.40, 0.24)
+		var old_colour := Color("82a99a")
 		var source_mat := renderer.get_active_material(0)
 		if source_mat is BaseMaterial3D:
-			old_colour = source_mat.albedo_color
+			old_colour = source_mat.albedo_color if not source_mat.vertex_color_use_as_albedo else Color("82a99a")
 		var shell_mat := StandardMaterial3D.new()
 		shell_mat.albedo_color = old_colour
 		shell_mat.roughness = 1.0
@@ -264,7 +264,41 @@ func _bake_remnant() -> Array[StandardMaterial3D]:
 	baked.mesh = surface.commit()
 	baked.material_override = pale
 	current_shell.add_child(baked)
-	return [pale]
+	# Completed fragments no longer move: consolidate their pale/ink colours too.
+	var decor := SurfaceTool.new()
+	decor.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var has_decor := false
+	for renderer in renderers:
+		if renderer.is_queued_for_deletion():
+			continue
+		var source_mat := renderer.get_active_material(0) as StandardMaterial3D
+		var transform := shell_inverse * renderer.global_transform
+		for index in range(renderer.mesh.get_surface_count()):
+			var source := SurfaceTool.new()
+			source.create_from(renderer.mesh,index)
+			source.deindex()
+			var arrays := source.commit_to_arrays()
+			var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+			var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+			for vertex in range(vertices.size()):
+				decor.set_color(Color(source_mat.albedo_color,1.0))
+				decor.set_normal((transform.basis.inverse().transposed()*normals[vertex]).normalized())
+				decor.add_vertex(transform*vertices[vertex])
+				has_decor = true
+		renderer.queue_free()
+	var materials: Array[StandardMaterial3D] = [pale]
+	if has_decor:
+		decor.index()
+		var decoration := MeshInstance3D.new()
+		decoration.name = "BakedFragments"
+		decoration.mesh = decor.commit()
+		var decor_material := pale.duplicate() as StandardMaterial3D
+		decor_material.albedo_color = Color(1,1,1,.62)
+		decor_material.vertex_color_use_as_albedo = true
+		decoration.material_override = decor_material
+		current_shell.add_child(decoration)
+		materials.append(decor_material)
+	return materials
 
 
 func _remove_oldest_shed() -> void:

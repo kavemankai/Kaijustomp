@@ -1,0 +1,16 @@
+[
+  {
+    "form": "quadruped",
+    "triangles": 3304,
+    "bones": 19,
+    "materials": 1,
+    "vertices": 1932
+  },
+  {
+    "form": "upright",
+    "triangles": 3304,
+    "bones": 19,
+    "materials": 1,
+    "vertices": 1932
+  }
+]

@@ -8,3 +8,7 @@ build/
 *.aab
 *.keystore
 *.jks
+
+# Blender backup files (editable masters are tracked)
+*.blend1
+*.blend2

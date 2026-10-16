@@ -8,6 +8,7 @@ on:
       - 'v*'
   pull_request:
     paths:
+      - 'assets/**'
       - 'scripts/**'
       - 'scenes/**'
       - 'project.godot'
@@ -167,6 +168,14 @@ jobs:
           grep -q 'GROWTH GAMEPLAY TEST PASSED' "$RUNNER_TEMP/growth-gameplay-test.log"
           if grep -E 'SCRIPT ERROR|Parse Error|TEST FAILED|Invalid call|Invalid access' "$RUNNER_TEMP/growth-gameplay-test.log"; then exit 1; fi
 
+      - name: Verify coastal art budgets and portrait layouts
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --path . --script res://scripts/ci/test_coastal_art.gd 2>&1 | tee "$RUNNER_TEMP/coastal-art.log"
+          grep -q 'COASTAL ART TEST PASSED' "$RUNNER_TEMP/coastal-art.log"
+          if grep -E 'SCRIPT ERROR|Parse Error|TEST FAILED|Invalid call|Invalid access' "$RUNNER_TEMP/coastal-art.log"; then exit 1; fi
+
       - name: Export portrait Android debug APK
         shell: bash
         run: |
@@ -177,6 +186,10 @@ jobs:
           if [ "$GITHUB_REF_NAME" = 'feature/creature-growth-takeover' ]; then
             sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.creaturepreview"@' export_presets.cfg
             sed -i 's@^package/name=.*@package/name="Kaijustomp Creature Preview"@' export_presets.cfg
+          fi
+          if [ "$GITHUB_REF_NAME" = 'feature/sculpted-coastal-art' ]; then
+            sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.artpreview"@' export_presets.cfg
+            sed -i 's@^package/name=.*@package/name="Kaijustomp Coastal Art"@' export_presets.cfg
           fi
           APK="Kaijustomp-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:7}-debug.apk"
           echo "APK_NAME=$APK" >> "$GITHUB_ENV"
@@ -329,3 +342,20 @@ jobs:
           ASSET_SIZE=$(gh release view "$TAG" --json assets --jq '.assets[] | select(.name == "Kaijustomp-growth-preview.apk") | .size')
           test "$LOCAL_SIZE" = "$ASSET_SIZE"
           echo "Preview APK: https://github.com/${GH_REPO}/releases/download/${TAG}/Kaijustomp-growth-preview.apk" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish isolated coastal art preview
+        if: github.ref == 'refs/heads/feature/sculpted-coastal-art' && github.event_name != 'pull_request'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG="coastal-art-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:7}"
+          cat > "$RUNNER_TEMP/coastal-notes.md" <<EOF
+          Sculpted coastal art preview from ${GITHUB_SHA}. Authored skinned GLBs, bounded cumulative mutation appearances, Australian beach kit, contact shadows, anatomical mutation cards and compact HUD. Gameplay regressions run in Godot 4.5. Separate package com.kavemankai.kaijustomp.artpreview; stable release unchanged. Desktop visual review completed; Android installation, sustained performance, thermal behaviour and player art acceptance remain unverified.
+          EOF
+          gh release create "$TAG" "build/android/$APK_NAME" "build/android/$APK_NAME.sha256" --target "$GITHUB_SHA" --title "Kaijustomp coastal art ${GITHUB_RUN_NUMBER}" --notes-file "$RUNNER_TEMP/coastal-notes.md" --prerelease
+          LOCAL_SIZE=$(stat -c "%s" "build/android/$APK_NAME")
+          ASSET_SIZE=$(gh release view "$TAG" --json assets --jq ".assets[] | select(.name == \"$APK_NAME\") | .size")
+          test "$LOCAL_SIZE" = "$ASSET_SIZE"
