@@ -100,3 +100,26 @@ Implementation: `scripts/beach/StylizedCreatureArt.gd` builds independent visual
 Verification: Godot headless `scripts/ci/test_stylized_creature.gd` must pass **alongside** existing evolution, combat and touch-sprint tests before Android export. The APK is published to an **isolated** `stylized-creature-preview` release; `mobile-preview-godot45` is not overwritten. CI confirms code/export correctness, not whether the artistic design passes the phone visual review. Do not merge until the visual is accepted.
 
 Next only after approval: evaluate creature sound/FX against the new style, then consider beach scene art. Do not replace working joystick, sprint, scale, street collision, town layout or threat behaviour during art feedback.
+
+## Staged physical growth (October 2026)
+
+Phone playtest baseline: player reached evolution **6 in approximately 2.5 minutes**. This is useful early pacing, so keep mutation costs and normal evolution rewards unchanged. Replace the old size-up-every-three-evolutions rule with a sparse anatomy progression:
+
+| Evolution | Stage | Physical result |
+| --- | --- | --- |
+| 0–4 | 0 | Starting four-legged coastal hatchling, normal mutation options |
+| 5 | 1 | First **20%** size increase, still four-legged |
+| 10 | 2 | **24%** additional size, larger quadruped |
+| 16 | 3 | **28%** additional size, heavy quadruped |
+| 22 | 4 | **32%** additional size and **major upright posture transition** |
+| 28 | 5 | **24%** additional size, large upright kaiju |
+| 34 | 6 | **20%** additional size |
+| 40, 46, 52... | 7+ | **16%** additional size every six evolutions |
+
+The percentages are multiplicative *relative to the previous stage*. Levels between milestones retain the same body size even though mutation stats and visual details continue to accumulate. `scripts/beach/GrowthProgression.gd` is the single source of truth.
+
+`BeachDemo.gd` now groups upper torso/head/forelegs under a posture pivot; until level 22 it remains at zero rotation and the existing quadrupedal layout stays unchanged. At 22 it raises and tilts the upper body while the hind legs remain grounded. The physical head sphere tracks the elevated snout during bite animations, and the camera **keeps the approved angle** but backs off proportionately to physical size. This is a prototype visual transition, not final two-legged locomotion mocap. Future art work may polish a true biped walk and raised-arm attacks.
+
+No early mutation option is removed; the existing automatic growth prototype remains automatic at the stage thresholds. The previously agreed optional-small-playthrough / New Game+ build is a **future design**, not yet exposed as a new toggle. The small quadruped's current movement, collision, feeding, sprint, police/tracers, destructive buildings and evolution shedding are unchanged.
+
+Verification: CI executes `scripts/ci/test_growth_milestones.gd` after the established combat and creature tests. APKs on this branch publish to independent `evolution-growth-preview`, not the accepted `mobile-preview-godot45` release. Do not merge without a phone playtest of early levels; later upright scale and full city streaming are not validated by this prototype.
