@@ -125,6 +125,17 @@ jobs:
             exit 1
           fi
 
+      - name: Verify building collision, destruction and projectile cover
+        shell: bash
+        run: |
+          set -o pipefail
+          "$GODOT_BIN" --headless --path . --script res://scripts/ci/test_beach_combat.gd \
+            2>&1 | tee "$RUNNER_TEMP/beach-combat-test.log"
+          grep -q 'DESTRUCTION TEST PASSED' "$RUNNER_TEMP/beach-combat-test.log"
+          if grep -E 'SCRIPT ERROR|Parse Error|DESTRUCTION TEST FAILED|Invalid call|Invalid access' "$RUNNER_TEMP/beach-combat-test.log"; then
+            exit 1
+          fi
+
       - name: Export portrait Android debug APK
         shell: bash
         run: |
