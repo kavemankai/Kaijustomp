@@ -17,6 +17,8 @@ const PORTRAIT_CAMERA_DISTANCE := 1.48
 
 var beast: CharacterBody3D
 var beast_collision_shape: CapsuleShape3D
+var head_collision_shape: SphereShape3D
+var head_collision_node: CollisionShape3D
 var beast_visual: Node3D
 var jaw: Node3D
 var head_pivot: Node3D
@@ -168,6 +170,7 @@ func _add_building(pos: Vector3, footprint: Vector2, height: float, col: Color, 
 		_box(root, Vector3(x * footprint.x * 0.25, height * 0.60, footprint.y * 0.51), Vector3(1.6, 1.8, 0.14), Color(0.23, 0.37, 0.45))
 	# A visible MeshInstance3D is not an obstacle. Physical collision must
 	# remain active until the building actually collapses.
+	var crack_layers := _build_building_cracks(root, footprint, height)
 	var solid := StaticBody3D.new()
 	solid.collision_layer = 1
 	solid.collision_mask = 1
@@ -180,10 +183,43 @@ func _add_building(pos: Vector3, footprint: Vector2, height: float, col: Color, 
 	solid.add_child(blocker)
 	buildings.append({
 		"node": root, "collider": solid, "position": pos,
-		"half": footprint * 0.5, "hits": hits, "destroyed": false,
+		"half": footprint * 0.5, "hits": float(hits), "max_hits": float(hits),
+		"crack_layers": crack_layers, "crack_stage": 0, "destroyed": false,
 		"hidden": occupants, "base_occupants": occupants, "name": title,
 		"required_strength": required_strength, "breakthrough_strength": breakthrough_strength
 	})
+
+
+# Each crack stage is added only as the building is hit. Keep them slightly
+# proud of the four wall surfaces so they remain visible without z-fighting.
+func _build_building_cracks(root: Node3D, footprint: Vector2, height: float) -> Array[Node3D]:
+	var stages: Array[Node3D] = []
+	for stage in range(3):
+		var layer := Node3D.new()
+		layer.name = "CracksStage%d" % (stage + 1)
+		layer.visible = false
+		root.add_child(layer)
+		for face in range(4):
+			for fork in range(stage + 2):
+				var u := (float(fork) - float(stage + 1) * 0.5) * 0.24
+				var y := height * (0.72 - float(fork) * 0.105)
+				var crack_len := minf(0.72, height * 0.19)
+				for segment in range(2):
+					var diagonal := 0.48 if (fork + segment + face) % 2 == 0 else -0.40
+					var offset := float(segment) * crack_len * 0.23
+					var ink := Color(0.17, 0.14, 0.13)
+					if face < 2:
+						var z := (footprint.y * 0.5 + 0.075) * (1.0 if face == 0 else -1.0)
+						var x := u * footprint.x + offset * diagonal
+						var line := _box(layer, Vector3(x, clampf(y - offset, 0.18, height - 0.14), z), Vector3(0.065, crack_len * 0.65, 0.045), ink)
+						line.rotation.z = diagonal
+					else:
+						var x := (footprint.x * 0.5 + 0.075) * (1.0 if face == 2 else -1.0)
+						var z := u * footprint.y + offset * diagonal
+						var side_line := _box(layer, Vector3(x, clampf(y - offset, 0.18, height - 0.14), z), Vector3(0.045, crack_len * 0.65, 0.065), ink)
+						side_line.rotation.x = diagonal
+		stages.append(layer)
+	return stages
 
 
 func _build_creature() -> void:
@@ -198,6 +234,11 @@ func _build_creature() -> void:
 	var body_collision := CollisionShape3D.new()
 	body_collision.shape = beast_collision_shape
 	beast.add_child(body_collision)
+	# The projecting snout needs an independent collider, especially during bites.
+	head_collision_shape = SphereShape3D.new()
+	head_collision_node = CollisionShape3D.new()
+	head_collision_node.shape = head_collision_shape
+	beast.add_child(head_collision_node)
 	_sync_beast_collision()
 	beast_visual = Node3D.new()
 	beast.add_child(beast_visual)
@@ -248,6 +289,8 @@ func _sync_beast_collision() -> void:
 	beast_collision_shape.height = 3.70 * growth_scale
 	var shape_node: CollisionShape3D = beast.get_child(0)
 	shape_node.position.y = 1.85 * growth_scale
+	head_collision_shape.radius = 0.82 * growth_scale
+	head_collision_node.position = Vector3(0, 0.94 * growth_scale, -2.20 * growth_scale)
 
 
 func _build_camera() -> void:
@@ -318,7 +361,10 @@ func _build_ui() -> void:
 	sprint_button = Button.new()
 	sprint_button.text = "SPRINT"
 	_place_right_button(sprint_button, -164, -83)
+	# Mouse/keyboard clicks retain normal Button behavior; native touchscreen
+	# presses also work while a second finger remains on the movement joystick.
 	sprint_button.pressed.connect(_toggle_sprint)
+	sprint_button.focus_mode = Control.FOCUS_NONE
 	sprint_button.add_theme_color_override("font_disabled_color", Color(0.69, 0.68, 0.65))
 	evolve_button = Button.new()
 	evolve_button.text = "EVOLVE"
@@ -473,6 +519,8 @@ func _update_creature_animation(delta: float, moving: bool) -> void:
 	var progress := 1.0 - clampf(bite_timer / maxf(0.05, bite_duration), 0.0, 1.0)
 	var snap := sin(progress * PI) if bite_timer > 0.0 else 0.0
 	head_pivot.position.z = -1.22 - 0.67 * snap
+	# Track bite extension instead of allowing the snout to pass through walls.
+	head_collision_node.position.z = (-2.20 - 0.67 * snap) * growth_scale
 	head_pivot.rotation.x = -0.13 * snap
 	jaw.rotation.x = -0.85 * maxf(0.0, sin(progress * PI)) if bite_timer > 0.0 else 0.0
 	if is_instance_valid(prey_in_mouth):
@@ -502,23 +550,32 @@ func _blocking_building(pos: Vector3) -> int:
 
 func _attack_building(index: int, running: bool) -> void:
 	var b: Dictionary = buildings[index]
-	if b["destroyed"] or strength < int(b["required_strength"]):
+	if b["destroyed"]:
 		return
-	# Natural progression: repeated attacks, stronger one-hit attacks, then
-	# automatic sprint breakthrough without adding a mobile attack button.
+	# Weak forms always chip away at even heavy buildings. High tier buildings
+	# take many minutes at baseline strength, but the first hit shows a crack.
 	if running and strength >= int(b["breakthrough_strength"]):
-		_damage_building(index, int(b["hits"]))
+		_damage_building(index, float(b["hits"]))
 	elif strike_timer <= 0.0:
-		var extra_strength := strength - int(b["required_strength"])
-		_damage_building(index, 1 + extra_strength * 2)
+		var strength_gap := int(b["required_strength"]) - strength
+		var damage := 0.015 / pow(2.0, float(strength_gap - 1)) if strength_gap > 0 else float(1 + (-strength_gap) * 2)
+		_damage_building(index, damage)
 		strike_timer = 0.70
 
 
-func _damage_building(index: int, hits: int) -> void:
+func _damage_building(index: int, hits: float) -> void:
 	var b: Dictionary = buildings[index]
 	if b["destroyed"]:
 		return
-	b["hits"] = int(b["hits"]) - hits
+	b["hits"] = float(b["hits"]) - hits
+	if b["hits"] < float(b["max_hits"]):
+		var damage_fraction := 1.0 - maxf(0.0, float(b["hits"])) / float(b["max_hits"])
+		var stage := mini(3, maxi(1, ceili(damage_fraction * 3.0)))
+		if stage > int(b["crack_stage"]):
+			var layers: Array[Node3D] = b["crack_layers"]
+			for i in range(stage):
+				layers[i].visible = true
+			b["crack_stage"] = stage
 	if b["hits"] <= 0:
 		b["destroyed"] = true
 		var source: Vector3 = b["position"]
@@ -801,7 +858,7 @@ func _finish_evolution() -> void:
 		{"id": "speed", "name": "Fleet Limbs", "detail": "Run faster"},
 		{"id": "stamina", "name": "Endurance", "detail": "Larger sprint reserve"},
 		{"id": "jaw", "name": "Rapid Feeding", "detail": "Shorter feeding slowdown"},
-		{"id": "strength", "name": "Brutal Strength", "detail": "Start damaging building walls"},
+		{"id": "strength", "name": "Brutal Strength", "detail": "Damage buildings much faster"},
 		{"id": "health", "name": "Dense Flesh", "detail": "Increase maximum health"}
 	]
 	if evolutions >= 2:
@@ -987,6 +1044,16 @@ func _update_hud() -> void:
 	else:
 		sprint_button.text = "SPRINT"
 		sprint_button.modulate = Color.WHITE
+
+func _input(event: InputEvent) -> void:
+	# Button.pressed is unreliable with simultaneous screen touches on some
+	# phones. Handle only the on-screen Sprint rectangle on touch-down; prevent
+	# that touch from also generating a release/click toggle.
+	if event is InputEventScreenTouch and event.pressed and is_instance_valid(sprint_button):
+		if sprint_button.get_global_rect().has_point(event.position):
+			_toggle_sprint()
+			get_viewport().set_input_as_handled()
+
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
