@@ -14,10 +14,7 @@ If the workflow is **red**, open the failed job's logs; there is no verified APK
 
 ## When it builds again
 
-The workflow automatically runs on pushes to:
-- `feature/beach-demo-elevated-camera` (current gameplay branch).
-- `main` or `master`, if those branches are used in future.
-- tags beginning with `v` (e.g. `v0.1.1`).
+The workflow automatically runs on **every branch that contains this workflow**, including `feature/beach-demo-elevated-camera` and future branches, and on tags beginning with `v` (e.g. `v0.1.1`). Failed game builds do not upload an APK; see their Actions logs for the cause.
 
 It can also be started manually using GitHub Actions → **Android debug APK** → **Run workflow** when GitHub exposes manual dispatch for the branch. Artifacts are retained for **30 days**, after which they can be regenerated from the source by starting another run.
 
