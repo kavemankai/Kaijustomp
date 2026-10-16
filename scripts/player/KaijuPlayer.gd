@@ -1,7 +1,15 @@
 class_name KaijuPlayer
 extends Node3D
 
+signal player_died()
+
 @export var move_speed: float = 8.5
+@export var max_hp: float = 100.0
+
+var hp: float = 100.0
+var is_dead: bool = false
+var damage_flash_timer: float = 0.0
+
 var move_input: Vector2 = Vector2.ZERO
 var sim_manager: SimulationManager
 var city_manager: DynamicCityManager
@@ -10,8 +18,10 @@ var fire_timer: float = 0.0
 var spiral_angle: float = 0.0
 var step_timer: float = 0.0
 var visual_root: Node3D
+var kaiju_material: ShaderMaterial
 
 func _ready() -> void:
+	hp = max_hp
 	_build_kaiju_mesh()
 	_setup_diorama_camera()
 
@@ -20,28 +30,13 @@ func _build_kaiju_mesh() -> void:
 	add_child(visual_root)
 	
 	var ps1_shader := load("res://shaders/ps1_retro_model.gdshader") as Shader
-	var mat := ShaderMaterial.new()
-	mat.shader = ps1_shader
-	mat.set_shader_parameter("base_color", Color(0.18, 0.75, 0.32))
+	kaiju_material = ShaderMaterial.new()
+	kaiju_material.shader = ps1_shader
+	kaiju_material.set_shader_parameter("base_color", Color.WHITE)
 	
-	var body := MeshInstance3D.new()
-	var body_mesh := BoxMesh.new()
-	body_mesh.size = Vector3(1.8, 3.2, 1.8)
-	body_mesh.material = mat
-	body.mesh = body_mesh
-	body.position = Vector3(0.0, 1.6, 0.0)
-	visual_root.add_child(body)
-	
-	var spine_mat := ShaderMaterial.new()
-	spine_mat.shader = ps1_shader
-	spine_mat.set_shader_parameter("base_color", Color(0.2, 1.0, 0.95))
-	var spine := MeshInstance3D.new()
-	var spine_mesh := BoxMesh.new()
-	spine_mesh.size = Vector3(0.4, 2.2, 0.6)
-	spine_mesh.material = spine_mat
-	spine.mesh = spine_mesh
-	spine.position = Vector3(0.0, 1.8, 0.9)
-	visual_root.add_child(spine)
+	var mesh_inst := MeshInstance3D.new()
+	mesh_inst.mesh = RetroMeshFactory.create_kaiju_mesh(kaiju_material)
+	visual_root.add_child(mesh_inst)
 
 func _setup_diorama_camera() -> void:
 	var cam := Camera3D.new()
@@ -56,7 +51,37 @@ func _setup_diorama_camera() -> void:
 func set_movement_vector(vec: Vector2) -> void:
 	move_input = vec
 
+func take_damage(amount: float) -> void:
+	if is_dead:
+		return
+	hp = max(0.0, hp - amount)
+	damage_flash_timer = 0.12
+	kaiju_material.set_shader_parameter("base_color", Color(1.0, 0.25, 0.25))
+	
+	if hp <= 0.0:
+		is_dead = true
+		visual_root.visible = false
+		if is_instance_valid(sim_manager):
+			sim_manager.spawn_debris_burst(global_position + Vector3(0.0, 1.5, 0.0), 35)
+		Input.vibrate_handheld(300)
+		player_died.emit()
+
+func reset_player() -> void:
+	hp = max_hp
+	is_dead = false
+	global_position = Vector3.ZERO
+	visual_root.visible = true
+	kaiju_material.set_shader_parameter("base_color", Color.WHITE)
+
 func _physics_process(delta: float) -> void:
+	if damage_flash_timer > 0.0:
+		damage_flash_timer -= delta
+		if damage_flash_timer <= 0.0:
+			kaiju_material.set_shader_parameter("base_color", Color.WHITE)
+			
+	if is_dead:
+		return
+		
 	var kb_input := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
 	var active_dir: Vector2 = move_input if move_input.length_squared() > 0.001 else kb_input
 	
@@ -84,7 +109,7 @@ func _physics_process(delta: float) -> void:
 			sim_manager.spawn_bullet(origin, dir * 22.0, 2.2)
 
 func trigger_atomic_nova() -> void:
-	if not is_instance_valid(sim_manager):
+	if is_dead or not is_instance_valid(sim_manager):
 		return
 	Input.vibrate_handheld(80)
 	var origin := global_position + Vector3(0.0, 1.4, 0.0)

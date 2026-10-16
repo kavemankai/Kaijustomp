@@ -12,20 +12,28 @@ var is_baking: bool = false
 var pending_rebake: bool = false
 
 var sim_manager: SimulationManager
+var building_heights: Array[float] = [4.5, 7.5]
 
 func _ready() -> void:
 	_setup_navigation()
 	_setup_city_gridmap()
-	# GridMap builds its colliders on a deferred call; bake after that or the buildings are missing.
-	trigger_building_destruction_rebake.call_deferred()
+	_deferred_initial_bake()
+
+func _deferred_initial_bake() -> void:
+	# GridMap creates its colliders on a deferred call. Baking sooner produces a navmesh without buildings.
+	await get_tree().process_frame
+	await get_tree().physics_frame
+	trigger_building_destruction_rebake()
+
+func get_nav_map_rid() -> RID:
+	return nav_region.get_navigation_map()
 
 func _setup_navigation() -> void:
 	nav_region = NavigationRegion3D.new()
 	nav_mesh = NavigationMesh.new()
-	# Must match the default navigation map cell size (0.25) or region updates are rejected.
+	nav_mesh.agent_radius = 0.5
 	nav_mesh.cell_size = 0.25
 	nav_mesh.cell_height = 0.25
-	nav_mesh.agent_radius = 0.5
 	nav_mesh.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
 	nav_region.navigation_mesh = nav_mesh
 	add_child(nav_region)
@@ -54,18 +62,13 @@ func _setup_navigation() -> void:
 func _setup_city_gridmap() -> void:
 	var mesh_lib := MeshLibrary.new()
 	var ps1_shader := load("res://shaders/ps1_retro_model.gdshader") as Shader
-	
-	var heights: Array[float] = [4.5, 7.5]
 	var colors: Array[Color] = [Color(0.45, 0.5, 0.58), Color(0.6, 0.52, 0.45)]
 	
 	for id in range(2):
-		var b_mesh := BoxMesh.new()
-		var h: float = heights[id]
-		b_mesh.size = Vector3(3.2, h, 3.2)
+		var h: float = building_heights[id]
 		var mat := ShaderMaterial.new()
 		mat.shader = ps1_shader
-		mat.set_shader_parameter("base_color", colors[id])
-		b_mesh.material = mat
+		var b_mesh: ArrayMesh = RetroMeshFactory.create_skyscraper_mesh(h, colors[id], mat)
 		
 		mesh_lib.create_item(id)
 		mesh_lib.set_item_mesh(id, b_mesh)
@@ -79,13 +82,28 @@ func _setup_city_gridmap() -> void:
 	grid_map.cell_size = Vector3(CELL_SIZE, 1.0, CELL_SIZE)
 	nav_region.add_child(grid_map)
 	
+	_populate_city_cells()
+
+func _populate_city_cells() -> void:
+	grid_map.clear()
 	for x in range(-CITY_EXTENTS, CITY_EXTENTS):
 		for z in range(-CITY_EXTENTS, CITY_EXTENTS):
 			if abs(x) <= 2 and abs(z) <= 2:
 				continue
 			if (x % 3 != 0) and (z % 3 != 0) and randf() < 0.75:
 				var type_id: int = randi() % 2
-				grid_map.set_cell_item(Vector3i(x, int(heights[type_id] * 0.5), z), type_id)
+				grid_map.set_cell_item(Vector3i(x, int(building_heights[type_id] * 0.5), z), type_id)
+
+func reset_city() -> void:
+	_populate_city_cells()
+	_deferred_initial_bake()
+
+func is_cell_blocked(world_pos: Vector3) -> bool:
+	var map_pos: Vector3i = grid_map.local_to_map(world_pos)
+	for y_check in [2, 3]:
+		if grid_map.get_cell_item(Vector3i(map_pos.x, y_check, map_pos.z)) != GridMap.INVALID_CELL_ITEM:
+			return true
+	return false
 
 func crush_buildings_near(world_pos: Vector3, radius: float = 2.6) -> void:
 	var map_pos: Vector3i = grid_map.local_to_map(world_pos)

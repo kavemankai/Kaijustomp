@@ -1,8 +1,8 @@
 # Kaijustomp
 
-Retro low-poly kaiju reverse auto-shooter for Godot 4 (mobile first). You are the kaiju. Horde enemies converge on you, you auto-fire bullet patterns, and you crush buildings by walking through them.
+Retro low-poly kaiju reverse auto-shooter for Godot 4 (mobile first). You are the kaiju. A horde of tanks paths through the city toward you, you auto-fire bullet patterns, and you crush buildings by walking through them. Tanks drain your HP on contact; at zero HP the game ends and a right tap or Enter restarts it.
 
-The project needs no external assets. `MainGame.gd` builds the camera, lights, city, bullet and horde pools, post-processing and touch UI in code.
+The project needs no external assets. `MainGame.gd` builds the camera, lights, city, bullet and horde pools, post-processing and touch UI in code, and `RetroMeshFactory.gd` generates the low-poly meshes.
 
 ## Run
 
@@ -14,10 +14,11 @@ The project needs no external assets. `MainGame.gd` builds the camera, lights, c
 
 | Path | Purpose |
 | --- | --- |
-| `scripts/core/SimulationManager.gd` | Flat-array pools for bullets, enemies and debris, rendered through `MultiMeshInstance3D`. Spatial hash collision. Off-screen enemies tick 1 in 16 frames. |
+| `scripts/core/SimulationManager.gd` | Flat-array pools for bullets, enemies and debris, rendered through `MultiMeshInstance3D`. Spatial hash collision. Each enemy asks the navmesh for its next waypoint once every 16 frames. Off-screen enemies move 1 frame in 16. |
+| `scripts/core/RetroMeshFactory.gd` | Vertex-coloured `ArrayMesh` builders for the tank, bullet, debris, skyscraper and kaiju. |
 | `scripts/core/SpatialHash3D.gd` | Uniform grid on the X/Z plane. |
-| `scripts/world/DynamicCityManager.gd` | `GridMap` city, building destruction, async navmesh rebake. |
-| `scripts/player/KaijuPlayer.gd` | Movement, 10 degree FOV diorama camera, auto-fire. |
+| `scripts/world/DynamicCityManager.gd` | `GridMap` city, building destruction, async navmesh rebake, reset on restart. |
+| `scripts/player/KaijuPlayer.gd` | Movement, HP and damage, 10 degree FOV diorama camera, auto-fire. |
 | `scripts/ui/MobileTouchController.gd` | Virtual joystick and tap detection. |
 | `shaders/ps1_retro_model.gdshader` | Vertex snapping, affine texture mapping, vertex lighting. |
 | `shaders/ps1_postprocess.gdshader` | 15-bit colour, Bayer dithering, CRT curve and scanlines. |
@@ -28,7 +29,7 @@ The renderer is `gl_compatibility` for both desktop and mobile. ETC2/ASTC import
 
 ## Known gaps
 
-- Enemies chase the player in a straight line. The navmesh is built and rebaked but nothing reads it yet.
-- Enemies do not damage the player, and there is no game-over state.
-- All meshes are boxes. There are no textures, so the PS1 shader samples a default white texture.
-- Not profiled on a device. The 4,000 bullet and 600 enemy caps are guesses.
+- Not profiled on a device. Pool sizes (2,500 bullets, 500 enemies, 400 debris) and the 31 or so `map_get_path` calls per frame are untested on phone hardware.
+- One enemy type, one weapon, no upgrades or progression.
+- No textures and no audio. The PS1 shader samples a default white texture.
+- Bullets pass through buildings.

@@ -4,6 +4,7 @@ var sim_manager: SimulationManager
 var city_manager: DynamicCityManager
 var player: KaijuPlayer
 var debug_label: Label
+var game_over_label: Label
 
 func _ready() -> void:
 	Engine.max_fps = 60
@@ -37,10 +38,12 @@ func _setup_game_systems() -> void:
 	player = KaijuPlayer.new()
 	player.sim_manager = sim_manager
 	player.city_manager = city_manager
+	player.player_died.connect(_on_player_died)
 	add_child(player)
 	
 	sim_manager.player_ref = player
 	sim_manager.city_ref = city_manager
+	sim_manager.nav_map_rid = city_manager.get_nav_map_rid()
 
 func _setup_post_processing_and_ui() -> void:
 	var post_layer := CanvasLayer.new()
@@ -61,17 +64,47 @@ func _setup_post_processing_and_ui() -> void:
 	
 	var touch_ctrl := MobileTouchController.new()
 	touch_ctrl.movement_vector_updated.connect(player.set_movement_vector)
-	touch_ctrl.tap_action_triggered.connect(player.trigger_atomic_nova)
+	touch_ctrl.tap_action_triggered.connect(_on_right_tap)
 	ui_layer.add_child(touch_ctrl)
 	
 	debug_label = Label.new()
 	debug_label.position = Vector2(20, 20)
 	debug_label.add_theme_font_size_override("font_size", 18)
 	ui_layer.add_child(debug_label)
+	
+	game_over_label = Label.new()
+	game_over_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	game_over_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	game_over_label.add_theme_font_size_override("font_size", 28)
+	game_over_label.visible = false
+	ui_layer.add_child(game_over_label)
+
+func _on_player_died() -> void:
+	game_over_label.text = "KAIJU DEFEATED!\nTotal Tanks Destroyed: %d\n[ Right-Tap or Press ENTER to Restart ]" % sim_manager.total_kills
+	game_over_label.visible = true
+
+func _on_right_tap() -> void:
+	if player.is_dead:
+		_restart_game()
+	else:
+		player.trigger_atomic_nova()
+
+func _unhandled_input(event: InputEvent) -> void:
+	if player.is_dead and event.is_action_pressed("ui_accept"):
+		_restart_game()
+
+func _restart_game() -> void:
+	game_over_label.visible = false
+	sim_manager.reset_simulation()
+	city_manager.reset_city()
+	player.reset_player()
 
 func _process(_delta: float) -> void:
-	if is_instance_valid(debug_label) and is_instance_valid(sim_manager):
-		debug_label.text = "FPS: %d | Active Horde: %d | Left Drag: Move Kaiju | Right Tap: Atomic Nova" % [
-			Engine.get_frames_per_second(),
-			sim_manager.active_enemy_count
+	if is_instance_valid(debug_label) and is_instance_valid(sim_manager) and is_instance_valid(player):
+		debug_label.text = "HP: %d/%d | Kills: %d | Horde: %d | FPS: %d" % [
+			int(ceil(player.hp)),
+			int(player.max_hp),
+			sim_manager.total_kills,
+			sim_manager.active_enemy_count,
+			Engine.get_frames_per_second()
 		]
