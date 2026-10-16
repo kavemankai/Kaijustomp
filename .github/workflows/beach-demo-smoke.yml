@@ -33,3 +33,11 @@ jobs:
           set -o pipefail
           /tmp/godot/Godot_v4.5-stable_linux.x86_64 --headless --path . --quit-after 60 2>&1 | tee launch.log
           if grep -E 'SCRIPT ERROR|Parse Error|Invalid call|Invalid access' launch.log; then exit 1; fi
+      - name: Exercise evolution and shedding regression
+        shell: bash
+        run: |
+          set -o pipefail
+          /tmp/godot/Godot_v4.5-stable_linux.x86_64 --headless --path . --script res://scripts/ci/test_evolution.gd \
+            2>&1 | tee evolution-test.log
+          grep -q 'EVOLUTION TEST PASSED' evolution-test.log
+          if grep -E 'SCRIPT ERROR|Parse Error|EVOLUTION TEST FAILED|Invalid call|Invalid access' evolution-test.log; then exit 1; fi
