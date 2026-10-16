@@ -226,6 +226,100 @@ func _build_beach() -> void:
 		_add_building(at, Vector2(31, 22), 7.5, Color("becbc3"),
 			"Supermarket" if side < 0 else "Hardware Store", 4, 11, 6, 12)
 
+
+# Vehicles are bounded, collidable world objects, not scenery you walk through.
+# Four animate on local roads; the remaining twelve are parked at the shops.
+func _build_cars() -> void:
+	var colours := [Color("bf6555"), Color("e6d6b0"), Color("668d9b"), Color("a5b39b")]
+	for index in range(4):
+		var x := -3.25 if index % 2 == 0 else 3.25
+		var z := [-127.0, -225.0, -337.0, -446.0][index]
+		_add_car(Vector3(x, 0, z), true, -1 if index % 2 == 0 else 1, colours[index])
+	for z in [-346.0, -401.0]:
+		for x in [-13.0, 13.0]:
+			_add_car(Vector3(x, 0, z), false, 0, colours[absi(int(x + z)) % colours.size()])
+	for z in [-451.0, -482.0]:
+		for x in [-47.0, -33.0, 33.0, 47.0]:
+			_add_car(Vector3(x, 0, z), false, 0, colours[absi(int(x + z)) % colours.size()])
+
+
+func _add_car(pos: Vector3, moving: bool, direction: int, colour: Color) -> void:
+	assert(cars.size() < MAX_CARS)
+	var root := Node3D.new()
+	root.name = "MovingCar" if moving else "ParkedCar"
+	root.position = pos
+	add_child(root)
+	CoastalArt.car(root, colour)
+	var solid := AnimatableBody3D.new()
+	solid.collision_layer = 1
+	solid.collision_mask = 1
+	root.add_child(solid)
+	var shape := CollisionShape3D.new()
+	var body := BoxShape3D.new()
+	body.size = Vector3(2.25, 1.65, 4.65)
+	shape.shape = body
+	shape.position.y = .825
+	solid.add_child(shape)
+	cars.append({"node":root, "collider":solid, "moving":moving, "direction":direction,
+		"speed":6.0, "hits":3.0, "destroyed":false})
+
+
+func _car_for_collider(collider: Object) -> int:
+	for i in range(cars.size()):
+		if not bool(cars[i]["destroyed"]) and cars[i]["collider"] == collider:
+			return i
+	return -1
+
+
+func _attack_car(index: int, sprinting: bool) -> void:
+	var car: Dictionary = cars[index]
+	if car["destroyed"]:
+		return
+	if sprinting and strength >= 2:
+		_damage_car(index, float(car["hits"]))
+	elif strike_timer <= 0.0:
+		_damage_car(index, 1.0 + float(strength) * 1.2)
+		strike_timer = 0.55
+
+
+func _damage_car(index: int, amount: float) -> void:
+	var car: Dictionary = cars[index]
+	if car["destroyed"]:
+		return
+	car["hits"] = float(car["hits"]) - amount
+	if car["hits"] <= 0.0:
+		car["destroyed"] = true
+		var at: Vector3 = car["node"].global_position
+		car["node"].queue_free()
+		_make_debris(at, 8)
+		alert += 7.0
+		# The driver flees the wreck and becomes a normal edible pedestrian.
+		_spawn_civilian(at + Vector3(3.7, 0, 2.7))
+	cars[index] = car
+
+
+func _update_cars(delta: float) -> void:
+	for i in range(cars.size()):
+		var car: Dictionary = cars[i]
+		if car["destroyed"] or not car["moving"]:
+			continue
+		var node: Node3D = car["node"]
+		if node.global_position.distance_to(beast.global_position) > 125.0:
+			continue
+		var direction := int(car["direction"])
+		if node.position.z < -488.0:
+			direction = 1
+		elif node.position.z > -96.0:
+			direction = -1
+		car["direction"] = direction
+		# Cars stop rather than intersecting a player on foot; the player can
+		# damage them with the same walk/sprint contact controls as buildings.
+		var candidate := node.position + Vector3(0, 0, float(direction) * float(car["speed"]) * delta)
+		if candidate.distance_to(beast.global_position) > 5.0 + growth_scale and _blocking_building(candidate) < 0:
+			node.position = candidate
+		cars[i] = car
+
+
 func _add_building(pos: Vector3, footprint: Vector2, height: float, col: Color, title: String, required_strength: int, hits: int, breakthrough_strength: int, occupants: int) -> void:
 	var root := Node3D.new()
 	root.position = pos
