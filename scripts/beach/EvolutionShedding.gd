@@ -222,9 +222,10 @@ func _complete_reveal() -> void:
 		original_visual.visible = true
 	if is_instance_valid(current_shell):
 		current_shell.rotation.z = 0.0
+		var remnant_materials := _bake_remnant()
 		shed_remnants.append({
 			"node": current_shell,
-			"materials": shell_materials.duplicate(),
+			"materials": remnant_materials,
 			"age": 0.0
 		})
 		while shed_remnants.size() > MAX_SHEDS:
@@ -235,6 +236,35 @@ func _complete_reveal() -> void:
 	cracks.clear()
 	active_shards.clear()
 	reveal_finished.emit()
+
+
+func _bake_remnant() -> Array[StandardMaterial3D]:
+	# Once the reveal finishes the skin never articulates again. Keep its full
+	# old silhouette/mutations, but bake the many coloured parts into one pale
+	# surface. Five retained skins must not cost five complete creature rigs
+	# worth of draw calls. Cracks and flying fragments remain separate.
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var renderers: Array[MeshInstance3D] = []
+	_collect_renderers(current_shell, renderers)
+	var shell_inverse := current_shell.global_transform.affine_inverse()
+	for renderer in renderers:
+		if not shell_materials.has(renderer.material_override):
+			continue
+		for index in range(renderer.mesh.get_surface_count()):
+			surface.append_from(renderer.mesh, index, shell_inverse * renderer.global_transform)
+		renderer.queue_free()
+	var pale := StandardMaterial3D.new()
+	pale.albedo_color = Color(PALE_SKIN, 0.62)
+	pale.roughness = 1.0
+	pale.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	pale.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_OPAQUE_ONLY
+	var baked := MeshInstance3D.new()
+	baked.name = "BakedSkin"
+	baked.mesh = surface.commit()
+	baked.material_override = pale
+	current_shell.add_child(baked)
+	return [pale]
 
 
 func _remove_oldest_shed() -> void:

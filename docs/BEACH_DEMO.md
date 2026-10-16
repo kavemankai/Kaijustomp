@@ -1,5 +1,7 @@
 # Beach demo — first playable vertical slice
 
+Current creature/evolution candidate: [handover](CODEX_HANDOVER.md), [growth contract](EVOLUTION_PROGRESSION.md), [development log](DEVELOPMENT_LOG.md). These documents contain current verification and limits; dated iteration notes below preserve the development history. Use Godot **4.5** for current verification and Android export. Build 85 is an experimental preview; phone approval is still pending.
+
 Branch: feature/beach-demo-elevated-camera. This is a **separate scene** from the original auto-shooter and does not delete its systems.
 
 **Evolution shedding implementation:** see [Evolution shedding and history](EVOLUTION_SHEDDING.md). The first playable evolution now includes pale old-form skin, cracking, paused mutation choice, optional tap acceleration, persistent old skins, and an ordered history suitable for a future tree/web. Godot and Android verification are still outstanding for this update.
@@ -23,10 +25,10 @@ Open in Godot 4.3 (4.2+ should be compatible) and run the project. The game is n
 - Civilians have varied reaction times and running speeds; some seek shelter inside buildings.
 - Feeding gives +12 biomass and +15 health. Police bites give +16 biomass.
 - First evolution costs 55 biomass. Extra biomass increases the number of mutation choices, but grants only one mutation. The rest carries forward.
-- Every chosen mutation adds a **subtle permanent physical detail** (armour scutes, limb markings, jaw ridge, claws, body bulges or regenerative spots). Repeated upgrades accumulate; the monster never resets to a new appearance. Actual body scaling remains milestone-based, once every three evolution pops in this prototype.
+- Every chosen mutation adds a **subtle permanent physical detail** (armour scutes, limb markings, jaw ridge, claws, body bulges or regenerative spots). Repeated upgrades accumulate; the monster never resets to a new appearance. Actual body scaling occurs at levels 5/10/16/22/28/34 and every six thereafter; L6 has one increase.
 - Evolutions lock movement for 6 s initially; each successful pop adds 1.5 s. The creature crouches and visibly pulses/shivers in this placeholder animation. Cumulative damage of 35 during the process cancels the evolution and loses the entire saved biomass; death ends the run. A successful evolution heals fully.
 - Base creature has 100 HP and an officer's **landed** pistol shot deals 10 damage. Armour progressively reduces this damage.
-- Level 0 cannot damage buildings. First strength upgrade enables a 3-hit attack; later strength upgrades enable breakthrough on contact.
+- Even level 0 can slowly chip every building. Strength speeds demolition and later enables sprint breakthrough; walls remain solid until collapse.
 - Civilians inside destroyed buildings are exposed; debris disappears.
 
 ## Scope / limitations

@@ -1,5 +1,9 @@
 # Android APK builds — Kaijustomp
 
+## Current isolated creature/evolution candidate
+
+[Build 85 APK](https://github.com/kavemankai/Kaijustomp/releases/download/creature-evolution-85-afb0c7e/Kaijustomp-85-afb0c7e-debug.apk), source `afb0c7ee8508f5331b5220fa6868679355f58672`. [Verified Actions run](https://github.com/kavemankai/Kaijustomp/actions/runs/38907095501). See [handover](CODEX_HANDOVER.md) for full validation and remaining phone checks. Package `com.kavemankai.kaijustomp.creaturepreview` installs beside the approved beach package. Immutable candidate tags include build and short SHA; stable beach and earlier preview assets are preserved. The workflow runs all five regressions before exporting and verifying the package/signature/native alignment. Debug signing may change between candidates, so updating an older **preview** may require uninstalling that preview; the separately installed approved app is unaffected.
+
 The beach prototype has a **Godot 4.5 Android debug APK** workflow for regular phone tests. It preserves the 9:16 portrait gameplay, camera, touch controls, and evolution work on the feature branch.
 
 ## Direct installation from your phone

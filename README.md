@@ -1,5 +1,11 @@
 # Kaijustomp
 
+Current playable game: **Godot 4.5 Compatibility, Android portrait beach/evolution prototype**. Begin with [takeover status](docs/CODEX_HANDOVER.md), [growth contract](docs/EVOLUTION_PROGRESSION.md), [development log](docs/DEVELOPMENT_LOG.md) and [beach controls](docs/BEACH_DEMO.md). Run `project.godot` / `scenes/BeachDemo.tscn`. WASD/arrows or left touch joystick move; Shift/right SPRINT toggles sprint; E/EVOLVE starts a vulnerable evolution when enough biomass is available. Feeding and structure attacks are automatic. Mutation selection and the shedding reveal pause gameplay.
+
+The original auto-shooter below is preserved in `MainGame.tscn`; it is a historical system, not the current beach design.
+
+## Original auto-shooter reference
+
 Retro low-poly kaiju reverse auto-shooter for Godot 4 (mobile first). You are the kaiju. Tanks, mechs and helicopters converge on you, you auto-fire a bullet spiral, and you crush buildings by walking through them. Killed enemies drop G-cells. Collect them to level up and pick a mutation. When you die, spend banked G-cells on permanent upgrades in the lab.
 
 The project has no binary assets. Meshes, the 256x256 texture atlas and all sound effects are generated in code at startup.

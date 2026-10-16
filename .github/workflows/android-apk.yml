@@ -158,6 +158,15 @@ jobs:
             exit 1
           fi
 
+      - name: Verify growth gameplay, paused posture and portrait framing
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --path . --script res://scripts/ci/test_growth_gameplay.gd \
+            2>&1 | tee "$RUNNER_TEMP/growth-gameplay-test.log"
+          grep -q 'GROWTH GAMEPLAY TEST PASSED' "$RUNNER_TEMP/growth-gameplay-test.log"
+          if grep -E 'SCRIPT ERROR|Parse Error|TEST FAILED|Invalid call|Invalid access' "$RUNNER_TEMP/growth-gameplay-test.log"; then exit 1; fi
+
       - name: Export portrait Android debug APK
         shell: bash
         run: |
@@ -165,6 +174,10 @@ jobs:
           mkdir -p build/android
           sed -i -E "s@^version/code=.*@version/code=${GITHUB_RUN_NUMBER}@" export_presets.cfg
           sed -i -E "s@^version/name=.*@version/name=\"0.1.${GITHUB_RUN_NUMBER}-debug\"@" export_presets.cfg
+          if [ "$GITHUB_REF_NAME" = 'feature/creature-growth-takeover' ]; then
+            sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.creaturepreview"@' export_presets.cfg
+            sed -i 's@^package/name=.*@package/name="Kaijustomp Creature Preview"@' export_presets.cfg
+          fi
           APK="Kaijustomp-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:7}-debug.apk"
           echo "APK_NAME=$APK" >> "$GITHUB_ENV"
           "$GODOT_BIN" --headless --path . --export-debug "Android" "build/android/$APK" \
@@ -195,7 +208,11 @@ jobs:
           "$ANDROID_SDK_ROOT/build-tools/35.0.0/apksigner" verify --verbose "$APK"
           "$ANDROID_SDK_ROOT/build-tools/35.0.0/aapt" dump badging "$APK" > "$RUNNER_TEMP/apk-badging.txt"
           grep -E '^(package:|application-label:|launchable-activity:|native-code:)' "$RUNNER_TEMP/apk-badging.txt"
-          grep -q "name='com.kavemankai.kaijustomp'" "$RUNNER_TEMP/apk-badging.txt"
+          EXPECTED_PACKAGE='com.kavemankai.kaijustomp'
+          if [ "$GITHUB_REF_NAME" = 'feature/creature-growth-takeover' ]; then
+            EXPECTED_PACKAGE='com.kavemankai.kaijustomp.creaturepreview'
+          fi
+          grep -q "name='$EXPECTED_PACKAGE'" "$RUNNER_TEMP/apk-badging.txt"
           grep -q '^launchable-activity:' "$RUNNER_TEMP/apk-badging.txt"
           grep -q "arm64-v8a" "$RUNNER_TEMP/apk-badging.txt"
           sha256sum "$APK"
@@ -208,6 +225,33 @@ jobs:
           if-no-files-found: error
           compression-level: 0
           retention-days: 30
+
+      - name: Publish immutable creature and evolution candidate
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/feature/creature-growth-takeover'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG="creature-evolution-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:7}"
+          sha256sum "build/android/$APK_NAME" > "build/android/$APK_NAME.sha256"
+          cat > "$RUNNER_TEMP/candidate-notes.md" <<EOF
+          Experimental creature/evolution candidate. Source: ${GITHUB_SHA}. Android build: ${GITHUB_RUN_NUMBER}. Engine: Godot 4.5 Compatibility, portrait, ARM64.
+
+          Fixes scaled feeding reach, upright neck/limb articulation, head collider timing, paused evolution presentation, growth clearance and late camera clipping. L6 has exactly one size increase. Existing approved movement/control constants are retained.
+
+          Passed: import, evolution/shedding, touch/combat/projectile cover, creature composition, milestone cadence, growth gameplay integration, APK ZIP/package/signature and native 16 KiB alignment checks. Workflow: https://github.com/${GH_REPO}/actions/runs/${GITHUB_RUN_ID}
+
+          Package com.kavemankai.kaijustomp.creaturepreview installs alongside the approved beach game. This is debug signed; different signing keys may require uninstalling an older preview. Approved releases are preserved. Phone installation, visual acceptance and sustained device performance still require playtesting. Upright animation is an expandable procedural prototype.
+          EOF
+          gh release create "$TAG" "build/android/$APK_NAME" "build/android/$APK_NAME.sha256" \
+            --target "$GITHUB_SHA" --title "Kaijustomp creature/evolution candidate ${GITHUB_RUN_NUMBER}" \
+            --notes-file "$RUNNER_TEMP/candidate-notes.md" --prerelease
+          LOCAL_SIZE=$(stat -c "%s" "build/android/$APK_NAME")
+          ASSET_SIZE=$(gh release view "$TAG" --json assets --jq ".assets[] | select(.name == \"$APK_NAME\") | .size")
+          test "$LOCAL_SIZE" = "$ASSET_SIZE"
+          echo "Candidate: https://github.com/${GH_REPO}/releases/download/${TAG}/${APK_NAME}" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Publish direct-install APK link (preview)
         if: github.ref == 'refs/heads/feature/beach-demo-elevated-camera' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
