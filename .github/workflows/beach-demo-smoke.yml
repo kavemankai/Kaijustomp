@@ -2,7 +2,7 @@ name: Beach demo Godot smoke test
 
 on:
   push:
-    branches: [feature/beach-demo-elevated-camera, feature/creature-growth-takeover, feature/sculpted-coastal-art, feature/extended-coast-population, feature/cocoon-evolution-coastal-suburb]
+    branches: [feature/beach-demo-elevated-camera, feature/creature-growth-takeover, feature/sculpted-coastal-art, feature/extended-coast-population, feature/cocoon-evolution-coastal-suburb, feature/expanded-suburb-shops-cars-debug]
   pull_request:
     paths:
       - 'assets/**'
@@ -40,7 +40,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for TEST in test_evolution test_beach_combat test_stylized_creature test_growth_milestones test_growth_gameplay test_coastal_art test_long_beach test_suburb_evolution; do
+          for TEST in test_evolution test_beach_combat test_stylized_creature test_growth_milestones test_growth_gameplay test_coastal_art test_long_beach test_suburb_evolution test_shopping_cars_debug; do
             timeout 90 /tmp/godot/Godot_v4.5-stable_linux.x86_64 --headless --path . --script "res://scripts/ci/$TEST.gd" \
               2>&1 | tee "$TEST.log"
             grep -q 'TEST PASSED' "$TEST.log"
