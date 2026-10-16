@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
-      GODOT_VERSION: '4.3'
+      GODOT_VERSION: '4.5'
       GODOT_CHANNEL: stable
 
     steps:
@@ -36,7 +36,7 @@ jobs:
       - name: Configure Android SDK
         uses: android-actions/setup-android@v4
         with:
-          packages: 'platform-tools platforms;android-34 build-tools;34.0.0'
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
 
       - name: Install matching Godot editor and export templates
         shell: bash
@@ -86,7 +86,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$HOME/.config/godot"
-          cat > "$HOME/.config/godot/editor_settings-4.3.tres" <<EOF
+          cat > "$HOME/.config/godot/editor_settings-4.5.tres" <<EOF
           [gd_resource type="EditorSettings" format=3]
 
           [resource]
@@ -125,6 +125,7 @@ jobs:
             exit 1
           fi
           unzip -t "build/android/$APK" > /dev/null
+          python3 scripts/ci/verify_android_16k.py "build/android/$APK"
           # Check the APK contains an Android manifest and native ARM64 engine.
           unzip -Z -1 "build/android/$APK" > "$RUNNER_TEMP/apk-entries.txt"
           grep -qx "AndroidManifest.xml" "$RUNNER_TEMP/apk-entries.txt"
@@ -140,8 +141,8 @@ jobs:
         run: |
           set -euo pipefail
           APK="build/android/$APK_NAME"
-          "$ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner" verify --verbose "$APK"
-          "$ANDROID_SDK_ROOT/build-tools/34.0.0/aapt" dump badging "$APK" > "$RUNNER_TEMP/apk-badging.txt"
+          "$ANDROID_SDK_ROOT/build-tools/35.0.0/apksigner" verify --verbose "$APK"
+          "$ANDROID_SDK_ROOT/build-tools/35.0.0/aapt" dump badging "$APK" > "$RUNNER_TEMP/apk-badging.txt"
           grep -E '^(package:|application-label:|launchable-activity:|native-code:)' "$RUNNER_TEMP/apk-badging.txt"
           grep -q "name='com.kavemankai.kaijustomp'" "$RUNNER_TEMP/apk-badging.txt"
           grep -q '^launchable-activity:' "$RUNNER_TEMP/apk-badging.txt"
