@@ -39,6 +39,16 @@ func _run() -> void:
 		if not _check(b["collider"] is StaticBody3D, "Extended building lost physics"): return
 	if not _check(houses == 12 and shopping == 14, "Wrong houses/shop split"): return
 	if not _check(demo.NEIGHBOURHOOD_FAR_Z <= -500.0 and demo.get_node_or_null("CoastalNeighbourhood/NeighbourhoodRoads") != null, "Inland streets not extended"): return
+	# The central access route reaches the shops; storefronts block physical impact.
+	demo.beast.global_position = Vector3(0, 0, -325)
+	demo.touch_vector = Vector2(0, -1)
+	demo._update_movement(0.25)
+	if not _check(demo.beast.global_position.z < -325.1, "Creature cannot reach shopping street from neighbourhood"): return
+	demo.touch_vector = Vector2.ZERO
+	demo.beast.global_position = Vector3(-105, 0, -334)
+	await physics_frame
+	var shop_impact: KinematicCollision3D = demo.beast.move_and_collide(Vector3(0, 0, -25))
+	if not _check(shop_impact != null and demo._building_for_collider(shop_impact.get_collider()) >= 66, "Shopping storefronts do not block creature physically"): return
 	# All cars remain physical, bounded and independently destructible.
 	if not _check(demo.cars.size() == 16 and demo.cars.size() <= demo.MAX_CARS, "Vehicle count exceeded cap"): return
 	var moving := 0
