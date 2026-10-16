@@ -136,6 +136,17 @@ jobs:
             exit 1
           fi
 
+      - name: Verify creature anatomy, mutations and creature sounds
+        shell: bash
+        run: |
+          set -o pipefail
+          "$GODOT_BIN" --headless --path . --script res://scripts/ci/test_creature_polish.gd \
+            2>&1 | tee "$RUNNER_TEMP/creature-test.log"
+          grep -q 'CREATURE TEST PASSED' "$RUNNER_TEMP/creature-test.log"
+          if grep -E 'SCRIPT ERROR|Parse Error|CREATURE TEST FAILED|Invalid call|Invalid access' "$RUNNER_TEMP/creature-test.log"; then
+            exit 1
+          fi
+
       - name: Export portrait Android debug APK
         shell: bash
         run: |
