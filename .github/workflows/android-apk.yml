@@ -19,7 +19,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: kaijustomp-apk-publish
+  group: kaijustomp-apk-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
