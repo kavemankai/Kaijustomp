@@ -174,4 +174,11 @@ jobs:
               --target "$GITHUB_SHA" --title "$RELEASE_TITLE" \
               --notes "$RELEASE_NOTES" --prerelease
           fi
+          LOCAL_SIZE=$(stat -c "%s" "build/android/Kaijustomp-latest.apk")
+          ASSET_SIZE=$(gh release view "$RELEASE_TAG" --json assets --jq '.assets[] | select(.name == "Kaijustomp-latest.apk") | .size')
+          if [ "$LOCAL_SIZE" != "$ASSET_SIZE" ]; then
+            echo "Published APK size does not match the verified local APK."
+            exit 1
+          fi
+          echo "Verified published APK size: $LOCAL_SIZE bytes" >> "$GITHUB_STEP_SUMMARY"
           echo "Direct phone link: https://github.com/${GH_REPO}/releases/download/${RELEASE_TAG}/Kaijustomp-latest.apk" >> "$GITHUB_STEP_SUMMARY"
