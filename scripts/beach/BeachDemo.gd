@@ -1420,16 +1420,65 @@ func _spawn_local_officer(offset: float, swat: bool) -> void:
 	_spawn_local_response(offset, "swat" if swat else "police")
 
 
+func _response_is_visible(candidate: Vector3, kind: String) -> bool:
+	# Project both feet and top into the ACTUAL portrait camera. A screen
+	# border excludes pop-in when vehicles are larger than a person.
+	if not is_instance_valid(follow_camera):
+		return true
+	var viewport := get_viewport().get_visible_rect().size
+	if viewport.x < 1 or viewport.y < 1:
+		return true
+	var margin := 55.0
+	var visible_rect := Rect2(Vector2(-margin, -margin),
+		viewport + Vector2(margin * 2.0, margin * 2.0))
+	var heights := [0.5, 2.0, 7.0] if kind != "helicopter" else [21.0, 23.0, 27.0]
+	for height in heights:
+		var sample := candidate + Vector3(0, height, 0)
+		if follow_camera.is_position_behind(sample):
+			continue
+		if visible_rect.has_point(follow_camera.unproject_position(sample)):
+			return true
+	return false
+
+
+func _find_offscreen_response_spawn(kind: String, lane: float) -> Vector3:
+	# World-space ring sampling is more reliable than a fixed map coordinate:
+	# 90° camera turns, portrait aspect and E34+ zoom all alter screen coverage.
+	# Reject all visibly projected candidates, rather than spawning in view.
+	var origin := beast.global_position
+	var start_angle := float(response_wave) * .43 + lane * .018
+	var min_distance := maxf(85.0, growth_scale * 16.0)
+	for radius in [95.0, 150.0, 230.0, 360.0, 530.0, 780.0, 1120.0, 1460.0]:
+		if radius < min_distance:
+			continue
+		for slot in range(16):
+			var angle := start_angle + float(slot) * TAU / 16.0
+			var candidate := origin + Vector3(cos(angle) * radius, 0, sin(angle) * radius)
+			if absf(candidate.x) > PLAYABLE_HALF_LENGTH - 16.0:
+				continue
+			if candidate.z < NEIGHBOURHOOD_FAR_Z + 16.0 or candidate.z > 19.0:
+				continue
+			if kind != "helicopter" and _blocking_building(candidate) >= 0:
+				continue
+			if _response_is_visible(candidate, kind):
+				continue
+			var occupied := false
+			for foe in officers:
+				var other: Vector3 = foe["node"].global_position
+				if Vector2(other.x - candidate.x, other.z - candidate.z).length() < 18.0:
+					occupied = true
+					break
+			if occupied:
+				continue
+			return candidate
+	# When extreme E120 zoom makes the whole remaining map visible,
+	# DO NOT materialize reinforcements on camera. Retry a future wave.
+	return Vector3.INF
+
+
 func _spawn_local_response(offset: float, kind: String) -> void:
-	# Local to the creature's current district, avoiding roofs and clipping
-	# at coastal world edges. Flying craft remain visible overhead.
-	var distance := maxf(32.0, growth_scale * 3.5 + 20.0)
-	var x := clampf(beast.global_position.x + offset, -PLAYABLE_HALF_LENGTH + 8.0, PLAYABLE_HALF_LENGTH - 8.0)
-	var z := clampf(beast.global_position.z - distance, NEIGHBOURHOOD_FAR_Z + 8.0, 17.0)
-	var candidate := Vector3(x, 0, z)
-	if _blocking_building(candidate) >= 0:
-		candidate.z = clampf(beast.global_position.z + distance, NEIGHBOURHOOD_FAR_Z + 8.0, 21.0)
-	if _blocking_building(candidate) < 0 or kind == "helicopter":
+	var candidate := _find_offscreen_response_spawn(kind, offset)
+	if candidate.is_finite():
 		_spawn_response_enemy(candidate, kind)
 
 
@@ -1475,11 +1524,19 @@ func _update_police(delta: float) -> void:
 		var kind: String = foe["kind"]
 		var helicopter := kind == "helicopter"
 		var desired := 55.0 if helicopter else (30.0 if kind == "armoured" else 12.0)
-		if distance > desired and distance < 125.0:
-			var travel := to_beast.normalized() * delta * float(foe["speed"])
+		if distance > desired:
+			var travel := to_beast.normalized() * delta * float(foe["speed"]) * maxf(1.0, sqrt(growth_scale))
 			var destination := unit.global_position + travel
 			if helicopter or _blocking_building(destination) < 0:
 				unit.global_position = destination
+			elif not helicopter:
+				# Follow the side of a structure instead of stopping forever
+				# behind the first warehouse on the long approach.
+				var side := Vector3(-travel.z, 0, travel.x)
+				if _blocking_building(unit.global_position + side) < 0:
+					unit.global_position += side
+				elif _blocking_building(unit.global_position - side) < 0:
+					unit.global_position -= side
 		if distance > 0.2:
 			unit.rotation.y = atan2(-to_beast.x, -to_beast.z)
 		if kind == "helicopter":
