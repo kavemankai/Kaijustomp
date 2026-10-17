@@ -56,8 +56,8 @@ func _run() -> void:
 	demo._debug_apply_selected_batch()
 	if not _check(demo.evolutions == 40 and demo.evolution_history.size() == 40 and demo.growth_stage == 7, "Second selected batch didn't reach E40"): return
 	if not _check(is_equal_approx(demo.growth_scale, GrowthProgression.target_scale(40)), "Later recurring growth increments not preserved"): return
-	var old_level := demo.evolutions
-	var old_visuals := demo.mutation_visual_counts.duplicate()
+	var old_level: int = demo.evolutions
+	var old_visuals: Dictionary = demo.mutation_visual_counts.duplicate()
 	demo._debug_evolve_batch(0)
 	demo._debug_evolve_batch(61)
 	if not _check(demo.evolutions == old_level and demo.mutation_visual_counts == old_visuals, "Out-of-range batch changed state"): return
