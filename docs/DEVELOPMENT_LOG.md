@@ -1,3 +1,9 @@
+# 2026-10-17 - missions and landmark implementation
+
+Added concurrent exploration, discovery, demolition, existing evolution milestones, responder victories and alive DEFCON escape objectives. Five generated landmark identities decorate stable existing parcels; Banksia remains unchanged. A compact portrait tracker and scrollable selection panel clear touch state and pause gameplay while open. Completions award one-time Renown badges rather than biomass. Optional validated objective records migrate old world saves, preserve future formats, and use existing bounded async checkpoints. New regression and rendered capture helpers cover objectives/persistence/UI/identity; final APK evidence follows in the handover.
+
+---
+
 # 2026-10-17 - persistent world delivery
 
 Published isolated World Preview APK227 from `9c4d94e`; draft PR18 targets integration/stable-baseline without merging. All 23 Windows and Linux regression suites, import/launch, smoke and Android workflows pass. Downloaded digest, CRC and native alignment match; CI validates package, launcher, ARM64 and v2/v3 signature. Exact artifact and evidence are in WORLD_TEST_RESULTS.md.

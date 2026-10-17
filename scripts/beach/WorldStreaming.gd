@@ -36,6 +36,7 @@ func setup(owner_scene: Node3D) -> void:
 		authored[c].append(i)
 	if not test_mode: state.read_save()
 	layout.seed_value = state.seed_value
+	scene.objectives.setup(state,layout)
 	for b in scene.buildings: state.apply(b)
 	_make_backdrop()
 	initialized = true
@@ -235,6 +236,11 @@ func _silhouette(root: Node3D,d: Dictionary) -> void:
 	var height: float = d["height"]
 	CoastalArt.box(root,p+Vector3(0,height*.5,0),Vector3(size.x,height,size.y),d["colour"])
 	CoastalArt.box(root,p+Vector3(0,height+.25,0),Vector3(size.x+1,.5,size.y+1),CoastalArt.ROOF)
+	if d.has("landmark"):
+		var identity := Node3D.new()
+		identity.position=p
+		root.add_child(identity)
+		WorldLandmarks.art(identity,d["landmark"],size,height)
 
 func _draw_roads(root: Node3D,c: Vector2i) -> void:
 	for road in WorldLayout.road_segments(c):

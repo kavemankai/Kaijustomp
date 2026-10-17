@@ -73,10 +73,12 @@ func describe(c: Vector2i) -> Array[Dictionary]:
 			4: title = "Farm Store"; size = Vector2(22, 27); height = 7
 			5: title = "Military Hangar" if slot == 0 else "Command Centre"; size = Vector2(65, 82); height = 20
 			6: title = ["Bakery", "Supermarket", "Coffee Bar"][slot % 3]; size = Vector2(32, 29); height = 8 + slot % 3 * 3
-		result.append({"id": "g%d:%d:%d:%d" % [GENERATOR_VERSION, c.x, c.y, slot], "position": at,
+		var descriptor := {"id": "g%d:%d:%d:%d" % [GENERATOR_VERSION, c.x, c.y, slot], "position": at,
 			"size": size, "height": height, "name": title, "district": kind,
 			"colour": Color("c2d0bb"), "strength": 2 if height < 10 else 5,
-			"hits": 6 if height < 10 else 18, "breakthrough": 5 if height < 10 else 8, "occupants": 5 if height < 10 else 8})
+			"hits": 6 if height < 10 else 18, "breakthrough": 5 if height < 10 else 8, "occupants": 5 if height < 10 else 8}
+		WorldLandmarks.decorate(descriptor)
+		result.append(descriptor)
 	return result
 
 static func road_point(at: Vector3) -> Vector3:

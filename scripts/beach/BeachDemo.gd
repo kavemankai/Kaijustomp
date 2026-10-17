@@ -83,6 +83,8 @@ var camera_celebration_clock := 0.0
 var civilians: Array[Dictionary] = []
 var officers: Array[Dictionary] = []
 var buildings: Array[Dictionary] = []
+var objectives := WorldObjectives.new()
+var objective_hud: ObjectiveHUD
 var world: WorldStreaming
 var simple_building_mesh: BoxMesh
 var simple_building_materials: Dictionary = {}
@@ -419,6 +421,7 @@ func _register_generated(d: Dictionary, slot: int = -1) -> int:
 		"name":d["name"],"hits":float(d["hits"]),"max_hits":float(d["hits"]),"required_strength":d["strength"],
 		"breakthrough_strength":d["breakthrough"],"hidden":d["occupants"],"base_occupants":d["occupants"],
 		"destroyed":false,"active":false,"full":false,"reward_claimed":false,"node":null,"collider":null,"crack_layers":[],"crack_stage":0}
+	b["landmark"]=d.get("landmark","")
 	if slot < 0: buildings.append(b)
 	else: buildings[index] = b
 	return index
@@ -473,6 +476,8 @@ func _activate_building(index: int, full: bool = true) -> void:
 		CoastalArt.shop(root, footprint, height, title)
 	else:
 		CoastalArt.building(root, footprint, height, title)
+	if not String(b.get("landmark","")).is_empty():
+		WorldLandmarks.art(root,b["landmark"],footprint,height)
 	# A visible MeshInstance3D is not an obstacle. Physical collision must
 	# remain active until the building actually collapses.
 	var crack_layers: Array[Node3D] = []
@@ -795,6 +800,7 @@ func _damage_response(index: int, damage: float) -> void:
 		var point: Vector3 = foe["node"].global_position
 		foe["node"].queue_free()
 		officers.remove_at(index)
+		objectives.responder_defeated()
 		_add_alert(12.0)
 		if DefconDirector.is_vehicle(String(foe["kind"])):
 			_make_debris(Vector3(point.x, 0, point.z), 8)
@@ -840,6 +846,14 @@ func _build_ui() -> void:
 		get_viewport().msaa_3d = Viewport.MSAA_DISABLED if index == 1 else Viewport.MSAA_2X
 	)
 	ui_layer.add_child(quality)
+	objective_hud=ObjectiveHUD.new()
+	objective_hud.model=objectives
+	ui_layer.add_child(objective_hud)
+	objective_hud.opened_changed.connect(func():
+		touch_input.reset_input()
+		touch_vector=Vector2.ZERO
+		sprint_requested=false
+	)
 	evolution_progress = ProgressBar.new()
 	evolution_progress.position = Vector2(18, 166)
 	evolution_progress.size = Vector2(238, 20)
@@ -1073,6 +1087,10 @@ func _debug_evolve_batch(level_count: int) -> void:
 
 func _physics_process(delta: float) -> void:
 	if is_instance_valid(world): world.save_writer.poll()
+	if is_instance_valid(objective_hud) and objective_hud.opened:
+		if is_instance_valid(world): world.advance(delta)
+		_update_hud()
+		return
 	# The root runs during pause for UI, but no enemies, damage or movement do.
 	if reveal_active:
 		_update_camera(delta)
@@ -1099,6 +1117,7 @@ func _physics_process(delta: float) -> void:
 	if evolving and evolution_clock <= 0.0 and not game_over:
 		_finish_evolution()
 	_update_camera(delta)
+	objectives.observe(self,delta)
 	_update_hud()
 
 func _update_movement(delta: float) -> void:
@@ -1418,7 +1437,9 @@ func _damage_building(index: int, hits: float) -> void:
 	buildings[index] = b
 	if is_instance_valid(world):
 		world.state.remember(b)
-		if b["destroyed"] and not world.test_mode: world.save_now()
+		if b["destroyed"]:
+			objectives.demolished()
+			if not world.test_mode: world.save_now()
 
 func _make_debris(at: Vector3, count: int) -> void:
 	coastal_effects.burst(at + Vector3(0,1,0), 10, 2.0)
@@ -1468,6 +1489,7 @@ func _update_biting(_delta: float) -> void:
 		toward.y = 0.0
 		if toward.length_squared() <= reach * reach and facing.dot(toward.normalized()) >= BITE_CONE_DOT:
 			officers.remove_at(i)
+			objectives.responder_defeated()
 			_capture_and_feed(cop, 16)
 			return
 
@@ -2016,15 +2038,19 @@ func _update_hud() -> void:
 	var food_source := DietProgression.diet_label(growth_scale)
 	if food_source != "PEOPLE":
 		district_name = "COASTAL DIET: " + food_source if beast.global_position.z > -82.0 else ("INDUSTRY: " if beast.global_position.z < INDUSTRIAL_ZONE_Z else ("SHOPPING: " if beast.global_position.z < SHOPPING_DISTRICT_Z else "SUBURB: ")) + food_source
+	if is_instance_valid(world) and not WorldLayout.authored(beast.position):
+		district_name=WorldLayout.DISTRICTS[world.layout.district(beast.position)].to_upper()+": "+food_source
 	coastal_hud.update_defcon(defcon, DefconDirector.name_for(defcon))
 	coastal_hud.update_state(hp, max_hp, stamina, max_stamina, biomass, _cost(), evolutions, status if evolving or game_over else district_name)
+	if is_instance_valid(objective_hud): objective_hud.refresh(beast.position,not (evolving or choice_open or reveal_active or game_over))
 	if is_instance_valid(debug_evolve_button):
-		debug_evolve_button.visible = OS.has_feature("debug") and not game_over
+		debug_evolve_button.visible = OS.has_feature("debug") and not game_over and not objective_hud.opened
 		debug_evolve_button.disabled = evolving or choice_open or reveal_active or evolutions >= DEBUG_TOTAL_LEVEL_CAP
-	evolve_button.visible = not evolving and not game_over and biomass >= _cost()
+	evolve_button.visible = not evolving and not game_over and biomass >= _cost() and not objective_hud.opened
 	evolution_progress.visible = evolving
 	if evolving:
 		evolution_progress.value = 100.0 * (1.0 - evolution_clock / maxf(0.01, evolution_total))
+	sprint_button.visible = not objective_hud.opened
 	sprint_button.disabled = evolving or game_over or sprint_locked
 	if sprint_locked:
 		sprint_button.text = "RECHARGING\n%d%%" % int(100.0 * stamina / max_stamina)

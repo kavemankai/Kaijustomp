@@ -9,6 +9,8 @@ Godot4.5 Compatibility, ARM64 Android portrait540x960. The same BeachDemo scene 
 | WorldStreaming | Chunk queues, frustum/safety relevance, collision preparation, silhouette batches, generated slot reuse and save orchestration. Gameplay respects pause gates; static camera prefetch also runs during evolution pauses. |
 | WorldState | Compact object/event/player deltas, validated versioned JSON, previous-good backup and migration/recovery. |
 | WorldSaveWriter | Detached immutable snapshots, one worker and one coalesced pending job; disk I/O off gameplay, explicit pause/exit/reset flush. |
+| WorldObjectives / ObjectiveHUD | Concurrent persistent goals/one-time Renown and portrait tracking/selection; objective view pauses gameplay while static streaming continues. |
+| WorldLandmarks | Additive identity metadata/art on existing stable parcels; deterministic seed-based destinations. |
 | WorldRouting | Hull-aware local grid routes calculated from static descriptions; no full simulation along distant approaches. |
 | BeachDemo | Creature/evolution/input/HUD, damage/reward transactions and bounded local actor orchestration. Active building nodes have explicit construction/destruction helpers. |
 

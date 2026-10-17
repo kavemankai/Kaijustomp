@@ -1,3 +1,9 @@
+# Missions and landmarks follow-up - implementation candidate
+
+The branch now adds 13 persistent optional objectives, six landmark destinations (five distinctive generated structures plus preserved Banksia Heights), a portrait tracker/selection panel and one-time Renown badges. Existing evolution, biomass and DEFCON escalation remain unchanged. Old world-preview saves gain objective records without resetting the world. See WORLD_OBJECTIVES.md for contracts. New APK publication and final verification evidence will replace this candidate note after CI.
+
+---
+
 # Persistent streamed world handover - 17 October 2026
 
 Delivered [World Preview APK #227](https://github.com/kavemankai/Kaijustomp/releases/download/persistent-world-227-9c4d94e/Kaijustomp-227-9c4d94e-debug.apk), source `9c4d94e328a1fcde517441aef2a73751fd0c42e9`. [Draft PR #18](https://github.com/kavemankai/Kaijustomp/pull/18), branch `feature/persistent-streamed-world`, targets `integration/stable-baseline`. Integration APK217 and approved releases remain preserved; do not merge automatically. Later documentation-only commits retain this exact APK source.

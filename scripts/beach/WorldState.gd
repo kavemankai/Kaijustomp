@@ -46,6 +46,13 @@ func read_save() -> bool:
 		var parsed = parser.data
 		if not parsed is Dictionary: continue
 		var version := int(parsed.get("version", -1))
+		var saved_events = parsed.get("events",{})
+		if saved_events is Dictionary and saved_events.get("objectives") is Dictionary:
+			var objective_version = saved_events["objectives"].get("version",0)
+			if _number(objective_version) and float(objective_version)>1:
+				writable=false
+				recovery="unsupported"
+				return false
 		if version > VERSION or int(parsed.get("generator", -1)) > WorldLayout.GENERATOR_VERSION:
 			writable = false
 			recovery = "unsupported"
@@ -114,6 +121,7 @@ static func _valid_document(data: Dictionary) -> bool:
 				if not _number(event.get(key)) or float(event[key])<0: return false
 	var events = data.get("events",{})
 	if not events is Dictionary: return false
+	if events.has("objectives") and not WorldObjectives.valid(events["objectives"]): return false
 	var vehicles = events.get("vehicles",{})
 	if not vehicles is Dictionary: return false
 	for id in vehicles:
