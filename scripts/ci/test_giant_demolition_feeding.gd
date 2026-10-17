@@ -63,7 +63,7 @@ func _run() -> void:
 	demo.bite_timer = 0.0
 	var normal_reach: float = demo._normal_grab_reach()
 	if not _check(demo._bite_reach() > normal_reach * 1.44, "Upright tongue does not extend range"): return
-	var target := demo.beast.global_position + Vector3(0, 0, -normal_reach * 1.25)
+	var target: Vector3 = demo.beast.global_position + Vector3(0, 0, -normal_reach * 1.25)
 	demo._spawn_civilian(target)
 	var previous_biomass: int = demo.biomass
 	demo.beast.rotation.y = 0.0
