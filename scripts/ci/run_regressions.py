@@ -16,6 +16,7 @@ def main():
     parser.add_argument("--godot", required=True, help="Godot 4.5 console executable")
     parser.add_argument("--output", default="build/regressions")
     parser.add_argument("--timeout", type=int, default=120)
+    parser.add_argument("--suite", action="append", help="Run named suites only; CI defaults to discovering all suites")
     args = parser.parse_args()
     out = ROOT / args.output
     out.mkdir(parents=True, exist_ok=True)
@@ -24,7 +25,8 @@ def main():
         parser.error(f"Expected 4.5.stable, got {version}")
     jobs = [("import", ["--editor", "--quit"]), ("launch", ["--quit-after", "60"])]
     jobs += [(p.stem, ["--script", "res://" + p.relative_to(ROOT).as_posix()])
-             for p in sorted((ROOT / "scripts/ci").glob("test_*.gd"))]
+             for p in sorted((ROOT / "scripts/ci").glob("test_*.gd"))
+             if not args.suite or p.stem in args.suite]
     results = []
     for name, flags in jobs:
         start = time.monotonic()

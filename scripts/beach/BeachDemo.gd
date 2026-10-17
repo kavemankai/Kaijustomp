@@ -427,8 +427,10 @@ func _deactivate_building(index: int) -> void:
 	var b: Dictionary = buildings[index]
 	if is_instance_valid(b.get("node")):
 		b["node"].hide()
-		if is_instance_valid(b.get("collider")): b["collider"].collision_layer = 0
 		b["node"].queue_free()
+	if is_instance_valid(b.get("collider")):
+		b["collider"].collision_layer=0
+		b["collider"].queue_free()
 	b["node"] = null
 	b["collider"] = null
 	b["crack_layers"] = []
@@ -442,7 +444,6 @@ func _activate_building(index: int, full: bool = true) -> void:
 	# LOD changes replace artwork while retaining the registered physics body.
 	var preserved: StaticBody3D = b.get("collider") if is_instance_valid(b.get("collider")) else null
 	if preserved!=null:
-		preserved.reparent(self,true)
 		b["collider"]=null
 	_deactivate_building(index)
 	var pos: Vector3 = b["position"]
@@ -477,13 +478,12 @@ func _activate_building(index: int, full: bool = true) -> void:
 	var crack_layers: Array[Node3D] = []
 	if full: crack_layers = _build_building_cracks(root, footprint, height)
 	var solid: StaticBody3D = preserved
-	if solid!=null:
-		solid.reparent(root,true)
-	else:
+	if solid==null:
 		solid=StaticBody3D.new()
+		solid.position=pos
 		solid.collision_layer = 1
 		solid.collision_mask = 1
-		root.add_child(solid)
+		add_child(solid)
 		var blocker := CollisionShape3D.new()
 		var shape := BoxShape3D.new()
 		shape.size = Vector3(footprint.x, height, footprint.y)
@@ -1396,6 +1396,9 @@ func _damage_building(index: int, hits: float) -> void:
 		var source: Vector3 = b["position"]
 		var root: Node3D = b["node"]
 		root.queue_free()
+		if is_instance_valid(b.get("collider")):
+			b["collider"].collision_layer=0
+			b["collider"].queue_free()
 		_make_debris(source, 12)
 		_add_alert(17.0)
 		# Everyone already inside, plus people who sheltered during the run,

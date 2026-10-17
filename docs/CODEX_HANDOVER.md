@@ -1,3 +1,23 @@
+# Current work — persistent streamed world, 17 October 2026
+
+Branch `feature/persistent-streamed-world`, based on integration `00eb61e`. The integration APK217 and every approved release remain preserved. This branch targets `integration/stable-baseline`; do not merge automatically.
+
+The finite world defaults to20000x6000 world units, with extent/seed in `config/world.tres` and256-unit chunks. The original114 structures retain baseline positions and gameplay properties, proven against a fixture captured from APK217's source. Starting art/roads remain authored. New city/commercial/residential rings, ports, farms/forest and military facilities use deterministic descriptions and reusable kits.
+
+`WorldStreaming` owns activation, low-cost silhouettes, collision readiness, reusable generated registry slots and compact state deltas. `WorldLayout` owns pure seed/coordinate generation. `WorldRouting` routes through descriptions without loading the whole approach. BeachDemo retains movement, feeding, mutations, pause gates and compatibility adapters. Do not keep generated array indices across unloads: use permanent IDs.
+
+Disk saves preserve damaged/destroyed structures, one-time rewards, important vehicles, player/evolution/position, DEFCON consequences and pending evacuations. Writes retain a previous-good backup and recover safely; unsupported/corrupt files are preserved. RESTART keeps its previous fresh-run meaning; application resume restores the saved run. Preview data has a distinct Android package.
+
+Baseline import/launch and16 suites pass on Godot4.5. The expanded regression set has22 suites, including original-world preservation, deterministic generation, roads/parcels, save recovery/migration, disk restart, offscreen responder approaches, actor cleanup and long swept travel. Latest final verification and APK publication are in progress; no phone acceptance is claimed here.
+
+Read WORLD_GENERATION.md, WORLD_STREAMING.md and WORLD_TEST_RESULTS.md for policy and evidence. Rendered checks caught terrain winding and large-view depth precision defects during development; those are corrected. Profiling includes actual generation/frame percentiles and process-tree RSS, distinct from engine static allocation.
+
+Remaining work before handoff: finish the final regression/render/profile pass, publish the isolated Android world preview, independently check its bytes and attach the draft PR. Physical Android multitouch, installation, sustained frame pacing, thermals and artistic giant-motion acceptance still require a phone. Global roads are deliberately regular, landmark/scenery silhouettes are coarse, and safety-critical collision construction can exceed the nominal2ms scheduler budget. Expand variety after device validation.
+
+The records below describe the preceding integration milestone.
+
+---
+
 # Kaijustomp integration handover â€” 17 October 2026
 
 ## Candidate to review

@@ -1,3 +1,9 @@
+# 2026-10-17 — finite persistent world implementation
+
+Verified the remote PR17 head00eb61e and APK217 source317743c; cloned into an empty workspace and created feature/persistent-streamed-world. Official Godot4.5 import/launch and all16 baseline suites pass. Preserved the authored114-structure layout in descriptors and a source-captured fixture. Added configurable20000x6000 extent,256-unit deterministic chunks, spatially coherent district anchors, connected roads, shared simple meshes, bounded art/collision lifetimes, reusable generated slots and camera-driven silhouettes. Added versioned delta saves with backup recovery/migration, player/evolution/DEFCON state, important cars and evacuation conservation. Streamed traffic and descriptor-only responder routing keep caps and offscreen arrivals. New regression scenarios exercise long real swept travel, memory ownership, persistence and warehouse approaches. Current branch is unmerged; final APK/evidence publication follows in the current handover.
+
+---
+
 # Development log
 
 ## 2026-10-17 â€” autonomous consolidation candidate
