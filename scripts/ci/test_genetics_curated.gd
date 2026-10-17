@@ -17,9 +17,10 @@ func run() -> void:
 	var sources := {}
 	for gene in GeneRegistry.definitions().values():
 		if gene["source_id"]>0: sources[gene["source_id"]]=true
-	check(sources.size()==35,"exact curated 30 + five seeds")
+	check(sources.size()==41,"35 legacy source prototypes plus 6 traversal genes")
 	for id in GeneRegistry.CURATED: check(sources.has(id),"curated source preserved")
 	for id in sources:
+		if id in [29,52,119,121,122,180]: continue
 		equip(id)
 		check(GenomeState.from_record(demo.genetics.genome.record())!=null,"source save roundtrip %d" % id)
 		check(demo.genetics.morphology.visible and demo.genetics.morphology.get_child_count()>0,"source visual %d" % id)
@@ -55,7 +56,7 @@ func run() -> void:
 	check(equip(95).sensor_range()==32,"electroreception")
 	e=equip(99); demo._prepare_authored(0); demo.beast.position=demo.buildings[0]["position"]+Vector3(demo.buildings[0]["half"].x+2,0,0); h=demo.buildings[0]["hits"]; e.advance(1); check(demo.buildings[0]["hits"]<h and e.trail.size()==6,"bounded acid trail")
 	e=equip(441); e.ambush_ready=true; check(e.contact_bonus(i)==20 and e.contact_bonus(i)==0,"one ambush strike")
-	if not failed: print("CURATED GENES TEST PASSED: all 35 source IDs equip, save and visualize; 26 additive effects, conditions, cooldowns, tradeoffs and caps verified")
+	if not failed: print("CURATED GENES TEST PASSED: 35 baseline source IDs equip, save and visualize; 6 traversal genes separately gated; 26 additive effects, conditions, cooldowns, tradeoffs and caps verified")
 	demo.queue_free(); await process_frame
 	for suffix in ["",".bak",".tmp"]: DirAccess.remove_absolute(ProjectSettings.globalize_path("user://curated-gene-tests.json"+suffix))
 	quit(1 if failed else 0)
