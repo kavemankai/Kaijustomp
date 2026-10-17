@@ -1,5 +1,10 @@
 # Development log
 
+## 2026-10-17 — player request: DEFCON response and more enemies
+
+Before phone testing the new scale-based diet preview, player asked to begin a full DEFCON system with additional enemy types. Candidate `feature/defcon-response-escalation` stacks on the unmerged diet branch; no merge or change to approved installs. Adds a five-stage alert-driven escalation (DEFCON 5 peaceful/local patrol to DEFCON 1 military air support), cooldown/de-escalation, local mixed response waves, mobile cap of nine active responders and 72 tracers. Retains police/SWAT and adds distinguishable National Guard infantry, destructible armoured vehicles and animated airborne helicopters using authored low-poly mobile art. Keeps projectile collision and building cover, and reports active DEFCON on compact portrait HUD. New `test_defcon_response.gd` is the thirteenth Godot regression, with isolated Android apk/test release. Phone balancing/visual acceptance remains pending. See [DEFCON_RESPONSE.md](DEFCON_RESPONSE.md).
+
+
 ## 2026-10-17 — size-driven diet / stop giant human grabbing
 
 Player confirms batch evolution worked to E120, asks to transition food sources where individual human arm grabs become visually janky, instead of locking an arbitrary evolution. This isolated `feature/scale-driven-diet-transition` trial uses a configurable scale ratio (3.35× initial creature size; currently between E28 and E34). Once too large, people and officers still flee/act but no longer feed the giant. Demolishing vehicles begins to provide biomass during earlier upright growth, and structures become nutritious on collapse when human feeding stops. One-time rewards are footprint/type-sensitive, not per-hit; HUD shows the current food sources. Eleven prior tests remain, plus `test_scale_diet.gd`; dedicated preview APK. Does not claim to resolve E120 walk/stretch or map scale yet. See [SIZE_DIET_TRANSITION.md](SIZE_DIET_TRANSITION.md).
