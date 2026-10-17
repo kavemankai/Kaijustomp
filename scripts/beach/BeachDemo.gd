@@ -1072,6 +1072,7 @@ func _debug_evolve_batch(level_count: int) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if is_instance_valid(world): world.save_writer.poll()
 	# The root runs during pause for UI, but no enemies, damage or movement do.
 	if reveal_active:
 		_update_camera(delta)
@@ -2068,7 +2069,7 @@ func _notification(what: int) -> void:
 		sprint_active = false
 		if is_instance_valid(touch_input):
 			touch_input.reset_input()
-		if is_instance_valid(world) and not world.test_mode: world.save_now()
+		if is_instance_valid(world) and not world.test_mode: world.save_now(true)
 
 func _index_for_world_id(id: String) -> int:
 	if id.is_empty(): return -1
@@ -2079,6 +2080,7 @@ func _index_for_world_id(id: String) -> int:
 func _restart_run() -> void:
 	# RESTART retains its established fresh-run meaning; app resume restores a run.
 	if is_instance_valid(world) and not world.test_mode and world.state.writable:
+		world.save_writer.flush()
 		world.state.objects.clear()
 		world.state.events.clear()
 		world.state.player.clear()

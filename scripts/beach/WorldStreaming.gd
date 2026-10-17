@@ -7,6 +7,7 @@ const PLAYER_FIELDS := ["hp", "max_hp", "biomass", "evolutions", "armour", "stre
 var scene: Node3D
 var layout := WorldLayout.new()
 var state := WorldState.new()
+var save_writer := WorldSaveWriter.new()
 var chunks: Dictionary = {}
 var authored: Dictionary = {}
 var authored_count := 114
@@ -294,8 +295,10 @@ func descriptors_in_rect(rect: Rect2) -> Array[Dictionary]:
 				result.append(d)
 	return result
 
-func save_now() -> bool:
-	if scene.evolving or scene.choice_open or scene.reveal_active: return false
+func save_now(force_flush: bool = false) -> bool:
+	if scene.evolving or scene.choice_open or scene.reveal_active:
+		if force_flush: save_writer.flush()
+		return false
 	remember_all()
 	var snapshot := {}
 	for field in PLAYER_FIELDS: snapshot[field] = scene.get(field)
@@ -312,7 +315,13 @@ func save_now() -> bool:
 			vehicles[car["id"]] = {"destroyed":car["destroyed"],"hits":car["hits"]}
 	state.events["vehicles"] = vehicles
 	state.player = snapshot
-	return state.write_save()
+	if test_mode: return state.write_save()
+	var accepted := save_writer.request(state)
+	return save_writer.flush() if force_flush and accepted else accepted
+
+func _exit_tree() -> void:
+	# Join every worker before releasing its owner or switching to a fresh run.
+	save_writer.flush()
 
 func restore_player() -> void:
 	var p := state.player

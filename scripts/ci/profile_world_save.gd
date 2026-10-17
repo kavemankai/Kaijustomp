@@ -17,7 +17,17 @@ func run() -> void:
 			samples.append((Time.get_ticks_usec()-began)/1000.0)
 		samples.sort()
 		var bytes := FileAccess.get_file_as_bytes(state.path).size()
-		var row := {"modified_objects":count,"bytes":bytes,"write_p50_ms":samples[5],"write_p95_ms":samples[9]}
+		var writer := WorldSaveWriter.new()
+		var enqueues: Array[float] = []
+		for iteration in range(10):
+			var began := Time.get_ticks_usec()
+			writer.request(state)
+			enqueues.append((Time.get_ticks_usec()-began)/1000.0)
+		var began_flush := Time.get_ticks_usec()
+		writer.flush()
+		var flush_ms := (Time.get_ticks_usec()-began_flush)/1000.0
+		enqueues.sort()
+		var row := {"modified_objects":count,"bytes":bytes,"write_p50_ms":samples[5],"write_p95_ms":samples[9],"enqueue_p50_ms":enqueues[5],"enqueue_p95_ms":enqueues[9],"flush_ms":flush_ms}
 		rows.append(row)
 		print("SAVE PROFILE "+JSON.stringify(row))
 		for suffix in ["",".bak",".tmp"]:

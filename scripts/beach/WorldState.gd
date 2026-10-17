@@ -13,8 +13,10 @@ var path := "user://persistent-world-v1.json"
 func remember(b: Dictionary) -> void:
 	if String(b.get("id", "")).is_empty(): return
 	if bool(b.get("destroyed", false)) or float(b.get("hits", 0)) != float(b.get("max_hits", 0)) or int(b.get("hidden", 0)) != int(b.get("base_occupants", 0)):
-		objects[b["id"]] = {"destroyed": b.get("destroyed", false), "hits": b.get("hits", 0),
+		var delta := {"destroyed": b.get("destroyed", false), "hits": b.get("hits", 0),
 			"hidden": b.get("hidden", 0), "reward_claimed": b.get("reward_claimed", false)}
+		delta.make_read_only()
+		objects[b["id"]]=delta
 
 func apply(b: Dictionary) -> void:
 	var delta: Dictionary = objects.get(b["id"], {})
@@ -23,6 +25,18 @@ func apply(b: Dictionary) -> void:
 func document() -> Dictionary:
 	return {"version": VERSION, "generator": WorldLayout.GENERATOR_VERSION, "seed": seed_value,
 		"objects": objects, "events": events, "player": player}
+
+func snapshot() -> Dictionary:
+	# Delta records are immutable and replaced as a unit. Share their read-only
+	# values across workers, copying only the index and small player/event records.
+	var result := document()
+	var index := objects.duplicate()
+	for record in index.values():
+		if not record.is_read_only(): record.make_read_only()
+	result["objects"]=index
+	result["events"]=events.duplicate(true)
+	result["player"]=player.duplicate(true)
+	return result
 
 func read_save() -> bool:
 	for candidate in [path, path + ".bak"]:
@@ -40,6 +54,7 @@ func read_save() -> bool:
 		if version not in [0, VERSION] or not _valid_document(parsed): continue
 		if not parsed.get("events", {}) is Dictionary: continue
 		objects = parsed["objects"]
+		for record in objects.values(): record.make_read_only()
 		player = parsed["player"]
 		events = parsed.get("events", {})
 		seed_value = int(parsed.get("seed", WorldLayout.SEED))
