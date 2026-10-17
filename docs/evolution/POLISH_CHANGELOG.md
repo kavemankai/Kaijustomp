@@ -81,3 +81,13 @@ Slice 3 — rendered visibility gate and final evidence:
   565-frame manifest/contact sheets, plus baseline/final regression reports and
   matched short desktop profiling evidence. Final Android job remains pending
   until publication and byte/hash verification are confirmed.
+
+Slice 4 — fractional rear organ contact:
+- Moved Snake/Worm Tail Club onto the real 92%-of-length path sample, with a
+  matching enlarged local body proxy and contact/damage origin. It no longer
+  sits beside the anterior while its statistics hit behind an invisible head.
+- Tests verify a rear club more than 20 units from the head, following the saved
+  curve and actually damaging/slowing a responder beside that organ. Existing
+  non-axial source-19 behaviour and cooldown/damage values stay unchanged.
+- Corrected lure/prowl socket semantics to neck/head. All source geometry,
+  curated mechanics and extended traversal tests pass after this integration.

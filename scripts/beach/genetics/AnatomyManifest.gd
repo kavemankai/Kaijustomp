@@ -57,6 +57,8 @@ static func signature(family: String) -> Dictionary:
 	return {"family":family,"plan":plan,"supports":support,"anchors":anchor}
 static func socket_for_gene(gene_id: int) -> String:
 	if gene_id==119: return "neck"
+	if gene_id==88: return "neck"
+	if gene_id==441: return "head"
 	if gene_id in [1,7,11,12,14,30,43,57,95]: return "head"
 	if gene_id in [2,6,9,20,72,85,90]: return "dorsal"
 	if gene_id in [19,88,441]: return "tail"
@@ -86,6 +88,7 @@ static func sockets(host: String) -> Dictionary:
 		var socket := OrganSocket.new(host,key,manifest["anchors"][key],extent,String(manifest["plan"]))
 		if host in ["snake","worm"] and key.begins_with("segment_"):
 			socket.segment_fraction={"segment_anterior":.12,"segment_mid":.5,"segment_rear":.82}[key]
+		if host in ["snake","worm"] and key=="tail": socket.segment_fraction=.92
 		result[key]=socket
 	return result
 

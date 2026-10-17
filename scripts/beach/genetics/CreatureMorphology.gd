@@ -24,6 +24,7 @@ var forelimb_kind := ""
 var seed_tier := 1
 var wall_hooks := false
 var grasp_tier := 0
+var tail_club: Node3D
 
 func configure(genome: GenomeState,generic_ranks: Dictionary={}) -> void:
 	var anatomy := AnatomyResolver.resolve(genome.ranks,genome.raw)
@@ -35,6 +36,7 @@ func configure(genome: GenomeState,generic_ranks: Dictionary={}) -> void:
 	if recipe==signature: return
 	recipe=signature
 	for child in get_children(): child.free()
+	tail_club=null
 	joints.clear();axes.clear();wings.clear();wrists.clear();tendrils.clear();expressions.clear()
 	visible=not primary.is_empty()
 	if not visible: return
@@ -77,6 +79,10 @@ func configure(genome: GenomeState,generic_ranks: Dictionary={}) -> void:
 	_build_supports(active,generic_ranks)
 	if primary=="crab": _build_pincers(generic_ranks)
 	if genome.ranks.has("gene_100"): _build_tendrils()
+	if primary in ["snake","worm"] and genome.ranks.has("gene_019"):
+		tail_club=Node3D.new();tail_club.name="FractionalTailClub";tail_club.position=Vector3(0,.6,2.5);add_child(tail_club)
+		OrganicGeometry.loft(tail_club,[Vector3(0,0,-.5),Vector3.ZERO,Vector3(0,0,.5)],[Vector2(.18,.16),Vector2(.50,.38),Vector2(.15,.13)],Color("c68b62"))
+		CoastalArt.merge(tail_club,"TailClubSkin")
 
 static func oval(parent: Node3D, at: Vector3,size: Vector3,c: Color) -> MeshInstance3D:
 	return CoastalArt.oval(parent,at,size,c)

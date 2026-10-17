@@ -80,6 +80,7 @@ static func render(root: Node3D, host: String, generic: Dictionary) -> void:
 static func render_source(root: Node3D,host: String,id: int,rank: int) -> void:
 	# Seed organs are built by the host and hybrid composer.
 	if id in GeneRegistry.SEEDS: return
+	if id==19 and host in ["snake","worm"]: return # Moving fractional organ, not an anterior decoration.
 	# Flight organs are attached to moving wing pivots, never baked twice.
 	if id in [29,121,122,180]: return
 	var p := frame(root,host,"gene_%03d"%id,rank)

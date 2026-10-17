@@ -201,3 +201,8 @@ sculpts were implemented. Existing source art/GLBs remain preserved.
     climbing, DEFCON fights, five sheds and hybrid swaps. Record phone/OS,
     median/p95/p99 frame times, RSS/draws/colliders, stutters, heat/battery and any
     reproduction steps. Final art and natural control feel need owner approval.
+
+The axial Tail Club is physically addressed at 92% of body length, follows the
+sampled curve, enlarges its corresponding proxy and strikes from that real rear
+organ. Additional regression coverage confirms position and actual responder
+contact; the non-axial version retains its earlier damage/cooldown behaviour.

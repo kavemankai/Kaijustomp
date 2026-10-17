@@ -151,6 +151,13 @@ func mouth_local() -> Vector3:
 	var mouth: Vector3=AnatomyManifest.signature(morphology.primary)["anchors"]["mouth"]
 	return scene.beast.to_local(morphology.to_global(mouth))
 
+func pose_axial_organ() -> void:
+	if not trail.live or not is_instance_valid(morphology.tail_club): return
+	var at := trail.point_at(trail.total_length*.92)+Vector3.UP*trail.radius*.70
+	var along := trail.point_at(trail.total_length*.94)-trail.point_at(trail.total_length*.90)
+	var basis := Basis.looking_at(-along.normalized(),Vector3.UP) if along.length_squared()>.001 else Basis.IDENTITY
+	morphology.tail_club.global_transform=Transform3D(basis.scaled(Vector3.ONE*trail.radius*1.6),at)
+
 func fit_wings() -> void:
 	if morphology.wings.is_empty():
 		wing_contact.disabled=true

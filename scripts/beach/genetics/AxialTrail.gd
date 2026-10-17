@@ -118,10 +118,12 @@ func update_pose() -> void:
 		contact_areas[i].collision_layer=4 if at.y+radius>0 else 0
 		var shape: SphereShape3D=contact_areas[i].get_child(0).shape
 		shape.radius=radius*lerpf(1,.035,pow(f,2.7))
+		if f>.86 and f<.98 and owner_scene.genetics.genome.ranks.has("gene_019"): shape.radius=maxf(shape.radius,radius*.85)
 	# Tight culling bounds follow the complete path, including offscreen tail.
 	var bounds := AABB(last_positions[0],Vector3.ONE*.01)
 	for p in last_positions: bounds=bounds.expand(p)
 	skin.custom_aabb=bounds.grow(radius*2)
+	owner_scene.genetics.pose_axial_organ()
 func constrain_head_motion() -> bool:
 	# The head capsule is wider than the tube. Replaying its exact swept path is
 	# the primary wall rule. Newly streamed/changed walls are checked in bounded

@@ -41,6 +41,22 @@ func run() -> void:
 		for i in range(12): contact=trail.constrain_head_motion() or contact
 		check(contact,"physical trailing obstruction "+f)
 		wall.free();await physics_frame
+		# Rear mutations and their damage origin must follow the long body.
+		demo.beast.position=trail.samples[0]
+		for tier in range(2): demo.genetics.genome.select_gene(GeneRegistry.seed_key(f),"tail_host_%d"%tier)
+		check(demo.genetics.genome.select_gene("gene_019","tail_club"),"axial tail club selection")
+		demo.genetics.refresh()
+		var club: Node3D=demo.genetics.morphology.tail_club
+		var club_at := trail.point_at(trail.total_length*.92)+Vector3.UP*trail.radius*.7
+		check(is_instance_valid(club) and club.global_position.distance_to(club_at)<.01,"fractional rear organ follows curve")
+		check(club_at.distance_to(demo.beast.position)>20,"rear organ not glued to anterior")
+		demo._spawn_response_enemy(Vector3(club_at.x,0,club_at.z),"police")
+		var foe: Dictionary=demo.officers.back()
+		var health: float=foe["health"]
+		demo.genetics.effects.advance(.1)
+		check(float(foe["health"])<health,"tail contact uses real rear organ origin")
+		for officer in demo.officers: officer["node"].free()
+		demo.officers.clear()
 	# Touch route drives flight through the same movement function as gameplay.
 	demo.genetics.fixture(["bird"])
 	for key in ["gene_029","gene_121"]: check(demo.genetics.genome.select_gene(key,key),"flight prerequisite")
