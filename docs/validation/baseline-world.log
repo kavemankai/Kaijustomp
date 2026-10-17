@@ -1,0 +1,12 @@
+Godot Engine v4.5.stable.official.876b29033 - https://godotengine.org
+
+WORLD PROFILE startup_ms=871.919 nodes=2196 static_mib=48.94
+WORLD PROFILE E0 scale=1.000 cpu_update_median_ms=0.881 p95_ms=1.493 nodes=2217
+WORLD PROFILE E5 scale=1.200 cpu_update_median_ms=1.098 p95_ms=2.109 nodes=2237
+WORLD PROFILE E16 scale=1.905 cpu_update_median_ms=1.208 p95_ms=1.954 nodes=2245
+WORLD PROFILE E22 scale=2.514 cpu_update_median_ms=1.264 p95_ms=2.394 nodes=2238
+WORLD PROFILE E28 scale=3.118 cpu_update_median_ms=1.373 p95_ms=2.545 nodes=2245
+WORLD PROFILE E34 scale=3.741 cpu_update_median_ms=1.261 p95_ms=2.086 nodes=2245
+WORLD PROFILE E55 scale=5.839 cpu_update_median_ms=1.429 p95_ms=2.328 nodes=2245
+WORLD PROFILE E80 scale=10.573 cpu_update_median_ms=1.404 p95_ms=2.328 nodes=2245
+WORLD PROFILE E120 scale=29.881 cpu_update_median_ms=1.322 p95_ms=2.275 nodes=2245

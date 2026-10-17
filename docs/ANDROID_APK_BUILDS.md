@@ -1,5 +1,13 @@
 # Android APK builds — Kaijustomp
 
+## Current consolidation candidate — integration #217
+
+[Download APK #217](https://github.com/kavemankai/Kaijustomp/releases/download/integration-217-317743c/Kaijustomp-217-317743c-debug.apk), [verified build run](https://github.com/kavemankai/Kaijustomp/actions/runs/38997344851), source `317743c00894de06150c0e7eef65db298206d8a2`, draft [PR #17](https://github.com/kavemankai/Kaijustomp/pull/17). Package `com.kavemankai.kaijustomp.integrationpreview` installs beside approved builds. Godot 4.5 import/launch, all 16 gameplay suites and Android ZIP/package/signature/native 16 KiB checks pass. Downloaded APK is 27,997,583 bytes; SHA-256 `f8a73cbb053306fb28e4bb4e563d7ad7ce2b6d6e7f5e590b11dca88efdc97578`.
+
+Phone acceptance and sustained performance remain pending. [Current handover](CODEX_HANDOVER.md) lists the exact evidence, preserved APKs and device checklist; [BUILDING.md](BUILDING.md) is the current reproducible build process. The checked-in preset now defaults to the isolated integration ID. The old build/feature-specific notes below are historical; earlier permanent links do not identify this integration candidate.
+
+## Historical build instructions and candidates
+
 ## Current isolated creature/evolution candidate
 
 [Build 85 APK](https://github.com/kavemankai/Kaijustomp/releases/download/creature-evolution-85-afb0c7e/Kaijustomp-85-afb0c7e-debug.apk), source `afb0c7ee8508f5331b5220fa6868679355f58672`. [Verified Actions run](https://github.com/kavemankai/Kaijustomp/actions/runs/38907095501). See [handover](CODEX_HANDOVER.md) for full validation and remaining phone checks. Package `com.kavemankai.kaijustomp.creaturepreview` installs beside the approved beach package. Immutable candidate tags include build and short SHA; stable beach and earlier preview assets are preserved. The workflow runs all five regressions before exporting and verifying the package/signature/native alignment. Debug signing may change between candidates, so updating an older **preview** may require uninstalling that preview; the separately installed approved app is unaffected.

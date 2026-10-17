@@ -1,0 +1,12 @@
+Godot Engine v4.5.stable.official.876b29033 - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 610.78 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 3050 Laptop GPU
+
+DESKTOP RENDER E0 calls=27 primitives=10954 static_mib=49.13
+DESKTOP RENDER E5 calls=36 primitives=12410 static_mib=49.25
+DESKTOP RENDER E16 calls=41 primitives=13018 static_mib=49.31
+DESKTOP RENDER E22 calls=43 primitives=13572 static_mib=49.32
+DESKTOP RENDER E28 calls=45 primitives=13618 static_mib=49.34
+DESKTOP RENDER E34 calls=45 primitives=13782 static_mib=49.35
+DESKTOP RENDER E55 calls=48 primitives=14032 static_mib=49.38
+DESKTOP RENDER E80 calls=61 primitives=15058 static_mib=49.41
+DESKTOP RENDER E120 calls=161 primitives=25186 static_mib=49.48

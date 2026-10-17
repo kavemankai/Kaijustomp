@@ -1,0 +1,36 @@
+[
+  {
+    "tag": "outer-world-214-a4fb5fd",
+    "assets": [
+      {
+        "name": "Kaijustomp-214-a4fb5fd-debug.apk",
+        "size": 27979837,
+        "digest": "sha256:4a23f99dfe3275c94da89520af89d792336222baac1b9bc4a22e7203e4fc60aa",
+        "url": "https://github.com/kavemankai/Kaijustomp/releases/download/outer-world-214-a4fb5fd/Kaijustomp-214-a4fb5fd-debug.apk"
+      },
+      {
+        "name": "Kaijustomp-214-a4fb5fd-debug.apk.sha256",
+        "size": 99,
+        "digest": "sha256:2fa6ff921b7d9825c38185455491b63b4de1d1f13cc16fc3f1451281709cb401",
+        "url": "https://github.com/kavemankai/Kaijustomp/releases/download/outer-world-214-a4fb5fd/Kaijustomp-214-a4fb5fd-debug.apk.sha256"
+      }
+    ]
+  },
+  {
+    "tag": "defcon-189-4bb8021",
+    "assets": [
+      {
+        "name": "Kaijustomp-189-4bb8021-debug.apk",
+        "size": 27967356,
+        "digest": "sha256:b5e76128afd4fae74bea108d10395ea6e81d68937fe2bf9178527d4a499cb8c7",
+        "url": "https://github.com/kavemankai/Kaijustomp/releases/download/defcon-189-4bb8021/Kaijustomp-189-4bb8021-debug.apk"
+      },
+      {
+        "name": "Kaijustomp-189-4bb8021-debug.apk.sha256",
+        "size": 99,
+        "digest": "sha256:a53b0df8948e4bde60248ba6b142e5a97f1520031cd9166201d95c9f480e0570",
+        "url": "https://github.com/kavemankai/Kaijustomp/releases/download/defcon-189-4bb8021/Kaijustomp-189-4bb8021-debug.apk.sha256"
+      }
+    ]
+  }
+]
