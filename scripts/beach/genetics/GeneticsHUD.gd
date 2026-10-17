@@ -11,6 +11,9 @@ var entries: ItemList
 var focus_picker: OptionButton
 var enable_button: Button
 var stance_button: Button
+var traverse_button: Button
+var ascend_button: Button
+var descend_button: Button
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	theme = CoastalHUD.theme()
@@ -35,6 +38,26 @@ func _ready() -> void:
 		if not (model.scene.game_over or model.scene.evolving or model.scene.choice_open or model.scene.reveal_active): model.effects.toggle_stance()
 	)
 	add_child(stance_button)
+	traverse_button=Button.new()
+	traverse_button.position=Vector2(334,610)
+	traverse_button.size=Vector2(132,52)
+	traverse_button.text="TRAVERSE"
+	traverse_button.pressed.connect(func(): model.traversal.cycle(); refresh())
+	add_child(traverse_button)
+	ascend_button=Button.new()
+	ascend_button.text="UP"
+	ascend_button.position=Vector2(334,668)
+	ascend_button.size=Vector2(62,50)
+	ascend_button.button_down.connect(func(): model.traversal.vertical_input=1.0)
+	ascend_button.button_up.connect(func(): model.traversal.vertical_input=0.0)
+	add_child(ascend_button)
+	descend_button=Button.new()
+	descend_button.text="DOWN"
+	descend_button.position=Vector2(402,668)
+	descend_button.size=Vector2(64,50)
+	descend_button.button_down.connect(func(): model.traversal.vertical_input=-1.0)
+	descend_button.button_up.connect(func(): model.traversal.vertical_input=0.0)
+	add_child(descend_button)
 	dialog = AcceptDialog.new()
 	dialog.title = "LINEAGE / GENE INDEX"
 	dialog.process_mode = Node.PROCESS_MODE_ALWAYS
@@ -87,7 +110,13 @@ func refresh() -> void:
 	button.disabled = model.scene.evolving or model.scene.choice_open or model.scene.reveal_active or model.scene.objective_hud.opened
 	stance_button.visible = model.enabled and (model.effects.has(58) or model.effects.has(85)) and not button.disabled and not dialog.visible and not model.scene.game_over
 	stance_button.text = ("STANCE ON" if model.effects.stance else "REST / GUARD")+("\nMOVE TO CANCEL" if model.effects.has(58) else "\nSPRINT TO CANCEL")
-	summary.text = "%s\nSize %.2fx | %s" % [model.genome.label(),model.scene.growth_scale,model.genome.growth_policy+" growth"] if model.enabled else ""
+	var ready:=model.enabled and not button.disabled and not dialog.visible and not model.scene.game_over
+	traverse_button.visible=ready and (model.traversal.can_use("flight") or model.traversal.can_use("glide") or model.traversal.can_use("burrow") or model.traversal.can_use("climb"))
+	traverse_button.text="LAND / EXIT" if model.traversal.mode!="ground" else "TRAVERSE"
+	ascend_button.visible=ready and model.traversal.mode in ["flight","climb"]
+	descend_button.visible=ascend_button.visible
+	if not ascend_button.visible: model.traversal.vertical_input=0
+	summary.text = "%s\nSize %.2fx | %s" % [model.genome.label(),model.scene.growth_scale,model.genome.growth_policy+" growth | "+model.traversal.mode] if model.enabled else ""
 	summary.visible = model.enabled and not dialog.visible and not model.scene.objective_hud.opened and not (model.scene.choice_open or model.scene.reveal_active or model.scene.evolving)
 
 func open() -> void:
@@ -113,7 +142,7 @@ func refresh_details() -> void:
 	var shares := model.genome.percentages()
 	for f in GeneRegistry.FORMS: text += "%s: %d (%.0f%%) | mastery %d\n" % [String(f).capitalize(),model.genome.raw[f],shares[f],model.archive.mastery[f]]
 	text += "Hybrid discoveries: " + (", ".join(model.archive.hybrids) if not model.archive.hybrids.is_empty() else "none")
-	text += "\nFlight / underground travel / wall climb remain locked.\n" + model.error_message
+	text += "\nTraversal: "+model.traversal.mode+"; abilities require equipped genes.\n"+model.traversal.last_error+"\n"+model.error_message
 	details.text = text
 
 func populate() -> void:

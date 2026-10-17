@@ -152,6 +152,7 @@ func on_response_hit(index: int) -> void:
 func advance(delta: float) -> void:
 	if not enabled: return
 	effects.advance(delta)
+	morphology.movement_mode=traversal.mode
 	morphology.animate(scene.run_phase,scene.beast.velocity.length()>0 or scene.touch_vector.length_squared()>.01)
 	breach_cooldown = maxf(0,breach_cooldown-delta)
 	for i in range(scene.officers.size()-1,-1,-1):
