@@ -735,7 +735,7 @@ func _build_debug_batch_dialog() -> void:
 	ui_layer.add_child(debug_batch_dialog)
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 12)
-	debug_batch_dialog.add_child(column)
+	debug_batch_dialog.get_vbox().add_child(column)
 	var heading := Label.new()
 	heading.text = "Levels to add (not target level)"
 	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
