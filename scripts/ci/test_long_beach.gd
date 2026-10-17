@@ -64,11 +64,13 @@ func _run() -> void:
 	# Continuous local police response, not officers stranded at the old centre.
 	demo.alert = 25.0
 	demo.response_clock = 19.0
+	demo._update_camera(1.0)
 	demo._update_police(0.016)
 	if not _check(demo.officers.size() == 2, "Police did not respond in new district"): return
 	for officer in demo.officers:
 		var unit: Node3D = officer["node"]
-		if not _check(unit.global_position.distance_to(demo.beast.global_position) < 75.0, "Police spawned back at the starting beach"): return
+		if not _check(unit.global_position.distance_to(demo.beast.global_position) > 80.0, "Police still teleport beside creature"): return
+		if not _check(not demo._response_is_visible(unit.global_position, String(officer["kind"])), "Police spawned visibly inside the player's camera"): return
 	# A depleted coast near the far boundary also needs to refill from inward.
 	for npc in demo.civilians:
 		var actor: Node3D = npc["node"]
