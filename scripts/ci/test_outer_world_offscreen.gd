@@ -46,7 +46,7 @@ func _run() -> void:
 			wings += 1
 		if b["position"].z < -750.0:
 			industry += 1
-			if not _check(b["node"].get_node_or_null("IndustrialArchitecture") != null, "Industrial artwork not merged"): return
+			if not _check(b["node"].get_node_or_null("Architecture") != null, "Industrial artwork not merged"): return
 			if not _check(b["collider"] is StaticBody3D, "Large warehouse has no physical collision"): return
 	if not _check(industry == 12 and wings == 10, "Large industrial cluster and both coast extensions missing"): return
 	if not _check(DietProgression.structure_biomass(4.0, "Factory", Vector2(88,75)) > DietProgression.structure_biomass(4.0, "Bakery", Vector2(18,15)) * 2, "Large food targets don't reward giant growth"): return
