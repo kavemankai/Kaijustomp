@@ -1,3 +1,15 @@
+# Three-mission sector tracker verification - 17 October 2026
+
+Delivered [World Preview APK #231](https://github.com/kavemankai/Kaijustomp/releases/download/persistent-world-231-3734363/Kaijustomp-231-3734363-debug.apk), source `373436337c013e46da6c15b78c4723aed948ba4f`, 28,112,447 bytes, ARM64, package `com.kavemankai.kaijustomp.worldpreview`, version `0.1.231-debug`. SHA-256 `8e12410ecbd0d2a9ef3878428b5390c64dde69c636277b2417c20081731b22cc`.
+
+Windows and Linux CI import/launch plus all **25 regression suites** pass. Android push/PR [231](https://github.com/kavemankai/Kaijustomp/actions/runs/39018715088) / [232](https://github.com/kavemankai/Kaijustomp/actions/runs/39018717043), smoke [157](https://github.com/kavemankai/Kaijustomp/actions/runs/39018715134) / [158](https://github.com/kavemankai/Kaijustomp/actions/runs/39018717041) pass for the exact source. CI verifies v2/v3 signature, package/launcher, ARM64, CRC and native 16 KiB alignment. Independent download verification is retained alongside the CI evidence.
+
+`test_world_tracking` adds three unique relevant suggestions, current-sector landmark and DEFCON priorities, ordered manual pins, a hard three-pin cap, unpin/autofill, completed-pin cleanup, three visible HUD rows, save/reload, old single-selection migration, malformed arrays and all-complete state. Earlier 24 suites remain. Final portrait captures check compact guidance, sector heading and picker; physical touchscreen/scrolling and natural mission relevance still require phone acceptance. No new Android performance claim is made.
+
+[Raw verification/captures](validation/three-missions/README.md). Prior APK229/227 measurements and artifacts below are historical and retain their original source attribution.
+
+---
+
 # Missions and landmarks verification - 17 October 2026
 
 [World Preview APK #229](https://github.com/kavemankai/Kaijustomp/releases/download/persistent-world-229-c9776a3/Kaijustomp-229-c9776a3-debug.apk), source `c9776a3b7370ce04986a8916d2a90a9e811be20d`, [Android run229](https://github.com/kavemankai/Kaijustomp/actions/runs/39017558000). 28,104,076 bytes, package `com.kavemankai.kaijustomp.worldpreview`, version `0.1.229-debug`, ARM64. SHA-256 `2532a6bd9e970e79540a3183fef685cb45485889750069944499ab5991acec93`.

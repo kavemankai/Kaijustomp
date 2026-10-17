@@ -1,0 +1,36 @@
+2026-10-17T08:48:44.3467492Z PASS import (6.794s)
+2026-10-17T08:48:46.1807750Z PASS launch (1.834s)
+2026-10-17T08:48:47.0872743Z PASS test_authored_world (0.907s)
+2026-10-17T08:48:48.5556523Z PASS test_batch_debug_evolution (1.468s)
+2026-10-17T08:48:50.0210541Z PASS test_beach_combat (1.465s)
+2026-10-17T08:48:51.5761614Z PASS test_coastal_art (1.555s)
+2026-10-17T08:48:53.1315085Z PASS test_defcon_response (1.555s)
+2026-10-17T08:48:54.5897980Z PASS test_evolution (1.458s)
+2026-10-17T08:48:56.0492596Z PASS test_giant_demolition_feeding (1.459s)
+2026-10-17T08:48:58.0672579Z PASS test_growth_gameplay (2.018s)
+2026-10-17T08:48:59.5259088Z PASS test_growth_milestones (1.459s)
+2026-10-17T08:49:01.0812538Z PASS test_integration_stability (1.555s)
+2026-10-17T08:49:02.7284836Z PASS test_long_beach (1.647s)
+2026-10-17T08:49:04.1871196Z PASS test_outer_world_offscreen (1.459s)
+2026-10-17T08:49:05.8352427Z PASS test_representative_scales (1.648s)
+2026-10-17T08:49:07.3866893Z PASS test_scale_diet (1.551s)
+2026-10-17T08:49:08.9424056Z PASS test_shopping_cars_debug (1.556s)
+2026-10-17T08:49:10.8701857Z PASS test_stylized_creature (1.928s)
+2026-10-17T08:49:12.4229141Z PASS test_suburb_evolution (1.553s)
+2026-10-17T08:49:12.6706774Z PASS test_world_async_save (0.248s)
+2026-10-17T08:49:12.9208335Z PASS test_world_generation (0.25s)
+2026-10-17T08:49:13.9144358Z PASS test_world_objectives (0.994s)
+2026-10-17T08:49:14.1648433Z PASS test_world_persistence (0.25s)
+2026-10-17T08:49:16.0023089Z PASS test_world_response (1.837s)
+2026-10-17T08:49:17.4612357Z PASS test_world_resume (1.459s)
+2026-10-17T08:49:41.9812176Z PASS test_world_streaming (24.52s)
+2026-10-17T08:49:42.7891246Z PASS test_world_tracking (0.808s)
+2026-10-17T08:50:26.5535079Z PASS: lib/arm64-v8a/libc++_shared.so (4 load segments, 16 KiB compatible)
+2026-10-17T08:50:26.5535854Z PASS: lib/arm64-v8a/libgodot_android.so (4 load segments, 16 KiB compatible)
+2026-10-17T08:50:26.8680587Z Verified using v2 scheme (APK Signature Scheme v2): true
+2026-10-17T08:50:26.8681625Z Verified using v3 scheme (APK Signature Scheme v3): true
+2026-10-17T08:50:27.2446047Z package: name='com.kavemankai.kaijustomp.worldpreview' versionCode='231' versionName='0.1.231-debug' platformBuildVersionName='15' platformBuildVersionCode='35' compileSdkVersion='35' compileSdkVersionCodename='15'
+2026-10-17T08:50:27.2449291Z application-label:'Kaijustomp World Preview'
+2026-10-17T08:50:27.2450303Z launchable-activity: name='com.godot.game.GodotApp'  label='Kaijustomp World Preview' icon=''
+2026-10-17T08:50:27.2451053Z native-code: 'arm64-v8a'
+2026-10-17T08:50:27.2713094Z 8e12410ecbd0d2a9ef3878428b5390c64dde69c636277b2417c20081731b22cc  Kaijustomp-231-3734363-debug.apk

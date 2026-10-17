@@ -1,6 +1,6 @@
 # 2026-10-17 - three relevant missions per sector
 
-Expanded the HUD to three simultaneous unfinished goals, with sector heading, progress/guidance per row and manual-pin indicators. Automatic suggestions rank nearby destinations, geography, existing progression and current threat; up to three ordered pins override suggestions. Completed pins are released, empty slots refill, and all-complete state is explicit. Optional validated pin arrays migrate old primary selection while retaining save format1. Added a dedicated regression covering relevance, limits, unique suggestions, disk migration and UI state. Delivery evidence follows in the handover.
+Expanded the HUD to three simultaneous unfinished goals, with sector heading, progress/guidance per row and manual-pin indicators. Automatic suggestions rank nearby destinations, geography, existing progression and current threat; up to three ordered pins override suggestions. Completed pins are released, empty slots refill, and all-complete state is explicit. Optional validated pin arrays migrate old primary selection while retaining save format1. Added a dedicated regression covering relevance, limits, unique suggestions, disk migration and UI state. Delivered as APK231 from3734363. All25 Windows/Linux suites and Android packaging checks pass; artifact, checksum, screenshots and device limitations are recorded in the current handover.
 
 ---
 

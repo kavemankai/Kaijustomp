@@ -1,6 +1,6 @@
 # Current world milestone follow-up
 
-1. Install delivered World Preview APK229 (sourcec9776a3, draft PR18) beside approved DEFCON189/integration217. Validate portrait multitouch, background/resume, natural progression, extended travel and all representative sizes on a real phone.
+1. Install delivered World Preview APK231 (source3734363, draft PR18) beside approved DEFCON189/integration217. Validate portrait multitouch, background/resume, natural progression, extended travel and all representative sizes on a real phone.
 2. Measure15-minute Android frame-time percentiles, process/GPU memory and thermal behavior under traversal, E120 combat and demolition. Tune chunk/LOD budgets from those traces.
 3. Play-test the 13 optional objectives and six landmark destinations (WORLD_OBJECTIVES.md), then refine district road irregularity, terrain geography, further landmarks and reusable art after the streaming/state contract is accepted. Preserve the114 authored structures and seed/save compatibility.
 4. Add more complete route/staging/evacuation behaviors and optimise measured generation/collision spikes. Preserve offscreen materialisation and entity caps.

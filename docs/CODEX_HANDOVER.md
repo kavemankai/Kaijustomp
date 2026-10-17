@@ -1,7 +1,16 @@
-# Three-mission sector tracker follow-up
+# Three-mission sector tracker delivered - 17 October 2026
 
-Current branch adds three simultaneous sector-relevant missions, with ordered persistent manual pins (maximum three) and automatic relevant suggestions in remaining slots. Selection considers nearby landmarks/chunk, coast/inland, evolution, demolition and DEFCON activity. Completed goals free their slot. Existing single-selection saves migrate without reset; optional pins remain within objective format1. Targeted tracker/persistence/UI tests pass; final APK and full verification will be recorded after CI publication.
+[Download World Preview APK #231](https://github.com/kavemankai/Kaijustomp/releases/download/persistent-world-231-3734363/Kaijustomp-231-3734363-debug.apk) | [release](https://github.com/kavemankai/Kaijustomp/releases/tag/persistent-world-231-3734363) | [draft PR #18](https://github.com/kavemankai/Kaijustomp/pull/18). Exact gameplay/build source `373436337c013e46da6c15b78c4723aed948ba4f`; later documentation commits record evidence only. No merge or approved-build replacement.
 
+The in-game sector tracker now shows up to **three relevant unfinished missions at once**. Unpinned slots prioritise nearby landmarks/chunk, coastal/inland position, evolution and active DEFCON threat. Up to three manually pinned goals retain their order; an asterisk marks pins. Completed missions free their slots and suggestions refill them. The picker disables a fourth pin until another is removed. Compact guidance fits the portrait tracker; fewer remaining missions and all-complete display are handled.
+
+Optional ordered `pins` within objective format1 preserve existing world/mission data. A saved non-default single selection migrates to the first pin; duplicate, unknown or over-cap saved arrays are rejected. Existing mission reward, progression and run/restart contracts remain. See WORLD_OBJECTIVES.md and the new test_world_tracking suite.
+
+All **25 suites**, import and launch pass on Windows and Linux CI for this source. Push/PR smoke and Android checks pass. CI verifies package/launcher, ARM64, APK v2/v3 signatures, CRC and native 16 KiB alignment. Independent downloaded-byte verification is recorded in WORLD_TEST_RESULTS.md. Package `com.kavemankai.kaijustomp.worldpreview`, version `0.1.231-debug`, 28,112,447 bytes. SHA-256 `8e12410ecbd0d2a9ef3878428b5390c64dde69c636277b2417c20081731b22cc`.
+
+Raw checks and 540x960 captures: [validation/three-missions](validation/three-missions/README.md). Physical Android touch/scrolling, sustained performance and natural relevance/pacing remain unverified. Earlier desktop performance measurements below apply to their stated source commits; this tracker makes no new Android FPS claim.
+
+The previous mission/world milestones below are retained as history.
 ---
 
 # Missions and landmarks delivered - 17 October 2026
