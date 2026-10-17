@@ -295,7 +295,7 @@ static func industrial_building(root: Node3D, footprint: Vector2, height: float,
 		box(root,Vector3(x,height*.75,d*.5+.12),Vector3(w*.12,height*.16,.11),Color("e6d6b8"))
 	if factory:
 		for side in [-1.0,1.0]:
-			var x := side*w*.29
+			var x: float = float(side) * w * .29
 			box(root,Vector3(x,height+5.4,-d*.23),Vector3(4.4,10.8,4.4),Color("8f9f9e"))
 			box(root,Vector3(x,height+10.7,-d*.23),Vector3(5.2,.4,5.2),INK)
 	else:
