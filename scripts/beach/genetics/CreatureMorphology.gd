@@ -10,8 +10,10 @@ var axes: Array[Node3D] = []
 var primary := ""
 var recipe := ""
 var build_count := 0
+var wings: Array[Node3D] = []
+var movement_mode := "ground"
 
-func configure(genome: GenomeState) -> void:
+func configure(genome: GenomeState, generic_ranks: Dictionary = {}) -> void:
 	var anatomy := AnatomyResolver.resolve(genome.ranks,genome.raw)
 	var families: Array = anatomy["families"]
 	primary = ""
@@ -20,12 +22,13 @@ func configure(genome: GenomeState) -> void:
 	var traits: Array = []
 	for id in GeneEffects.EARLY:
 		if genome.ranks.has("gene_%03d" % id): traits.append(id)
-	var signature := primary + ":" + ",".join(families)+":"+str(traits)
+	var signature := primary + ":" + ",".join(families)+":"+str(traits)+":"+JSON.stringify(genome.ranks)+":"+JSON.stringify(generic_ranks)
 	if recipe == signature: return
 	recipe = signature
 	for child in get_children(): child.free()
 	joints.clear()
 	axes.clear()
+	wings.clear()
 	visible = not primary.is_empty()
 	if not visible: return
 	build_count += 1
@@ -40,11 +43,23 @@ func configure(genome: GenomeState) -> void:
 	else:
 		_core(body, primary)
 		for family in families:
-			if genome.ranks.has(GeneRegistry.seed_key(family)): _signature(body,family,genome.ranks.has("gene_061"))
-		for id in traits: _trait(body,id)
+			if genome.ranks.has(GeneRegistry.seed_key(family)): _signature(body,family,genome.ranks.has("gene_061"),int(genome.ranks[GeneRegistry.seed_key(family)]))
+		for id in traits: _trait(MutationExpressionLibrary.trait_frame(body, primary, id),id)
+		MutationExpressionLibrary.render(body,primary,generic_ranks)
 		var merged := CoastalArt.merge(body,"GeneticCore")
 		if cache.size() >= 24: cache.erase(cache.keys()[0])
 		cache[signature] = merged.mesh
+	# Independent feather supports flap while the static silhouette remains cached.
+	if "bird" in families:
+		for side in [-1.0,1.0]:
+			var wing:=Node3D.new()
+			wing.name="ArticulatedWing"
+			wing.position=Vector3(side*.48,1.35,-.10)
+			add_child(wing)
+			for feather in range(5):
+				var reach:=1.0+float(feather)*.25
+				link(wing,Vector3.ZERO,Vector3(side*(.9+reach),.1,.15+feather*.22),.13,Color("c7a569"))
+			wings.append(wing)
 	# Articulated supports are independent nodes, reusing primitive meshes until next recipe.
 	var color: Color = COLORS[GeneRegistry.FORMS.find(primary)]
 	if primary in ["snake","worm"]:
@@ -126,48 +141,52 @@ func _core(body: Node3D, family: String) -> void:
 		var eye_y := 1.98 if family == "bird" else (1.69 if family == "ape" else (1.51 if family == "snake" else 1.08))
 		for s in [-1,1]: eye(body,Vector3(s*.40,eye_y,-1.32))
 
-func _signature(body: Node3D, family: String, pincer_hands: bool = false) -> void:
+func _signature(body: Node3D, family: String, pincer_hands: bool = false, tier: int = 1) -> void:
 	match family:
 		"reptile":
-			for i in range(6):
-				var plate := CoastalArt.box(body,Vector3(0,1.40,.9-i*.40),Vector3(.36,.42,.26),Color("de8a49"))
+			for i in range(5+mini(4,tier)):
+				var plate := CoastalArt.box(body,Vector3(0,1.40,.95-i*.32),Vector3(.36+tier*.045,.42+tier*.045,.26),Color("de8a49"))
 				plate.rotation.z=PI*.25
 		"biomass":
 			for s in [-1,1]:
-				for i in range(3):
-					link(body,Vector3(s*.55,1.1,i*.4-.3),Vector3(s*(1.0+i*.10),1.6+i*.15,i*.4-.5),.095,Color("d58b9b"))
+				for i in range(1+mini(4,tier)):
+					link(body,Vector3(s*.55,1.1,i*.4-.3),Vector3(s*(1.0+i*.10),1.6+i*.15+tier*.10,i*.4-.5),.095+tier*.008,Color("d58b9b"))
 				oval(body,Vector3(s*.65,.95,.3),Vector3(.3,.4,.4),Color("733f65"))
 		"snake":
-			for s in [-1,1]: link(body,Vector3(s*.32,1.12,-1.49),Vector3(s*.26,.73,-1.92),.10,CREAM)
+			for s in [-1,1]: link(body,Vector3(s*.32,1.12,-1.49),Vector3(s*.26,.73,-1.92-tier*.095),.10+tier*.02,CREAM)
 		"bird":
 			for s in [-1,1]:
-				for i in range(5):
-					var feather := oval(body,Vector3(s*(.88+i*.24),1.1-i*.07,.1+i*.14),Vector3(.28,.10,.74-i*.04),Color("d6ad63") if i%2 else Color("5b7a85"))
+				for i in range(3+mini(4,tier)):
+					var feather := oval(body,Vector3(s*(.88+i*.24),1.1-i*.07,.1+i*.14),Vector3(.28+tier*.025,.10,.74-i*.03+tier*.07),Color("d6ad63") if i%2 else Color("5b7a85"))
 					feather.rotation.y=s*(.3+i*.12)
 		"crab":
-			oval(body,Vector3(0,1.29,.25),Vector3(.98,.24,1.0),Color("d46b3d"))
+			oval(body,Vector3(0,1.29,.25),Vector3(.98+tier*.14,.24+tier*.03,1.0+tier*.08),Color("d46b3d"))
 			for s in [-1,1]:
-				link(body,Vector3(s*.65,.9,-.6),Vector3(s*1.35,.6,-1.25),.22,Color("c96534"))
+				link(body,Vector3(s*.65,.9,-.6),Vector3(s*1.35,.6,-1.25),.22+tier*.03,Color("c96534"))
 				for t in [-1,1]: link(body,Vector3(s*1.35,.6,-1.2),Vector3(s*1.35+t*.20,.59,-1.95),.15,Color("e19151"))
 		"spider":
 			for s in [-1,1]:
-				for i in range(3): eye(body,Vector3(s*(.16+i*.18),1.20,-1.33),.09)
+				for i in range(2+mini(3,tier)): eye(body,Vector3(s*(.16+i*.16),1.20,-1.33),.08+tier*.01)
 		"ape":
-			oval(body,Vector3(0,1.15,-.05),Vector3(.96,.62,.70),Color("795744"))
+			oval(body,Vector3(0,1.15,-.05),Vector3(.96+tier*.07,.62+tier*.055,.70+tier*.06),Color("795744"))
 			for s in [-1,1]:
-				link(body,Vector3(s*.75,1.35,-.35),Vector3(s*1.35,.45,-1.0),.30,Color("795744"))
+				link(body,Vector3(s*.75,1.35,-.35),Vector3(s*1.35,.45,-1.0),.30+tier*.045,Color("795744"))
 				if not pincer_hands: oval(body,Vector3(s*1.4,.4,-1.15),Vector3(.36,.3,.38),Color("a37b59"))
 		"worm":
-			for i in range(5): oval(body,Vector3(0,.30,-.6+i*.38),Vector3(.70,.13,.13),CREAM)
+			for i in range(3+mini(5,tier)): oval(body,Vector3(0,.30,-.6+i*.31),Vector3(.70+tier*.04,.13+tier*.015,.13),CREAM)
 		"mole":
 			for s in [-1,1]:
 				oval(body,Vector3(s*.9,.45,-.8),Vector3(.4,.3,.47),Color("aa8a72"))
-				for i in range(3): link(body,Vector3(s*(.65+i*.18),.45,-1.0),Vector3(s*(.65+i*.18),.20,-1.87),.09,CREAM)
+				for i in range(3): link(body,Vector3(s*(.65+i*.18),.45,-1.0),Vector3(s*(.65+i*.18),.20,-1.87-tier*.11),.09+tier*.01,CREAM)
 			oval(body,Vector3(0,.72,-1.50),Vector3(.28,.22,.40),Color("d49e9d"))
 
 func animate(phase: float, moving: bool) -> void:
 	for i in range(joints.size()): joints[i].rotation.x = sin(phase+i*PI)*.3 if moving else 0.0
-	for i in range(axes.size()): axes[i].position.x = sin(phase-i*.55)*.18 if moving else 0.0
+	for i in range(axes.size()):
+		axes[i].position.x=sin(phase-i*.55)*.18 if moving else 0.0
+	for i in range(wings.size()):
+		var airborne := movement_mode in ["flight","glide","landing"]
+		wings[i].rotation.z=(1.0 if i==0 else -1.0)*(.34+.22*sin(phase*2.7) if airborne else .05+.07*sin(phase*.8))
 
 func _trait(body: Node3D, id: int) -> void:
 	# Distinct small anatomical cues, merged once into the recipe mesh.
@@ -227,3 +246,16 @@ func _trait(body: Node3D, id: int) -> void:
 			for i in range(3): oval(body,Vector3(0,.25,1.0+i*.30),Vector3(.4,.12,.25),Color("a8bc66"))
 		441:
 			for s in [-1,1]: link(body,Vector3(s*.45,1.2,-.8),Vector3(s*.7,1.6,-.3),.09,Color("803c55"))
+		29,121,122:
+			for s in [-1,1]:
+				for i in range(4):
+					var length := 1.0 if id==29 else (1.85 if id==121 else 2.4)
+					link(body,Vector3(s*.48,1.35,.1+i*.15),Vector3(s*(.7+length),1.25,.3+i*.31),.12,Color("d7b575"))
+		52,119:
+			for s in [-1,1]:
+				for i in range(3):
+					link(body,Vector3(s*.65,.55,-.9),Vector3(s*(.85+i*.21),.15,-1.7),.11,CREAM)
+		180:
+			for s in [-1,1]:
+				for i in range(4):
+					link(body,Vector3(s*1.0,.32,float(i)*.42-.8),Vector3(s*1.3,.06,float(i)*.42-1.0),.075,CREAM)
