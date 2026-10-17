@@ -1165,10 +1165,9 @@ func _giant_proximity_contact() -> void:
 	else:
 		for i in range(officers.size() - 1, -1, -1):
 			var foe: Dictionary = officers[i]
-			if foe["kind"] not in ["armoured", "helicopter"]:
-				continue
 			var at: Vector3 = foe["node"].global_position
-			if Vector2(at.x - origin.x, at.z - origin.z).length() < radius + 3.0:
+			var extra_radius := 3.0 if DefconDirector.is_vehicle(String(foe["kind"])) else .65
+			if Vector2(at.x - origin.x, at.z - origin.z).length() < radius + extra_radius:
 				if strike_timer <= 0:
 					_damage_response(i, 65.0 * growth_scale)
 					strike_timer = .65
@@ -1459,8 +1458,18 @@ func _update_police(delta: float) -> void:
 				var moving_player := sprint_active or touch_vector.length_squared() > .05
 				var spread := 2.2 if moving_player else .65
 				aim += Vector3(randf_range(-spread,spread),randf_range(-spread*.4,spread*.4),randf_range(-spread,spread))
-				_spawn_projectile(origin, (aim-origin).normalized(), kind != "police")
-				projectiles[-1]["damage"] = float(foe["damage"])
+				# APC rounds originate beyond their own hull, and aircraft rounds
+				# stay alive long enough to actually reach the player at range.
+				var direction := (aim-origin).normalized()
+				if kind == "armoured":
+					origin += direction * 4.2
+				_spawn_projectile(origin, direction, kind != "police")
+				var shot_index := projectiles.size() - 1
+				var shot: Dictionary = projectiles[shot_index]
+				shot["damage"] = float(foe["damage"])
+				if kind in ["helicopter","armoured"]:
+					shot["lifetime"] = 3.0
+				projectiles[shot_index] = shot
 				foe["cooldown"] = float(foe["rate"])
 		if not DefconDirector.is_vehicle(kind):
 			CoastalArt.animate_person(unit, creature_idle_clock * 9.0 + float(i), distance > desired and distance < 45.0)
