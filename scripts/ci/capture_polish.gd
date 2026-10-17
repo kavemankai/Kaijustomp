@@ -4,6 +4,7 @@ var demo: Node3D
 var out := "res://build/polish-captures"
 var baseline := false
 var captured: Array[String]=[]
+var view_angle := 0.0
 const HYBRIDS := [["reptile","bird"],["ape","crab"],["worm","mole"],["bird","spider"],["snake","biomass"],["ape","spider"],["reptile","crab"],["worm","biomass"]]
 func _initialize() -> void: call_deferred("run")
 func snap(stem: String) -> void:
@@ -20,15 +21,20 @@ func inspect(head_only: bool=false) -> void:
 	var d: Dictionary=demo.genetics.dimensions
 	var focus: Vector3=demo.beast.position+Vector3(0,float(d["height"])*.4,0)
 	var distance := maxf(float(d["width"])*1.5,float(d["height"])*1.4)
+	distance=maxf(distance,demo.beast_collision_shape.radius*4.0)
+	if head_only and d["axial"]:
+		focus=demo.beast.to_global(demo.genetics.mouth_local()).lerp(focus,.35)
+		distance=maxf(distance,float(d["radius"])*5.0)
 	if d["axial"] and not head_only:
 		focus=demo.genetics.trail.point_at(float(d["length"])*.40)
 		distance=maxf(8,float(d["length"])*1.4)
-	demo.follow_camera.position=focus+Vector3(.6,.85,-1.0)*maxf(5,distance)
+	demo.follow_camera.position=focus+Vector3(.6,.85,-1.0).rotated(Vector3.UP,view_angle)*maxf(5,distance)
 	demo.follow_camera.look_at(focus)
 func pose() -> void:
+	view_angle=0
 	demo.beast.position=Vector3(0,0,18);demo.beast.rotation=Vector3(0,-.5,0)
 	if demo.genetics.trail.live:
-		demo.genetics.trail.reset(demo.beast.position,Vector3.BACK);demo.genetics.trail.update_pose()
+		demo.genetics.trail.reset(demo.beast.position,demo.beast.global_basis.z);demo.genetics.trail.update_pose()
 	demo._update_creature_animation(0,false);demo.genetics.morphology.animate(0,false);demo._update_camera(1);demo._update_hud()
 func grow(n: int) -> void:
 	for i in range(n): demo.genetics.genome.select_gene("physical_growth","capture_growth_%d"%i)
@@ -49,7 +55,10 @@ func run() -> void:
 		for growth in [0,6,12,18]:
 			demo.genetics.fixture([f],3);grow(growth);pose()
 			for angle in range(3):
-				demo.ui_layer.show();demo.beast.rotation.y=[-.5,1.2,2.6][angle];demo._update_camera(1)
+				demo.ui_layer.show();view_angle=[0.0,TAU/3,TAU*2/3][angle];demo._update_camera(1)
+				var target: Vector3=demo._camera_look_target()
+				demo.follow_camera.position=target+(demo.follow_camera.position-target).rotated(Vector3.UP,view_angle)
+				demo.follow_camera.look_at(target)
 				await snap("%s_e%02d_a%d"%[f,growth,angle])
 				inspect();await snap("inspect_%s_e%02d_a%d"%[f,growth,angle])
 	if baseline: finish();return

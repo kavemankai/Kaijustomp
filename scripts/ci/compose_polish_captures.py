@@ -1,7 +1,7 @@
 """Compose actual Godot frames and fail if mandatory capture evidence is missing."""
 import argparse, hashlib, json
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageFont
 ROOT=Path(__file__).resolve().parents[2]
 FORMS=['reptile','biomass','snake','bird','crab','spider','ape','worm','mole']
 GENERIC=['armour','strength','speed','stamina','health','jaw','regen','cocoon','metamorphosis']
@@ -29,6 +29,17 @@ if set(capture_run['frames'])!=set(expected) or len(capture_run['frames'])!=len(
     raise SystemExit('Completed capture-run index differs from mandatory 565-frame matrix')
 missing=[name for name in expected if not (source/(name+'.png')).exists()]
 if missing: raise SystemExit('Missing real-engine captures: '+', '.join(missing))
+visible_tiers=[]
+for host in FORMS:
+    for key in GENERIC:
+        for first,second in [(1,2),(2,3)]:
+            images=[Image.open(source/f'upgrade_{host}_{key}_{tier}.png').convert('RGB') for tier in [first,second]]
+            delta=ImageChops.difference(*images).convert('L').point(lambda x:255 if x>8 else 0)
+            changed=sum(delta.histogram()[1:])
+            visible_tiers.append(dict(host=host,gene=key,transition=f'{first}-{second}',changed_pixels=changed))
+invisible=[row for row in visible_tiers if row['changed_pixels']<12]
+(out/'visible-tier-deltas.json').write_text(json.dumps(visible_tiers,indent=2)+'\n')
+if invisible: raise SystemExit('Insufficient visible tier development: '+str(invisible))
 manifest=[]
 for name in expected:
     path=source/(name+'.png');im=Image.open(path);im.verify()

@@ -63,3 +63,21 @@ Slice 2 — visual/physics verification and shipping gate:
   on full regressions and completed visual evidence, then verifies signing,
   ZIP/package/ARM64/16KiB alignment and downloads its immutable release asset
   again for a byte-for-byte comparison. No prior package/release is replaced.
+
+Slice 3 — rendered visibility gate and final evidence:
+- Pixel comparisons exposed buried Biomass/Crab health/stamina/regen panels and
+  weak Worm muscle tiers despite valid geometry. Fitted their roots to actual
+  skin, strengthened Worm myomeres and gave metamorphosis a developed dorsal
+  seam. All 162 tier transitions now visibly differ (minimum 63 changed pixels
+  locally at the >8 luminance threshold); shipping requires at least 12.
+- Camera capture now orbits a consistent axial pose instead of rotating the
+  head against a stationary tail. Head inspections focus on the anterior and
+  allow room for full hybrid support arrays.
+- First Linux capture produced every frame but the strict error gate rejected
+  audio-driver initialization on the audio-less runner. Configured Dummy audio
+  for screenshot CI; no engine/script-error filter was relaxed. No APK was
+  published from that failed run.
+- Added complete handover, owner checklist, coverage CSV, before/after and
+  565-frame manifest/contact sheets, plus baseline/final regression reports and
+  matched short desktop profiling evidence. Final Android job remains pending
+  until publication and byte/hash verification are confirmed.

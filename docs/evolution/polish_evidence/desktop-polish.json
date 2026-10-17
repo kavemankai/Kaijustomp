@@ -1,0 +1,60 @@
+{
+  "duration_seconds": 45.0,
+  "engine": "4.5-stable (official)",
+  "frame_count": 2520,
+  "frame_ms": {
+    "median": 16.67,
+    "p95": 17.109,
+    "p99": 19.842
+  },
+  "limitations": "Desktop wall-clock frames; not Android FPS. No RSS, battery or thermal measurements. Fixture changes are included. Spider phase is ground stress; wall climbing tested separately. RSS sampled every 200ms across Godot console/game processes; driver allocations and brief spikes may differ.",
+  "peak_axial_colliders": 40,
+  "peak_draw_calls": 136.0,
+  "peak_nodes": 1633,
+  "peak_static_bytes": 61632938,
+  "platform": "Windows",
+  "process_ms": {
+    "median": 1.888,
+    "p95": 15.083,
+    "p99": 20.115
+  },
+  "renderer": "NVIDIA GeForce RTX 3050 Laptop GPU",
+  "route": [
+    {
+      "elapsed": 1e-06,
+      "family": "reptile",
+      "phase": 0
+    },
+    {
+      "elapsed": 6.430206,
+      "family": "snake",
+      "phase": 1
+    },
+    {
+      "elapsed": 12.863723,
+      "family": "bird",
+      "phase": 2
+    },
+    {
+      "elapsed": 19.296789,
+      "family": "worm",
+      "phase": 3
+    },
+    {
+      "elapsed": 25.729624,
+      "family": "spider",
+      "phase": 4
+    },
+    {
+      "elapsed": 32.146153,
+      "family": "mole",
+      "phase": 5
+    },
+    {
+      "elapsed": 38.579102,
+      "family": "ape",
+      "phase": 6
+    }
+  ],
+  "peak_process_tree_rss_bytes": 274014208
+}

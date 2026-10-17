@@ -47,7 +47,8 @@ static func render(root: Node3D, host: String, generic: Dictionary) -> void:
 			"strength","speed":
 				if axial:
 					for s in [-1,1]:
-						OrganicGeometry.loft(p,[Vector3(s*.30,-.08,-.45),Vector3(s*.48,0,.15),Vector3(s*.27,-.05,.7)],[Vector2(.08,.10),Vector2(.12+.035*t,.18+.03*t),Vector2(.06,.07)],skin.lightened(.12) if key=="strength" else TEAL)
+						var x := .65 if host=="worm" else .48
+						OrganicGeometry.loft(p,[Vector3(s*.40,-.08,-.45),Vector3(s*x,0,.15),Vector3(s*.34,-.05,.7)],[Vector2(.08,.10),Vector2(.14+.05*t,.18+.03*t),Vector2(.06,.07)],skin.lightened(.12) if key=="strength" else TEAL)
 				elif host in ["crab","spider"]:
 					# Joint sheaths integrated with the radial leg roots, no extra legs.
 					for s in [-1,1]:
@@ -59,15 +60,21 @@ static func render(root: Node3D, host: String, generic: Dictionary) -> void:
 				else:
 					for s in [-1,1]:
 						oval(p,Vector3(s*.65,-.08,0),Vector3(.23+.055*t,.27+.04*t,.35),skin.lightened(.12))
-			"stamina","health","regen","metamorphosis":
+			"metamorphosis":
+				var lift: float={"crab":.20,"bird":.18,"spider":.22,"mole":.10,"biomass":.10}.get(host,0.0)
+				for side in [-1,1]:
+					for i in range(3):
+						var a := Vector3(side*.20,lift,float(i)*.30-.35)
+						OrganicGeometry.loft(p,[a+Vector3(0,-.12,-.16),a+Vector3(0,.10+.06*t,0),a+Vector3(0,-.08,.20)],[Vector2(.10,.035),Vector2(.12+.025*t,.05+.02*t),Vector2(.07,.025)],TEAL)
+			"stamina","health","regen":
 				var c: Color= skin.lightened(.12) if key=="health" else TEAL
 				if host=="biomass": c=Color("d989a0")
 				for s in [-1,1]:
 					# Broad flush tissue panels, air-sac rib feathers or shell seams.
 					for i in range(3):
 						var z := float(i)*.28-.2
-						var x := .68 if host=="worm" else (.48 if host=="snake" else (.56 if host=="bird" else .70))
-						var n := CoastalArt.oval(p,Vector3(s*x,-.03,z),Vector3(.055+.017*t,.14+.035*t,.22),c)
+						var x := .68 if host=="worm" else (.48 if host=="snake" else (.56 if host=="bird" else (1.16 if host=="crab" else (.84 if host=="biomass" else .70))))
+						var n := CoastalArt.oval(p,Vector3(s*x,-.03,z),Vector3(.09+.035*t,.14+.035*t,.22),c)
 						if host=="bird": n.rotation.x=-.4
 
 static func render_source(root: Node3D,host: String,id: int,rank: int) -> void:

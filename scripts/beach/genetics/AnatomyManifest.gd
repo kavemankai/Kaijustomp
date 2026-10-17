@@ -49,6 +49,7 @@ static func signature(family: String) -> Dictionary:
 			plan="knuckle_ground";support=4;anchor["shoulder"]=Vector3(0,1.45,-.4)
 			anchor["head"]=Vector3(0,1.6,-1.0)
 			anchor["mouth"]=Vector3(0,1.35,-1.15);anchor["forelimbs"]=Vector3(0,1.3,-.35)
+			anchor["dorsal"]=Vector3(0,1.83,-.1)
 		"mole":
 			plan="dig_ground";support=4;anchor["forelimbs"]=Vector3(0,.5,-.95)
 			anchor["head"]=Vector3(0,.78,-.9);anchor["mouth"]=Vector3(0,.55,-1.45)
