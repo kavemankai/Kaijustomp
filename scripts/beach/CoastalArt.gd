@@ -243,6 +243,79 @@ static func car(root: Node3D, paint: Color) -> void:
 	shadow(root,Vector2(2.9,5.3),Vector3(0,.005,0))
 
 
+# Second connected land zone: broad outer-suburban streets feed an
+# industrial avenue. Batched ground/road meshes keep the Android draw count
+# bounded independently of the longer inland walking limits.
+static func outer_district(parent: Node3D) -> void:
+	var region := Node3D.new()
+	region.name = "OuterDistrict"
+	parent.add_child(region)
+	box(region, Vector3(0, -.35, -1005), Vector3(840,.50,1010), Color("a9b197"))
+	# Main road overlaps the end of Banksia Heights by 15 units.
+	box(region, Vector3(0, -.057, -1005), Vector3(20,.09,1020), Color("596b70"))
+	for x in [-199.0,199.0]:
+		box(region, Vector3(x,-.048,-1120), Vector3(14,.08,740), Color("596b70"))
+	for z in [-548.0,-612.0,-714.0,-905.0,-1032.0,-1165.0,-1298.0,-1450.0]:
+		box(region,Vector3(0,-.05,z),Vector3(685,.08,14),Color("64757a"))
+	for z in range(-1500,-503,22):
+		box(region,Vector3(0,.014,float(z)),Vector3(.34,.022,7),CREAM)
+	for z in [-548.0,-612.0,-714.0,-905.0,-1032.0,-1165.0,-1298.0,-1450.0]:
+		for x in range(-330,331,22):
+			box(region,Vector3(float(x),.013,z),Vector3(7,.02,.27),CREAM)
+	# Hardstands and freight aprons behind the roadside factories.
+	for x in [-286.0,-103.0,103.0,286.0]:
+		for z in [-830.0,-1095.0,-1360.0]:
+			box(region,Vector3(x,-.025,z),Vector3(113,.05,99),Color("b1b2a9"))
+	merge(region,"OuterRoads")
+	var sign := Label3D.new()
+	sign.name = "IndustrialZoneSign"
+	sign.text = "OUTER DISTRICT  /  INDUSTRIAL ESTATE"
+	sign.font_size = 55
+	sign.pixel_size = .014
+	sign.modulate = CREAM
+	sign.outline_size = 0
+	sign.position = Vector3(15,3.1,-760)
+	region.add_child(sign)
+
+
+static func industrial_building(root: Node3D, footprint: Vector2, height: float, title: String) -> void:
+	var w := footprint.x
+	var d := footprint.y
+	var factory := title in ["Factory","Power Station","Water Works"]
+	var wall := Color("a2b8b5") if factory else Color("c3b8a9")
+	box(root,Vector3(0,height*.50,0),Vector3(w,height,d),wall)
+	box(root,Vector3(0,height+.28,0),Vector3(w+1.6,.55,d+1.6),Color("6a8184"))
+	# Bay doors are visible from the road at giant-camera zoom.
+	for i in range(3):
+		var x := (float(i)-1.0)*w*.285
+		box(root,Vector3(x,height*.34,d*.5+.08),Vector3(w*.235,height*.66,.15),Color("435964"))
+		for stripe in range(3):
+			box(root,Vector3(x,height*.18+float(stripe)*height*.16,d*.5+.19),Vector3(w*.21,.11,.075),Color("92a7a4"))
+	for x in [-w*.37,w*.37]:
+		box(root,Vector3(x,height*.75,d*.5+.12),Vector3(w*.12,height*.16,.11),Color("e6d6b8"))
+	if factory:
+		for side in [-1.0,1.0]:
+			var x := side*w*.29
+			box(root,Vector3(x,height+5.4,-d*.23),Vector3(4.4,10.8,4.4),Color("8f9f9e"))
+			box(root,Vector3(x,height+10.7,-d*.23),Vector3(5.2,.4,5.2),INK)
+	else:
+		# Stacked shipping/warehouse containers, read as giant food targets.
+		for i in range(3):
+			box(root,Vector3((-1.0+float(i))*w*.23,height+.8,-d*.18),
+				Vector3(w*.18,1.55,d*.38),Color("748f89") if i%2==0 else Color("b49b80"))
+	merge(root,"IndustrialArchitecture")
+	shadow(root,Vector2(w+4,d+4),Vector3(0,.005,0))
+	var sign := Label3D.new()
+	sign.name = "IndustrialSign"
+	sign.text = title.to_upper()
+	sign.font_size = 64
+	sign.pixel_size = .018
+	sign.position = Vector3(0,height*.84,d*.5+.26)
+	sign.modulate = CREAM
+	sign.outline_size = 0
+	root.add_child(sign)
+
+
 static func scenery(parent: Node3D, coast_half_length: float = 70.0) -> void:
 	# Fixed seed: art placement never consumes gameplay random choices.
 	var rng := RandomNumberGenerator.new()
@@ -291,7 +364,7 @@ static func scenery(parent: Node3D, coast_half_length: float = 70.0) -> void:
 			box(chunk,Vector3(x,.015,10.8),Vector3(1.5,.03,2.3),Color("c17d62"))
 		merge(chunk)
 	# Swimming flags identify this coast without a tropical-palm shorthand.
-	for district in range(-3, 4):
+	for district in range(-5, 6):
 		for local_x in [-17.0, 19.0]:
 			var x: float = float(district) * 150.0 + float(local_x)
 			var flag := Node3D.new()
