@@ -1,5 +1,10 @@
 # Development log
 
+## 2026-10-17 — E34 collision destruction and feeding feedback
+
+Phone playtest screenshot at evolution 34 shows the giant above houses. Player reports giant cannot destroy buildings or cars and requests upright feeding with arms grabbing, plus an extendable tongue for greater reach. Branch `feature/giant-demolition-upright-feeding`: fix growth-stage mass demolition via X/Z contact on movement, scale vehicle/structure impact power without requiring Strength mutations. Animate paired forelimb grip instead of diving head, hand-to-mouth prey pull and visible tongue for upright targets beyond ordinary arm reach. Preserve four-legged controls/camera, mutations and free DEBUG EVO. Add a tenth headless regression and separate Android package; await physical phone test and visual acceptance. See [GIANT_FEEDING.md](GIANT_FEEDING.md).
+
+
 ## 2026-10-17 — extend suburbs, shopping districts, cars and free debug evolution
 
 Player confirmed the first suburb works. This experimental stacked branch `feature/expanded-suburb-shops-cars-debug` extends the same world with two extra residential rows, 12 small shops and two large stores, connected streets and vehicle parking. Adds capped moving and parked physical cars with smash/driver-release, local people and police. A debug-build-only right-hand **DEBUG EVO** button and F6 keyboard equivalent allow fast mutation selection without feeding, with original history, skin reveal and growth milestones preserved. Isolates a separate APK package and immutable release from the approved build; nine mandatory Godot tests plus Android packaging checks. See [SHOPPING_CARS_DEBUG.md](SHOPPING_CARS_DEBUG.md). Android play feel, visual approval and device performance remain acceptance gates.
