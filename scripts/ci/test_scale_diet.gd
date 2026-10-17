@@ -84,7 +84,7 @@ func _run() -> void:
 	var before_store: int = demo.biomass
 	demo._damage_building(store, 99.0)
 	if not _check(demo.biomass - before_store > bakery_reward, "Big store pays no more biomass than a small shop"): return
-	if not _check(DietProgression.diet_label(demo.growth_scale) == "STRUCTURES", "HUD food source doesn't follow physical size"): return
+	if not _check(DietProgression.diet_label(demo.growth_scale) == "BUILDINGS + CARS", "HUD food source doesn't follow physical size"): return
 	# Debug E120 should still be able to crash through structures, but no
 	# human feed even with auto-selected arm/tongue mutation history.
 	if OS.has_feature("debug"):
