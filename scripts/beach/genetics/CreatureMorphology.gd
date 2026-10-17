@@ -11,7 +11,7 @@ var primary := ""
 var recipe := ""
 var build_count := 0
 
-func configure(genome: GenomeState) -> void:
+func configure(genome: GenomeState, generic_ranks: Dictionary = {}) -> void:
 	var anatomy := AnatomyResolver.resolve(genome.ranks,genome.raw)
 	var families: Array = anatomy["families"]
 	primary = ""
@@ -20,7 +20,7 @@ func configure(genome: GenomeState) -> void:
 	var traits: Array = []
 	for id in GeneEffects.EARLY:
 		if genome.ranks.has("gene_%03d" % id): traits.append(id)
-	var signature := primary + ":" + ",".join(families)+":"+str(traits)
+	var signature := primary + ":" + ",".join(families)+":"+str(traits)+":"+JSON.stringify(genome.ranks)+":"+JSON.stringify(generic_ranks)
 	if recipe == signature: return
 	recipe = signature
 	for child in get_children(): child.free()
@@ -41,7 +41,8 @@ func configure(genome: GenomeState) -> void:
 		_core(body, primary)
 		for family in families:
 			if genome.ranks.has(GeneRegistry.seed_key(family)): _signature(body,family,genome.ranks.has("gene_061"))
-		for id in traits: _trait(body,id)
+		for id in traits: _trait(MutationExpressionLibrary.trait_frame(body, primary, id),id)
+		MutationExpressionLibrary.render(body,primary,generic_ranks)
 		var merged := CoastalArt.merge(body,"GeneticCore")
 		if cache.size() >= 24: cache.erase(cache.keys()[0])
 		cache[signature] = merged.mesh
