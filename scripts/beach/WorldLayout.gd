@@ -3,9 +3,10 @@ extends RefCounted
 ## Pure world-space geography. Never consumes the gameplay random stream.
 const GENERATOR_VERSION := 1
 const CHUNK_SIZE := 256.0
-const HALF_WIDTH := 10000.0
-const INLAND := -6000.0
-const SEED := 79123
+const CONFIG = preload("res://config/world.tres")
+static var HALF_WIDTH: float = maxf(2048,CONFIG.half_width)
+static var INLAND: float = -maxf(2000,CONFIG.inland_depth)
+static var SEED: int = CONFIG.world_seed
 const DISTRICTS := ["Seabrook", "Banksia Plains", "Civic Centre", "Harbour Works", "Ironbark", "Highland Command", "Market Quarter"]
 var seed_value := SEED
 
@@ -21,7 +22,7 @@ static func inside(at: Vector3, margin: float = 0.0) -> bool:
 static func shore(x: float) -> float:
 	# Preserve the approved beach exactly; broad coves and terminal headlands elsewhere.
 	var blend := clampf((absf(x) - 800.0) / 600.0, 0.0, 1.0)
-	return 26.0 + blend * (38.0 * sin(x / 730.0) + 20.0 * sin(x / 291.0)) - pow(maxf(0.0, (absf(x) - 9200.0) / 800.0), 2.0) * 480.0
+	return 26.0 + blend * (38.0 * sin(x / 730.0) + 20.0 * sin(x / 291.0)) - pow(maxf(0.0, (absf(x) - (HALF_WIDTH-800)) / 800.0), 2.0) * 480.0
 
 static func authored(at: Vector3) -> bool:
 	return (absf(at.x) < 800.0 and at.z > -85.0) or (absf(at.x) < 430.0 and at.z > -1530.0)
@@ -29,9 +30,21 @@ static func authored(at: Vector3) -> bool:
 func district(at: Vector3) -> int:
 	var region := Vector2i(floori(at.x / 1024.0), floori(at.z / 768.0))
 	var n := absi(hash("%d:%d:%d" % [seed_value, region.x, region.y]))
-	if at.z > -220.0: return 0 if n % 3 != 0 else 3
-	if at.z < -4700.0: return 4 if n % 3 != 0 else 5
-	return 1 + n % 6
+	# Regional anchors create connected cores, commercial rings and suburbs;
+	# seeded parcels vary within that geography rather than assigning random objects.
+	for port_x in [-3584.0,6656.0]:
+		if Vector2((at.x-port_x)/850,(at.z+256)/620).length()<1: return 3
+	if at.z > -220.0: return 0
+	for base_x in [-6656.0,5632.0]:
+		if Vector2((at.x-base_x)/900,(at.z+4800)/750).length()<1: return 5
+	for center in [Vector2(-6144,-1792),Vector2(3072,-2816),Vector2(7168,-1536)]:
+		var distance := Vector2((at.x-center.x),(at.z-center.y)*1.2).length()
+		if distance<650: return 2
+		if distance<1100: return 6
+		if distance<1600: return 1
+	if Vector2(at.x+2048,(at.z+3200)*1.2).length()<1000: return 3
+	if at.z < -2300: return 4
+	return 6 if n%7==0 else 1
 
 func describe(c: Vector2i) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
@@ -56,7 +69,7 @@ func describe(c: Vector2i) -> Array[Dictionary]:
 			0: title = ["Cafe", "Hotel", "Beach shop"][slot % 3]; size = Vector2(21, 20); height = 6 + slot % 3 * 4
 			1: height = 5 + slot % 3 * 2
 			2: title = "Civic Tower" if slot % 3 == 0 else "Apartments"; size = Vector2(30, 27); height = 35 + rng.randf_range(0, 55)
-			3: title = ["Factory", "Warehouse", "Power Station"][slot % 3]; size = Vector2(62, 90); height = 18 + slot % 2 * 9
+			3: title = ["Factory", "Warehouse", "Power Station", "Container Yard", "Water Works", "Distribution Depot"][(absi(c.x+c.y)+slot)%6]; size = Vector2(62, 90); height = 18 + slot % 2 * 9
 			4: title = "Farm Store"; size = Vector2(22, 27); height = 7
 			5: title = "Military Hangar" if slot == 0 else "Command Centre"; size = Vector2(65, 82); height = 20
 			6: title = ["Bakery", "Supermarket", "Coffee Bar"][slot % 3]; size = Vector2(32, 29); height = 8 + slot % 3 * 3

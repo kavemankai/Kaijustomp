@@ -30,3 +30,14 @@ func drain(slots: int, spawn: Callable) -> void:
 		slots -= 1
 		if event["remaining"] <= 0:
 			pending.pop_front()
+
+func drain_near(slots: int, center: Vector3, radius: float, spawn: Callable) -> void:
+	# Distant displacement stays compact until the player returns to its region.
+	for event in pending.duplicate():
+		if slots<=0: break
+		if Vector3(event["center"]).distance_to(center)>radius: continue
+		pending.erase(event)
+		pending.push_front(event)
+		var count := mini(slots,int(event["remaining"]))
+		drain(count,spawn)
+		slots-=count

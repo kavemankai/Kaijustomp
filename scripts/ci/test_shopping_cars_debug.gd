@@ -21,9 +21,11 @@ func _complete_reveal(demo: Node) -> void:
 func _run() -> void:
 	var demo = load("res://scenes/BeachDemo.tscn").instantiate()
 	root.add_child(demo)
+	# This scenario exercises authored assets after explicitly requesting their chunks.
+	for authored_index in range(demo.world.authored_count): demo._prepare_authored(authored_index)
 	demo.set_physics_process(false)
 	await physics_frame
-	if not _check(demo.buildings.size() == 114, "Missing original 80 structures or 34 new outer targets"): return
+	if not _check(demo.world.authored_count == 114, "Missing original 80 structures or 34 new outer targets"): return
 	for i in range(54):
 		if not _check(demo.buildings[i]["name"] != "Supermarket" and demo.buildings[i]["name"] != "Hardware Store", "Approved buildings reordered"): return
 	var houses := 0

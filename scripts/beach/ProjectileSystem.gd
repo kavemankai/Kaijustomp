@@ -6,6 +6,7 @@ signal target_hit(damage: float)
 const LIMIT := 72
 var shots: Array[Dictionary] = []
 var target: CollisionObject3D
+var prepare_collision: Callable
 var tracer_meshes: Array[BoxMesh] = []
 
 func _ready() -> void:
@@ -43,6 +44,7 @@ func advance(delta: float) -> void:
 		var visual: Node3D = shot["node"]
 		var start := visual.global_position
 		var destination := start + Vector3(shot["velocity"]) * delta
+		if prepare_collision.is_valid(): prepare_collision.call(start,destination)
 		var query := PhysicsRayQueryParameters3D.create(start, destination, 1)
 		var result := get_world_3d().direct_space_state.intersect_ray(query)
 		shot["lifetime"] = float(shot["lifetime"]) - delta

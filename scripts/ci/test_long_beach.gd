@@ -16,14 +16,16 @@ func _check(condition: bool, message: String) -> bool:
 func _run() -> void:
 	var demo = load("res://scenes/BeachDemo.tscn").instantiate()
 	root.add_child(demo)
+	# This scenario exercises authored assets after explicitly requesting their chunks.
+	for authored_index in range(demo.world.authored_count): demo._prepare_authored(authored_index)
 	demo.set_physics_process(false)
 	await physics_frame
 	if not _check(demo.COAST_HALF_LENGTH >= 560.0 and demo.PLAYABLE_HALF_LENGTH >= 540.0, "Coast did not extend at least eightfold"): return
-	if not _check(demo.buildings.size() == 114, "Expected original 80, 10 beach wings, 12 outer homes and 12 factories"): return
+	if not _check(demo.world.authored_count == 114, "Expected original 80, 10 beach wings, 12 outer homes and 12 factories"): return
 	if not _check(demo.buildings[0]["name"] == "Beach kiosk" and demo.buildings[1]["name"] == "Wooden shed" and demo.buildings[4]["name"] == "Apartments", "Original beach building order changed"): return
 	var far_left := 0
 	var far_right := 0
-	for b in demo.buildings:
+	for b in demo.buildings.slice(0, demo.world.authored_count):
 		var point: Vector3 = b["position"]
 		if point.x < -350.0: far_left += 1
 		if point.x > 350.0: far_right += 1

@@ -73,7 +73,7 @@ var evolution_damage := 0.0
 var choice_open := false
 var reveal_active := false
 var evolution_total := 6.0
-const NEIGHBOURHOOD_FAR_Z := -1520.0
+var NEIGHBOURHOOD_FAR_Z := WorldLayout.INLAND
 const INDUSTRIAL_ZONE_Z := -750.0
 const SHOPPING_DISTRICT_Z := -320.0
 var evolution_history: Array[Dictionary] = []
@@ -83,6 +83,9 @@ var camera_celebration_clock := 0.0
 var civilians: Array[Dictionary] = []
 var officers: Array[Dictionary] = []
 var buildings: Array[Dictionary] = []
+var world: WorldStreaming
+var simple_building_mesh: BoxMesh
+var simple_building_materials: Dictionary = {}
 var debris: Array[Dictionary] = []
 var projectile_system: ProjectileSystem
 # Compatibility view: records and visuals are owned exclusively by the subsystem.
@@ -91,11 +94,12 @@ var projectiles: Array[Dictionary]:
 		return projectile_system.shots
 var evacuations := CivilianEvacuations.new()
 var cars: Array[Dictionary] = []
+var traffic_spawn_clock := 0.0
 const MAX_CARS := 20
 const MAX_PROJECTILES := ProjectileSystem.LIMIT
 # Seven coastal districts give roughly eight times the original 140-unit beach.
 const COAST_HALF_LENGTH := 780.0
-const PLAYABLE_HALF_LENGTH := 768.0
+var PLAYABLE_HALF_LENGTH := WorldLayout.HALF_WIDTH
 const ACTIVE_POPULATION_TARGET := 34
 const MAX_ACTIVE_CIVILIANS := 42
 const POPULATION_REFRESH_SECONDS := 1.7
@@ -146,6 +150,10 @@ func _ready() -> void:
 	_build_ui()
 	coastal_effects = CoastalEffects.new()
 	add_child(coastal_effects)
+	world = WorldStreaming.new()
+	add_child(world)
+	world.setup(self)
+	projectile_system.prepare_collision = world.ensure_segment
 
 func _material(col: Color) -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()
@@ -312,7 +320,7 @@ func _build_cars() -> void:
 
 
 func _add_car(pos: Vector3, moving: bool, direction: int, colour: Color) -> void:
-	assert(cars.size() < MAX_CARS)
+	assert(cars.size() <= MAX_CARS)
 	var root := Node3D.new()
 	root.name = "MovingCar" if moving else "ParkedCar"
 	root.position = pos
@@ -330,7 +338,8 @@ func _add_car(pos: Vector3, moving: bool, direction: int, colour: Color) -> void
 	shape.position.y = .825
 	solid.add_child(shape)
 	cars.append({"node":root, "collider":solid, "moving":moving, "direction":direction,
-		"speed":6.0, "hits":3.0, "destroyed":false})
+		"speed":6.0, "hits":3.0, "destroyed":false,"position":pos,"colour":colour,
+		"id":"vehicle:%03d" % cars.size(),"persistent":cars.size()<16,"active":true})
 
 
 func _car_for_collider(collider: Object) -> int:
@@ -368,36 +377,92 @@ func _damage_car(index: int, amount: float) -> void:
 		evacuations.drain(MAX_ACTIVE_CIVILIANS - civilians.size(), _spawn_civilian)
 		_award_demolition_biomass(DietProgression.car_biomass(growth_scale))
 	cars[index] = car
+	if is_instance_valid(world) and not world.test_mode: world.save_now()
 
 
 func _update_cars(delta: float) -> void:
+	traffic_spawn_clock = maxf(0,traffic_spawn_clock-delta)
+	_stream_cars()
 	for i in range(cars.size()):
 		var car: Dictionary = cars[i]
-		if car["destroyed"] or not car["moving"]:
+		if car["destroyed"] or not car.get("active",false) or not car["moving"]:
 			continue
 		var node: Node3D = car["node"]
 		if node.global_position.distance_to(beast.global_position) > 125.0:
 			continue
 		var direction := int(car["direction"])
-		if node.position.z < -488.0:
+		if node.position.z < float(car.get("min_z",-488.0)):
 			direction = 1
-		elif node.position.z > -96.0:
+		elif node.position.z > float(car.get("max_z",-96.0)):
 			direction = -1
 		car["direction"] = direction
 		node.rotation.y = PI if direction > 0 else 0.0
 		# Cars stop rather than intersecting a player on foot; the player can
 		# damage them with the same walk/sprint contact controls as buildings.
 		var candidate := node.position + Vector3(0, 0, float(direction) * float(car["speed"]) * delta)
+		if is_instance_valid(world): world.ensure_region(candidate,12)
 		if candidate.distance_to(beast.global_position) > 5.0 + growth_scale and _blocking_building(candidate) < 0:
 			node.position = candidate
 		cars[i] = car
 
 
 func _add_building(pos: Vector3, footprint: Vector2, height: float, col: Color, title: String, required_strength: int, hits: int, breakthrough_strength: int, occupants: int) -> void:
+	buildings.append({"id":"authored:%03d" % buildings.size(), "node":null,"collider":null,
+		"position":pos,"half":footprint*.5,"height":height,"colour":col,"hits":float(hits),"max_hits":float(hits),
+		"crack_layers":[],"crack_stage":0,"destroyed":false,"active":false,"full":false,
+		"hidden":occupants,"base_occupants":occupants,"name":title,"reward_claimed":false,
+		"required_strength":required_strength,"breakthrough_strength":breakthrough_strength})
+
+func _register_generated(d: Dictionary, slot: int = -1) -> int:
+	var index := slot if slot >= 0 else buildings.size()
+	var b := {"id":d["id"],"position":d["position"],"half":Vector2(d["size"])*.5,"height":d["height"],"colour":d["colour"],
+		"name":d["name"],"hits":float(d["hits"]),"max_hits":float(d["hits"]),"required_strength":d["strength"],
+		"breakthrough_strength":d["breakthrough"],"hidden":d["occupants"],"base_occupants":d["occupants"],
+		"destroyed":false,"active":false,"full":false,"reward_claimed":false,"node":null,"collider":null,"crack_layers":[],"crack_stage":0}
+	if slot < 0: buildings.append(b)
+	else: buildings[index] = b
+	return index
+
+func _deactivate_building(index: int) -> void:
+	var b: Dictionary = buildings[index]
+	if is_instance_valid(b.get("node")):
+		b["node"].hide()
+		if is_instance_valid(b.get("collider")): b["collider"].collision_layer = 0
+		b["node"].queue_free()
+	b["node"] = null
+	b["collider"] = null
+	b["crack_layers"] = []
+	b["active"] = false
+	b["full"] = false
+
+func _activate_building(index: int, full: bool = true) -> void:
+	var b: Dictionary = buildings[index]
+	if b["destroyed"]: return
+	if b.get("active",false) and b.get("full",false) == full: return
+	# LOD changes replace artwork while retaining the registered physics body.
+	var preserved: StaticBody3D = b.get("collider") if is_instance_valid(b.get("collider")) else null
+	if preserved!=null:
+		preserved.reparent(self,true)
+		b["collider"]=null
+	_deactivate_building(index)
+	var pos: Vector3 = b["position"]
+	var footprint: Vector2 = Vector2(b["half"])*2
+	var height: float = b["height"]
+	var col: Color = b["colour"]
+	var title: String = b["name"]
 	var root := Node3D.new()
 	root.position = pos
 	add_child(root)
-	if title in ["Distribution Depot", "Warehouse", "Factory", "Container Yard", "Power Station", "Water Works"]:
+	if not full:
+		_simple_building_part(root,"Architecture",Vector3(0,height*.5,0),Vector3(footprint.x,height,footprint.y),col)
+		_simple_building_part(root,"Roof",Vector3(0,height+.2,0),Vector3(footprint.x+.4,.4,footprint.y+.4),CoastalArt.ROOF)
+	elif title in ["Military Hangar","Command Centre"]:
+		WorldEnvironmentArt.restricted(root,footprint,height,title)
+	elif height>20 and title in ["Civic Tower","Apartments"]:
+		WorldEnvironmentArt.tower(root,footprint,height,title)
+	elif title == "Farm Store":
+		CoastalArt.home(root,footprint,height,Color("c5b294"))
+	elif title in ["Distribution Depot", "Warehouse", "Factory", "Container Yard", "Power Station", "Water Works"]:
 		CoastalArt.industrial_building(root, footprint, height, title)
 	elif title == "Coastal home":
 		CoastalArt.home(root, footprint, height, col)
@@ -409,24 +474,48 @@ func _add_building(pos: Vector3, footprint: Vector2, height: float, col: Color, 
 		CoastalArt.building(root, footprint, height, title)
 	# A visible MeshInstance3D is not an obstacle. Physical collision must
 	# remain active until the building actually collapses.
-	var crack_layers := _build_building_cracks(root, footprint, height)
-	var solid := StaticBody3D.new()
-	solid.collision_layer = 1
-	solid.collision_mask = 1
-	root.add_child(solid)
-	var blocker := CollisionShape3D.new()
-	var shape := BoxShape3D.new()
-	shape.size = Vector3(footprint.x, height, footprint.y)
-	blocker.shape = shape
-	blocker.position.y = height * 0.5
-	solid.add_child(blocker)
-	buildings.append({
-		"node": root, "collider": solid, "position": pos,
-		"half": footprint * 0.5, "hits": float(hits), "max_hits": float(hits),
-		"crack_layers": crack_layers, "crack_stage": 0, "destroyed": false,
-		"hidden": occupants, "base_occupants": occupants, "name": title,
-		"required_strength": required_strength, "breakthrough_strength": breakthrough_strength
-	})
+	var crack_layers: Array[Node3D] = []
+	if full: crack_layers = _build_building_cracks(root, footprint, height)
+	var solid: StaticBody3D = preserved
+	if solid!=null:
+		solid.reparent(root,true)
+	else:
+		solid=StaticBody3D.new()
+		solid.collision_layer = 1
+		solid.collision_mask = 1
+		root.add_child(solid)
+		var blocker := CollisionShape3D.new()
+		var shape := BoxShape3D.new()
+		shape.size = Vector3(footprint.x, height, footprint.y)
+		blocker.shape = shape
+		blocker.position.y = height * 0.5
+		solid.add_child(blocker)
+	b["node"] = root
+	b["collider"] = solid
+	b["crack_layers"] = crack_layers
+	b["active"] = true
+	b["full"] = full
+	if full and float(b["hits"]) < float(b["max_hits"]):
+		var stage := mini(3,maxi(1,ceili((1.0-maxf(0,float(b["hits"]))/float(b["max_hits"]))*3)))
+		for i in range(stage): crack_layers[i].visible = true
+
+func _prepare_authored(index: int) -> void:
+	# Explicit activation adapter for authored gameplay regression scenarios.
+	world.ensure_region(buildings[index]["position"],1)
+	_activate_building(index,true)
+
+func _simple_building_part(root: Node3D,title: String,position: Vector3,size: Vector3,colour: Color) -> void:
+	if simple_building_mesh==null:
+		simple_building_mesh=BoxMesh.new()
+		simple_building_mesh.size=Vector3.ONE
+	if not simple_building_materials.has(colour): simple_building_materials[colour]=_material(colour)
+	var mesh := MeshInstance3D.new()
+	mesh.name=title
+	mesh.mesh=simple_building_mesh
+	mesh.material_override=simple_building_materials[colour]
+	mesh.position=position
+	mesh.scale=size
+	root.add_child(mesh)
 
 
 # Each crack stage is added only as the building is hit. Keep them slightly
@@ -606,14 +695,14 @@ func _maintain_population(delta: float) -> void:
 			actor.queue_free()
 			civilians.remove_at(i)
 	# Release displaced occupants before generating new ambient people.
-	evacuations.drain(mini(5, MAX_ACTIVE_CIVILIANS - civilians.size()), _spawn_civilian)
+	evacuations.drain_near(mini(5, MAX_ACTIVE_CIVILIANS - civilians.size()), beast.position, maxf(150,growth_scale*90), _spawn_civilian)
 	var newcomers := mini(5, ACTIVE_POPULATION_TARGET - civilians.size())
 	var attempts := 0
 	while newcomers > 0 and attempts < 50 and civilians.size() < MAX_ACTIVE_CIVILIANS:
 		attempts += 1
 		var min_distance := maxf(42.0, growth_scale * 36.0)
 		var side := -1.0 if randi_range(0, 1) == 0 else 1.0
-		var spawn_z := clampf(beast.global_position.z + randf_range(-68.0, 68.0), NEIGHBOURHOOD_FAR_Z + 14.0, -91.0) if beast.global_position.z < -82.0 else randf_range(-13.0, 17.0)
+		var spawn_z := clampf(beast.global_position.z + randf_range(-68.0, 68.0), NEIGHBOURHOOD_FAR_Z + 14.0, WorldLayout.shore(beast.position.x)-8) if beast.global_position.z < -82.0 else WorldLayout.shore(beast.position.x)+randf_range(-39.0, -9.0)
 		var pos := Vector3(beast.global_position.x + side * randf_range(min_distance, min_distance + 48.0), 0, spawn_z)
 		if beast.global_position.z < -82.0:
 			pos.x = beast.global_position.x + randf_range(-70.0, 70.0)
@@ -651,7 +740,7 @@ func _spawn_civilian(pos: Vector3) -> void:
 			if distance < best_distance:
 				best_distance = distance
 				shelter = i
-	civilians.append({"node": _person(pos), "speed": randf_range(3.4, 7.1), "response": response, "panic": false, "delay": 0.0, "shelter": shelter, "direction": Vector3.ZERO})
+	civilians.append({"node": _person(pos), "speed": randf_range(3.4, 7.1), "response": response, "panic": false, "delay": 0.0, "shelter": shelter, "shelter_id":buildings[shelter]["id"] if shelter>=0 else "", "direction": Vector3.ZERO})
 
 func _spawn_officer(pos: Vector3, swat: bool = false) -> void:
 	# Backwards-compatible police/SWAT call for existing scene and tests.
@@ -667,7 +756,7 @@ func _spawn_response_enemy(pos: Vector3, kind: String) -> void:
 	if DefconDirector.is_vehicle(kind):
 		unit = Node3D.new()
 		unit.name = "Response_" + kind
-		unit.position = pos + Vector3(0, 22.0, 0) if kind == "helicopter" else pos
+		unit.position = pos + Vector3(0, _helicopter_altitude(), 0) if kind == "helicopter" else pos
 		add_child(unit)
 		CoastalArt.response_vehicle(unit, kind)
 		if kind == "armoured":
@@ -775,7 +864,7 @@ func _build_ui() -> void:
 	retry_button.text = "RESTART"
 	_place_right_button(retry_button, -342, -263)
 	retry_button.visible = false
-	retry_button.pressed.connect(func() -> void: get_tree().reload_current_scene())
+	retry_button.pressed.connect(_restart_run)
 	# Developer-only test shortcut. Shares the former restart slot while alive.
 	debug_evolve_button = Button.new()
 	debug_evolve_button.text = "DEBUG\nEVO"
@@ -989,6 +1078,7 @@ func _physics_process(delta: float) -> void:
 		return
 	if game_over or choice_open or reveal_active:
 		return
+	if is_instance_valid(world): world.advance(delta)
 	if evolving:
 		evolution_clock -= delta
 		_update_evolution_animation(delta)
@@ -1032,6 +1122,8 @@ func _update_movement(delta: float) -> void:
 			sprint_locked = true
 	else:
 		stamina = minf(max_stamina, stamina + delta * SPRINT_RECHARGE_RATE)
+	if is_instance_valid(world):
+		world.ensure_region(beast.position, maxf(30,growth_scale*4.0+20))
 	# Input dictates travel instantly. The body turns rapidly to match travel,
 	# rather than requiring tank-like rotation before moving.
 	var speed := (BASE_WALK + speed_bonus) * (SPRINT_MULTIPLIER if sprint_active else 1.0)
@@ -1042,7 +1134,8 @@ func _update_movement(delta: float) -> void:
 		beast.rotation.y = lerp_angle(beast.rotation.y, atan2(-direction.x, -direction.z), minf(1.0, TURN_RESPONSE * delta))
 		var next_pos := beast.global_position + direction * speed * delta
 		next_pos.x = clampf(next_pos.x, -PLAYABLE_HALF_LENGTH, PLAYABLE_HALF_LENGTH)
-		next_pos.z = clampf(next_pos.z, NEIGHBOURHOOD_FAR_Z, 26.0)
+		next_pos.z = clampf(next_pos.z, NEIGHBOURHOOD_FAR_Z, WorldLayout.shore(next_pos.x))
+		if is_instance_valid(world): world.ensure_region(next_pos,maxf(30,growth_scale*4.0+20))
 		# move_and_collide performs a swept physics test, including sprint frames.
 		# Sliding preserves responsive movement along the face of an obstacle.
 		var previous_position := beast.global_position
@@ -1213,7 +1306,7 @@ func _giant_proximity_contact() -> void:
 			car_index = -1
 	for i in range(cars.size()):
 		var car: Dictionary = cars[i]
-		if car["destroyed"]:
+		if car["destroyed"] or not car.get("active",false):
 			continue
 		var pos: Vector3 = car["node"].global_position
 		var distance := Vector2(maxf(0.0, absf(origin.x - pos.x) - 1.15),
@@ -1283,6 +1376,7 @@ func _damage_building(index: int, hits: float) -> void:
 	var b: Dictionary = buildings[index]
 	if b["destroyed"]:
 		return
+	_activate_building(index,true)
 	if is_instance_valid(coastal_effects):
 		var center: Vector3 = b["position"]
 		var half_size: Vector2 = b["half"]
@@ -1310,10 +1404,15 @@ func _damage_building(index: int, hits: float) -> void:
 		evacuations.enqueue(source, half, int(b["hidden"]))
 		evacuations.drain(MAX_ACTIVE_CIVILIANS - civilians.size(), _spawn_civilian)
 		b["hidden"] = 0
-		_award_demolition_biomass(DietProgression.structure_biomass(
-			growth_scale, String(b["name"]), Vector2(half.x * 2.0, half.y * 2.0)))
+		if not b.get("reward_claimed",false):
+			b["reward_claimed"] = true
+			_award_demolition_biomass(DietProgression.structure_biomass(
+				growth_scale, String(b["name"]), Vector2(half.x * 2.0, half.y * 2.0)))
 		Input.vibrate_handheld(65)
 	buildings[index] = b
+	if is_instance_valid(world):
+		world.state.remember(b)
+		if b["destroyed"] and not world.test_mode: world.save_now()
 
 func _make_debris(at: Vector3, count: int) -> void:
 	coastal_effects.burst(at + Vector3(0,1,0), 10, 2.0)
@@ -1420,6 +1519,8 @@ func _update_civilians(delta: float) -> void:
 				away = away.normalized() if away.length_squared() > 0.01 else Vector3(-1, 0, 0)
 				var travel := away
 				var shelter_index := int(c["shelter"])
+				if c.has("shelter_id"):
+					shelter_index = _index_for_world_id(c["shelter_id"])
 				if shelter_index >= 0 and shelter_index < buildings.size() and not buildings[shelter_index]["destroyed"]:
 					var target: Vector3 = buildings[shelter_index]["position"]
 					travel = (target - person.global_position).normalized()
@@ -1432,7 +1533,7 @@ func _update_civilians(delta: float) -> void:
 						continue
 				var new_pos := person.global_position + travel * float(c["speed"]) * delta
 				new_pos.x = clampf(new_pos.x, -PLAYABLE_HALF_LENGTH + 1.0, PLAYABLE_HALF_LENGTH - 1.0)
-				new_pos.z = clampf(new_pos.z, NEIGHBOURHOOD_FAR_Z + 6.0, 23.0)
+				new_pos.z = clampf(new_pos.z, NEIGHBOURHOOD_FAR_Z + 6.0, WorldLayout.shore(new_pos.x)-3)
 				if _blocking_building(new_pos) < 0:
 					person.global_position = new_pos
 				person.rotation.y = atan2(-travel.x, -travel.z)
@@ -1454,7 +1555,8 @@ func _response_is_visible(candidate: Vector3, kind: String) -> bool:
 	var margin := 55.0
 	var visible_rect := Rect2(Vector2(-margin, -margin),
 		viewport + Vector2(margin * 2.0, margin * 2.0))
-	var heights := [0.5, 2.0, 7.0] if kind != "helicopter" else [21.0, 23.0, 27.0]
+	var altitude := _helicopter_altitude()
+	var heights := [0.5, 2.0, 7.0] if kind != "helicopter" else [altitude-1,altitude+1,altitude+5]
 	for height in heights:
 		var sample := candidate + Vector3(0, height, 0)
 		if follow_camera.is_position_behind(sample):
@@ -1462,6 +1564,10 @@ func _response_is_visible(candidate: Vector3, kind: String) -> bool:
 		if visible_rect.has_point(follow_camera.unproject_position(sample)):
 			return true
 	return false
+
+func _helicopter_altitude() -> float:
+	# Keep approved original-region flights; expanded-city approaches clear90-unit towers.
+	return 22.0 if WorldLayout.authored(beast.position) else 120.0
 
 
 func _find_offscreen_response_spawn(kind: String, lane: float) -> Vector3:
@@ -1479,10 +1585,13 @@ func _find_offscreen_response_spawn(kind: String, lane: float) -> Vector3:
 			var candidate := origin + Vector3(cos(angle) * radius, 0, sin(angle) * radius)
 			if absf(candidate.x) > PLAYABLE_HALF_LENGTH - 16.0:
 				continue
-			if candidate.z < NEIGHBOURHOOD_FAR_Z + 16.0 or candidate.z > 19.0:
+			if candidate.z < NEIGHBOURHOOD_FAR_Z + 16.0 or candidate.z > WorldLayout.shore(candidate.x)-7:
 				continue
 			if kind != "helicopter" and _blocking_building(candidate, 3.5 if kind == "armoured" else 0.70) >= 0:
 				continue
+			if not WorldLayout.authored(candidate) and kind != "helicopter":
+				candidate = WorldLayout.road_point(candidate)
+				if _blocking_building(candidate,3.5 if kind == "armoured" else .7)>=0: continue
 			if _response_is_visible(candidate, kind):
 				continue
 			var occupied := false
@@ -1502,6 +1611,7 @@ func _find_offscreen_response_spawn(kind: String, lane: float) -> Vector3:
 func _spawn_local_response(offset: float, kind: String) -> void:
 	var candidate := _find_offscreen_response_spawn(kind, offset)
 	if candidate.is_finite():
+		if is_instance_valid(world): world.ensure_region(candidate,75)
 		_spawn_response_enemy(candidate, kind)
 
 
@@ -1539,7 +1649,7 @@ func _update_police(delta: float) -> void:
 			response_clock = 0.0
 	else:
 		response_clock = 0.0
-	for i in range(officers.size()):
+	for i in range(officers.size()-1,-1,-1):
 		var foe: Dictionary = officers[i]
 		var unit: Node3D = foe["node"]
 		var to_beast: Vector3 = beast.global_position - unit.global_position
@@ -1552,19 +1662,34 @@ func _update_police(delta: float) -> void:
 		var desired := 55.0 if helicopter else (30.0 if kind == "armoured" else 12.0)
 		if distance > desired:
 			var travel := to_beast.normalized() * delta * float(foe["speed"]) * maxf(1.0, sqrt(growth_scale))
-			var destination := unit.global_position + travel
-			# A conservative hull radius also covers the rotated APC's corners.
-			var clearance := 3.5 if kind == "armoured" else 0.70
-			if helicopter or _blocking_building(destination, clearance) < 0:
-				unit.global_position = destination
-			elif not helicopter:
-				# Follow the side of a structure instead of stopping forever
-				# behind the first warehouse on the long approach.
-				var side := Vector3(-travel.z, 0, travel.x)
-				if _blocking_building(unit.global_position + side, clearance) < 0:
-					unit.global_position += side
-				elif _blocking_building(unit.global_position - side, clearance) < 0:
-					unit.global_position -= side
+			if helicopter:
+				unit.global_position += travel
+			else:
+				var clearance := 3.5 if kind == "armoured" else .70
+				var destination := unit.global_position + travel
+				world.ensure_region(destination,clearance+8)
+				var path: PackedVector3Array = foe.get("path",PackedVector3Array())
+				foe["route_clock"] = float(foe.get("route_clock",0))-delta
+				if _blocking_building(destination,clearance)>=0 or not path.is_empty():
+					if float(foe["route_clock"])<=0:
+						path = WorldRouting.route(unit.global_position,beast.position,world,clearance)
+						foe["route_clock"] = 2.0
+					while not path.is_empty() and path[0].distance_to(unit.global_position)<12: path.remove_at(0)
+					if not path.is_empty():
+						var route_direction := path[0]-unit.global_position
+						route_direction.y = 0
+						destination = unit.global_position + route_direction.normalized()*minf(travel.length(),route_direction.length())
+				foe["path"] = path
+				if _blocking_building(destination,clearance)<0 and WorldLayout.inside(destination,clearance):
+					world.ensure_region(destination,clearance+8)
+					unit.global_position = destination
+					foe["stalled"] = 0.0
+				else:
+					foe["stalled"] = float(foe.get("stalled",0))+delta
+					if float(foe["stalled"])>12 and not _response_is_visible(unit.global_position,kind):
+						unit.queue_free()
+						officers.remove_at(i)
+						continue
 		if distance > 0.2:
 			unit.rotation.y = atan2(-to_beast.x, -to_beast.z)
 		if kind == "helicopter":
@@ -1589,7 +1714,7 @@ func _update_police(delta: float) -> void:
 				var shot: Dictionary = projectiles[shot_index]
 				shot["damage"] = float(foe["damage"])
 				if kind in ["helicopter","armoured"]:
-					shot["lifetime"] = 3.0
+					shot["lifetime"] = maxf(3.0,origin.distance_to(aim)/43.0+.2)
 				projectiles[shot_index] = shot
 				foe["cooldown"] = float(foe["rate"])
 		if not DefconDirector.is_vehicle(kind):
@@ -1622,6 +1747,7 @@ func _take_damage(raw: float) -> void:
 			shedding.abort_shed()
 		evolving = false
 		retry_button.visible = true
+		if is_instance_valid(world) and not world.test_mode: world.save_now()
 	elif evolving and evolution_damage >= _cocoon_break_limit():
 		_reset_evolution_pose()
 		shedding.abort_shed()
@@ -1775,7 +1901,7 @@ func _resolve_growth_clearance() -> void:
 		for direction in range(16):
 			var angle := TAU * float(direction) / 16.0
 			var candidate := origin + Vector3(cos(angle), 0, sin(angle)) * float(ring) * clearance_step
-			if absf(candidate.x) > PLAYABLE_HALF_LENGTH or candidate.z < NEIGHBOURHOOD_FAR_Z or candidate.z > 26.0:
+			if absf(candidate.x) > PLAYABLE_HALF_LENGTH or candidate.z < NEIGHBOURHOOD_FAR_Z or candidate.z > WorldLayout.shore(candidate.x):
 				continue
 			if _growth_position_clear(candidate):
 				beast.global_position = candidate
@@ -1783,6 +1909,7 @@ func _resolve_growth_clearance() -> void:
 	push_warning("No local growth clearance; beach has outgrown its supported scale")
 
 func _growth_position_clear(position: Vector3) -> bool:
+	if is_instance_valid(world): world.ensure_region(position,maxf(20,growth_scale*4))
 	var query := PhysicsShapeQueryParameters3D.new()
 	query.collision_mask = beast.collision_mask
 	query.exclude = [beast.get_rid()]
@@ -1864,6 +1991,8 @@ func _apply_mutation_visual(id: String) -> void:
 
 func _update_camera(delta: float) -> void:
 	var goal := beast.global_position + _camera_offset()
+	# Keep terrain/ocean and roof surfaces distinct at kilometre-scale views.
+	follow_camera.near = maxf(.1,growth_scale*.2-.1)
 	follow_camera.far = maxf(230.0, 230.0 * growth_scale)
 	if camera_celebration_clock > 0.0:
 		camera_celebration_clock = maxf(0.0, camera_celebration_clock - delta)
@@ -1925,7 +2054,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.keycode == KEY_SHIFT:
 			_toggle_sprint()
 		elif event.keycode == KEY_R and game_over:
-			get_tree().reload_current_scene()
+			_restart_run()
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_APPLICATION_PAUSED:
@@ -1934,3 +2063,65 @@ func _notification(what: int) -> void:
 		sprint_active = false
 		if is_instance_valid(touch_input):
 			touch_input.reset_input()
+		if is_instance_valid(world) and not world.test_mode: world.save_now()
+
+func _index_for_world_id(id: String) -> int:
+	if id.is_empty(): return -1
+	for i in range(buildings.size()):
+		if buildings[i].get("id","") == id: return i
+	return -1
+
+func _restart_run() -> void:
+	# RESTART retains its established fresh-run meaning; app resume restores a run.
+	if is_instance_valid(world) and not world.test_mode and world.state.writable:
+		world.state.objects.clear()
+		world.state.events.clear()
+		world.state.player.clear()
+		world.state.write_save()
+	get_tree().reload_current_scene()
+
+func _activate_car(index: int) -> void:
+	var car: Dictionary = cars[index]
+	if car["destroyed"] or car.get("active",false): return
+	var original_count := cars.size()
+	_add_car(car["position"],car["moving"],car["direction"],car["colour"])
+	var fresh: Dictionary = cars.pop_back()
+	car["node"] = fresh["node"]
+	car["collider"] = fresh["collider"]
+	car["active"] = true
+	assert(cars.size()==original_count)
+
+func _stream_cars() -> void:
+	var radius := maxf(320,growth_scale*10+100)
+	for i in range(cars.size()-1,-1,-1):
+		var car: Dictionary = cars[i]
+		if car["destroyed"]:
+			if not car.get("persistent",false): cars.remove_at(i)
+			continue
+		if car.get("active",false): car["position"] = car["node"].global_position
+		var near: bool = Vector3(car["position"]).distance_to(beast.position)<radius
+		if not near and car.get("active",false):
+			car["collider"].collision_layer = 0
+			car["node"].queue_free()
+			car["node"] = null
+			car["collider"] = null
+			car["active"] = false
+		if not near and not car.get("persistent",false):
+			cars.remove_at(i)
+		elif near and not car.get("active",false):
+			_activate_car(i)
+	# Ordinary traffic is local and renewable; authored parked cars remain unique.
+	if not WorldLayout.authored(beast.position) and cars.size()<MAX_CARS and traffic_spawn_clock<=0:
+		var lane := WorldLayout.road_point(beast.position+Vector3(110,0,-50))
+		lane.x = roundf(lane.x/256)*256+3.25
+		world.ensure_region(lane,20)
+		if WorldLayout.inside(lane,40) and _blocking_building(lane,3)<0 and not _response_is_visible(lane,"armoured"):
+			var occupied := false
+			for car in cars:
+				if not car["destroyed"] and Vector3(car["position"]).distance_to(lane)<18: occupied=true
+			if not occupied:
+				_add_car(lane,true,-1,Color("bf6555"))
+				cars[-1]["persistent"] = false
+				cars[-1]["min_z"] = lane.z-128
+				cars[-1]["max_z"] = lane.z+128
+				traffic_spawn_clock = 15.0

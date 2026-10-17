@@ -29,6 +29,8 @@ func _run_test() -> void:
 		return
 	var demo: Variant = packed.instantiate()
 	root.add_child(demo)
+	# This scenario exercises authored assets after explicitly requesting their chunks.
+	for authored_index in range(demo.world.authored_count): demo._prepare_authored(authored_index)
 	await process_frame
 	var old_vertices := _vertices(demo.beast_visual)
 	var body: MeshInstance3D = CreatureVisual.renderers(demo.creature_rig["visual"].forms[0])[0]

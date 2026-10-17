@@ -17,6 +17,8 @@ func _check(ok: bool, why: String) -> bool:
 func _run() -> void:
 	var demo = load("res://scenes/BeachDemo.tscn").instantiate()
 	root.add_child(demo)
+	# This scenario exercises authored assets after explicitly requesting their chunks.
+	for authored_index in range(demo.world.authored_count): demo._prepare_authored(authored_index)
 	demo.set_physics_process(false)
 	await physics_frame
 	if not _check(demo.evolutions == 0 and not demo.upright_form, "Changed hatchling state"): return

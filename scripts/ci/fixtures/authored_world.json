@@ -1,0 +1,1829 @@
+{
+	"buildings": [
+		{
+			"breakthrough_strength": 3,
+			"half": [
+				2.5,
+				2.5
+			],
+			"height": 2.90000009536743,
+			"hits": 3.0,
+			"name": "Beach kiosk",
+			"occupants": 2,
+			"position": [
+				-6.0,
+				-35.0
+			],
+			"required_strength": 1
+		},
+		{
+			"breakthrough_strength": 3,
+			"half": [
+				3.0,
+				2.5
+			],
+			"height": 3.09999990463257,
+			"hits": 3.0,
+			"name": "Wooden shed",
+			"occupants": 1,
+			"position": [
+				7.0,
+				-47.0
+			],
+			"required_strength": 1
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				6.5,
+				5.5
+			],
+			"height": 4.59999990463257,
+			"hits": 5.0,
+			"name": "Cafe",
+			"occupants": 5,
+			"position": [
+				-21.0,
+				-40.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				5.0,
+				4.5
+			],
+			"height": 4.0,
+			"hits": 4.0,
+			"name": "Beach shop",
+			"occupants": 3,
+			"position": [
+				22.0,
+				-37.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				7.0,
+				6.0
+			],
+			"height": 7.5,
+			"hits": 7.0,
+			"name": "Apartments",
+			"occupants": 10,
+			"position": [
+				-45.0,
+				-54.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				7.0,
+				6.0
+			],
+			"height": 7.0,
+			"hits": 7.0,
+			"name": "Hotel",
+			"occupants": 12,
+			"position": [
+				45.0,
+				-54.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 3,
+			"half": [
+				2.5,
+				2.5
+			],
+			"height": 2.90000009536743,
+			"hits": 3.0,
+			"name": "Beach kiosk",
+			"occupants": 2,
+			"position": [
+				-485.0,
+				-39.0
+			],
+			"required_strength": 1
+		},
+		{
+			"breakthrough_strength": 3,
+			"half": [
+				3.0,
+				2.5
+			],
+			"height": 3.09999990463257,
+			"hits": 3.0,
+			"name": "Wooden shed",
+			"occupants": 1,
+			"position": [
+				-446.0,
+				-44.0
+			],
+			"required_strength": 1
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				6.0,
+				5.0
+			],
+			"height": 4.59999990463257,
+			"hits": 5.0,
+			"name": "Cafe",
+			"occupants": 5,
+			"position": [
+				-459.0,
+				-58.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				5.5,
+				5.0
+			],
+			"height": 4.0,
+			"hits": 4.0,
+			"name": "Beach shop",
+			"occupants": 3,
+			"position": [
+				-414.0,
+				-53.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				7.0,
+				6.0
+			],
+			"height": 7.5,
+			"hits": 7.0,
+			"name": "Apartments",
+			"occupants": 10,
+			"position": [
+				-504.0,
+				-55.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 3,
+			"half": [
+				2.5,
+				2.5
+			],
+			"height": 2.90000009536743,
+			"hits": 3.0,
+			"name": "Beach kiosk",
+			"occupants": 2,
+			"position": [
+				-335.0,
+				-35.0
+			],
+			"required_strength": 1
+		},
+		{
+			"breakthrough_strength": 3,
+			"half": [
+				3.0,
+				2.5
+			],
+			"height": 3.09999990463257,
+			"hits": 3.0,
+			"name": "Wooden shed",
+			"occupants": 1,
+			"position": [
+				-296.0,
+				-44.0
+			],
+			"required_strength": 1
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				6.0,
+				5.0
+			],
+			"height": 4.59999990463257,
+			"hits": 5.0,
+			"name": "Cafe",
+			"occupants": 5,
+			"position": [
+				-309.0,
+				-58.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				5.5,
+				5.0
+			],
+			"height": 4.0,
+			"hits": 4.0,
+			"name": "Beach shop",
+			"occupants": 3,
+			"position": [
+				-264.0,
+				-53.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				7.0,
+				6.0
+			],
+			"height": 7.5,
+			"hits": 7.0,
+			"name": "Apartments",
+			"occupants": 10,
+			"position": [
+				-354.0,
+				-55.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 3,
+			"half": [
+				2.5,
+				2.5
+			],
+			"height": 2.90000009536743,
+			"hits": 3.0,
+			"name": "Beach kiosk",
+			"occupants": 2,
+			"position": [
+				-185.0,
+				-39.0
+			],
+			"required_strength": 1
+		},
+		{
+			"breakthrough_strength": 3,
+			"half": [
+				3.0,
+				2.5
+			],
+			"height": 3.09999990463257,
+			"hits": 3.0,
+			"name": "Wooden shed",
+			"occupants": 1,
+			"position": [
+				-146.0,
+				-44.0
+			],
+			"required_strength": 1
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				6.0,
+				5.0
+			],
+			"height": 4.59999990463257,
+			"hits": 5.0,
+			"name": "Cafe",
+			"occupants": 5,
+			"position": [
+				-159.0,
+				-58.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				5.5,
+				5.0
+			],
+			"height": 4.0,
+			"hits": 4.0,
+			"name": "Beach shop",
+			"occupants": 3,
+			"position": [
+				-114.0,
+				-53.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				7.0,
+				6.0
+			],
+			"height": 7.5,
+			"hits": 7.0,
+			"name": "Apartments",
+			"occupants": 10,
+			"position": [
+				-204.0,
+				-55.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 3,
+			"half": [
+				2.5,
+				2.5
+			],
+			"height": 2.90000009536743,
+			"hits": 3.0,
+			"name": "Beach kiosk",
+			"occupants": 2,
+			"position": [
+				115.0,
+				-39.0
+			],
+			"required_strength": 1
+		},
+		{
+			"breakthrough_strength": 3,
+			"half": [
+				3.0,
+				2.5
+			],
+			"height": 3.09999990463257,
+			"hits": 3.0,
+			"name": "Wooden shed",
+			"occupants": 1,
+			"position": [
+				154.0,
+				-44.0
+			],
+			"required_strength": 1
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				6.0,
+				5.0
+			],
+			"height": 4.59999990463257,
+			"hits": 5.0,
+			"name": "Cafe",
+			"occupants": 5,
+			"position": [
+				141.0,
+				-58.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				5.5,
+				5.0
+			],
+			"height": 4.0,
+			"hits": 4.0,
+			"name": "Beach shop",
+			"occupants": 3,
+			"position": [
+				186.0,
+				-53.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				7.0,
+				6.0
+			],
+			"height": 7.5,
+			"hits": 7.0,
+			"name": "Apartments",
+			"occupants": 10,
+			"position": [
+				96.0,
+				-55.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 3,
+			"half": [
+				2.5,
+				2.5
+			],
+			"height": 2.90000009536743,
+			"hits": 3.0,
+			"name": "Beach kiosk",
+			"occupants": 2,
+			"position": [
+				265.0,
+				-35.0
+			],
+			"required_strength": 1
+		},
+		{
+			"breakthrough_strength": 3,
+			"half": [
+				3.0,
+				2.5
+			],
+			"height": 3.09999990463257,
+			"hits": 3.0,
+			"name": "Wooden shed",
+			"occupants": 1,
+			"position": [
+				304.0,
+				-44.0
+			],
+			"required_strength": 1
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				6.0,
+				5.0
+			],
+			"height": 4.59999990463257,
+			"hits": 5.0,
+			"name": "Cafe",
+			"occupants": 5,
+			"position": [
+				291.0,
+				-58.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				5.5,
+				5.0
+			],
+			"height": 4.0,
+			"hits": 4.0,
+			"name": "Beach shop",
+			"occupants": 3,
+			"position": [
+				336.0,
+				-53.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				7.0,
+				6.0
+			],
+			"height": 7.5,
+			"hits": 7.0,
+			"name": "Apartments",
+			"occupants": 10,
+			"position": [
+				246.0,
+				-55.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 3,
+			"half": [
+				2.5,
+				2.5
+			],
+			"height": 2.90000009536743,
+			"hits": 3.0,
+			"name": "Beach kiosk",
+			"occupants": 2,
+			"position": [
+				415.0,
+				-39.0
+			],
+			"required_strength": 1
+		},
+		{
+			"breakthrough_strength": 3,
+			"half": [
+				3.0,
+				2.5
+			],
+			"height": 3.09999990463257,
+			"hits": 3.0,
+			"name": "Wooden shed",
+			"occupants": 1,
+			"position": [
+				454.0,
+				-44.0
+			],
+			"required_strength": 1
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				6.0,
+				5.0
+			],
+			"height": 4.59999990463257,
+			"hits": 5.0,
+			"name": "Cafe",
+			"occupants": 5,
+			"position": [
+				441.0,
+				-58.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				5.5,
+				5.0
+			],
+			"height": 4.0,
+			"hits": 4.0,
+			"name": "Beach shop",
+			"occupants": 3,
+			"position": [
+				486.0,
+				-53.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				7.0,
+				6.0
+			],
+			"height": 7.5,
+			"hits": 7.0,
+			"name": "Apartments",
+			"occupants": 10,
+			"position": [
+				396.0,
+				-55.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.09999990463257,
+			"hits": 5.0,
+			"name": "Coastal home",
+			"occupants": 4,
+			"position": [
+				-90.0,
+				-109.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.69999980926514,
+			"hits": 5.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				-54.0,
+				-109.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.09999990463257,
+			"hits": 5.0,
+			"name": "Coastal home",
+			"occupants": 6,
+			"position": [
+				-18.0,
+				-109.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.69999980926514,
+			"hits": 5.0,
+			"name": "Coastal home",
+			"occupants": 4,
+			"position": [
+				18.0,
+				-109.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.09999990463257,
+			"hits": 5.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				54.0,
+				-109.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.69999980926514,
+			"hits": 5.0,
+			"name": "Coastal home",
+			"occupants": 6,
+			"position": [
+				90.0,
+				-109.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.69999980926514,
+			"hits": 5.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				-90.0,
+				-153.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.09999990463257,
+			"hits": 5.0,
+			"name": "Coastal home",
+			"occupants": 6,
+			"position": [
+				-54.0,
+				-153.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.69999980926514,
+			"hits": 5.0,
+			"name": "Coastal home",
+			"occupants": 4,
+			"position": [
+				-18.0,
+				-153.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.09999990463257,
+			"hits": 5.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				18.0,
+				-153.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.69999980926514,
+			"hits": 5.0,
+			"name": "Coastal home",
+			"occupants": 6,
+			"position": [
+				54.0,
+				-153.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.09999990463257,
+			"hits": 5.0,
+			"name": "Coastal home",
+			"occupants": 4,
+			"position": [
+				90.0,
+				-153.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.09999990463257,
+			"hits": 6.0,
+			"name": "Coastal home",
+			"occupants": 6,
+			"position": [
+				-90.0,
+				-197.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.69999980926514,
+			"hits": 6.0,
+			"name": "Coastal home",
+			"occupants": 4,
+			"position": [
+				-54.0,
+				-197.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.09999990463257,
+			"hits": 6.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				-18.0,
+				-197.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.69999980926514,
+			"hits": 6.0,
+			"name": "Coastal home",
+			"occupants": 6,
+			"position": [
+				18.0,
+				-197.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.09999990463257,
+			"hits": 6.0,
+			"name": "Coastal home",
+			"occupants": 4,
+			"position": [
+				54.0,
+				-197.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.69999980926514,
+			"hits": 6.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				90.0,
+				-197.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.30000019073486,
+			"hits": 6.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				-90.0,
+				-243.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.30000019073486,
+			"hits": 6.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				-54.0,
+				-243.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.30000019073486,
+			"hits": 6.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				-18.0,
+				-243.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.30000019073486,
+			"hits": 6.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				18.0,
+				-243.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.30000019073486,
+			"hits": 6.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				54.0,
+				-243.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.30000019073486,
+			"hits": 6.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				90.0,
+				-243.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.30000019073486,
+			"hits": 6.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				-90.0,
+				-287.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.30000019073486,
+			"hits": 6.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				-54.0,
+				-287.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.30000019073486,
+			"hits": 6.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				-18.0,
+				-287.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.30000019073486,
+			"hits": 6.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				18.0,
+				-287.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.30000019073486,
+			"hits": 6.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				54.0,
+				-287.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				6.5,
+				6.0
+			],
+			"height": 4.30000019073486,
+			"hits": 6.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				90.0,
+				-287.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				9.0,
+				7.5
+			],
+			"height": 5.59999990463257,
+			"hits": 7.0,
+			"name": "Bakery",
+			"occupants": 5,
+			"position": [
+				-105.0,
+				-352.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				9.0,
+				7.5
+			],
+			"height": 5.59999990463257,
+			"hits": 7.0,
+			"name": "Chemist",
+			"occupants": 5,
+			"position": [
+				-63.0,
+				-352.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				9.0,
+				7.5
+			],
+			"height": 5.59999990463257,
+			"hits": 7.0,
+			"name": "Fish & Chips",
+			"occupants": 5,
+			"position": [
+				-21.0,
+				-352.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				9.0,
+				7.5
+			],
+			"height": 5.59999990463257,
+			"hits": 7.0,
+			"name": "Bookshop",
+			"occupants": 5,
+			"position": [
+				21.0,
+				-352.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				9.0,
+				7.5
+			],
+			"height": 5.59999990463257,
+			"hits": 7.0,
+			"name": "Greengrocer",
+			"occupants": 5,
+			"position": [
+				63.0,
+				-352.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				9.0,
+				7.5
+			],
+			"height": 5.59999990463257,
+			"hits": 7.0,
+			"name": "Takeaway",
+			"occupants": 5,
+			"position": [
+				105.0,
+				-352.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				9.0,
+				7.5
+			],
+			"height": 5.59999990463257,
+			"hits": 7.0,
+			"name": "Coffee Bar",
+			"occupants": 5,
+			"position": [
+				-105.0,
+				-404.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				9.0,
+				7.5
+			],
+			"height": 5.59999990463257,
+			"hits": 7.0,
+			"name": "Surf Outlet",
+			"occupants": 5,
+			"position": [
+				-63.0,
+				-404.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				9.0,
+				7.5
+			],
+			"height": 5.59999990463257,
+			"hits": 7.0,
+			"name": "Florist",
+			"occupants": 5,
+			"position": [
+				-21.0,
+				-404.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				9.0,
+				7.5
+			],
+			"height": 5.59999990463257,
+			"hits": 7.0,
+			"name": "Newsagent",
+			"occupants": 5,
+			"position": [
+				21.0,
+				-404.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				9.0,
+				7.5
+			],
+			"height": 5.59999990463257,
+			"hits": 7.0,
+			"name": "Corner Mart",
+			"occupants": 5,
+			"position": [
+				63.0,
+				-404.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				9.0,
+				7.5
+			],
+			"height": 5.59999990463257,
+			"hits": 7.0,
+			"name": "Pet Shop",
+			"occupants": 5,
+			"position": [
+				105.0,
+				-404.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 6,
+			"half": [
+				15.5,
+				11.0
+			],
+			"height": 7.5,
+			"hits": 11.0,
+			"name": "Supermarket",
+			"occupants": 12,
+			"position": [
+				-75.0,
+				-468.0
+			],
+			"required_strength": 4
+		},
+		{
+			"breakthrough_strength": 6,
+			"half": [
+				15.5,
+				11.0
+			],
+			"height": 7.5,
+			"hits": 11.0,
+			"name": "Hardware Store",
+			"occupants": 12,
+			"position": [
+				75.0,
+				-468.0
+			],
+			"required_strength": 4
+		},
+		{
+			"breakthrough_strength": 3,
+			"half": [
+				2.5,
+				2.5
+			],
+			"height": 2.90000009536743,
+			"hits": 3.0,
+			"name": "Beach kiosk",
+			"occupants": 2,
+			"position": [
+				-635.0,
+				-35.0
+			],
+			"required_strength": 1
+		},
+		{
+			"breakthrough_strength": 3,
+			"half": [
+				3.0,
+				2.5
+			],
+			"height": 3.09999990463257,
+			"hits": 3.0,
+			"name": "Wooden shed",
+			"occupants": 1,
+			"position": [
+				-596.0,
+				-44.0
+			],
+			"required_strength": 1
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				6.0,
+				5.0
+			],
+			"height": 4.59999990463257,
+			"hits": 5.0,
+			"name": "Cafe",
+			"occupants": 5,
+			"position": [
+				-609.0,
+				-58.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				5.5,
+				5.0
+			],
+			"height": 4.0,
+			"hits": 4.0,
+			"name": "Beach shop",
+			"occupants": 3,
+			"position": [
+				-564.0,
+				-53.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				7.0,
+				6.0
+			],
+			"height": 7.5,
+			"hits": 7.0,
+			"name": "Apartments",
+			"occupants": 10,
+			"position": [
+				-654.0,
+				-55.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 3,
+			"half": [
+				2.5,
+				2.5
+			],
+			"height": 2.90000009536743,
+			"hits": 3.0,
+			"name": "Beach kiosk",
+			"occupants": 2,
+			"position": [
+				565.0,
+				-35.0
+			],
+			"required_strength": 1
+		},
+		{
+			"breakthrough_strength": 3,
+			"half": [
+				3.0,
+				2.5
+			],
+			"height": 3.09999990463257,
+			"hits": 3.0,
+			"name": "Wooden shed",
+			"occupants": 1,
+			"position": [
+				604.0,
+				-44.0
+			],
+			"required_strength": 1
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				6.0,
+				5.0
+			],
+			"height": 4.59999990463257,
+			"hits": 5.0,
+			"name": "Cafe",
+			"occupants": 5,
+			"position": [
+				591.0,
+				-58.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 4,
+			"half": [
+				5.5,
+				5.0
+			],
+			"height": 4.0,
+			"hits": 4.0,
+			"name": "Beach shop",
+			"occupants": 3,
+			"position": [
+				636.0,
+				-53.0
+			],
+			"required_strength": 2
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				7.0,
+				6.0
+			],
+			"height": 7.5,
+			"hits": 7.0,
+			"name": "Apartments",
+			"occupants": 10,
+			"position": [
+				546.0,
+				-55.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				9.5,
+				8.5
+			],
+			"height": 6.19999980926514,
+			"hits": 8.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				-150.0,
+				-570.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				9.5,
+				8.5
+			],
+			"height": 6.19999980926514,
+			"hits": 8.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				-90.0,
+				-570.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				9.5,
+				8.5
+			],
+			"height": 6.19999980926514,
+			"hits": 8.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				-30.0,
+				-570.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				9.5,
+				8.5
+			],
+			"height": 6.19999980926514,
+			"hits": 8.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				30.0,
+				-570.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				9.5,
+				8.5
+			],
+			"height": 6.19999980926514,
+			"hits": 8.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				90.0,
+				-570.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				9.5,
+				8.5
+			],
+			"height": 6.19999980926514,
+			"hits": 8.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				150.0,
+				-570.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				9.5,
+				8.5
+			],
+			"height": 6.19999980926514,
+			"hits": 8.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				-150.0,
+				-656.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				9.5,
+				8.5
+			],
+			"height": 6.19999980926514,
+			"hits": 8.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				-90.0,
+				-656.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				9.5,
+				8.5
+			],
+			"height": 6.19999980926514,
+			"hits": 8.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				-30.0,
+				-656.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				9.5,
+				8.5
+			],
+			"height": 6.19999980926514,
+			"hits": 8.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				30.0,
+				-656.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				9.5,
+				8.5
+			],
+			"height": 6.19999980926514,
+			"hits": 8.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				90.0,
+				-656.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 5,
+			"half": [
+				9.5,
+				8.5
+			],
+			"height": 6.19999980926514,
+			"hits": 8.0,
+			"name": "Coastal home",
+			"occupants": 5,
+			"position": [
+				150.0,
+				-656.0
+			],
+			"required_strength": 3
+		},
+		{
+			"breakthrough_strength": 6,
+			"half": [
+				35.0,
+				29.0
+			],
+			"height": 15.0,
+			"hits": 13.0,
+			"name": "Distribution Depot",
+			"occupants": 8,
+			"position": [
+				-286.0,
+				-830.0
+			],
+			"required_strength": 4
+		},
+		{
+			"breakthrough_strength": 6,
+			"half": [
+				35.0,
+				29.0
+			],
+			"height": 15.0,
+			"hits": 13.0,
+			"name": "Warehouse",
+			"occupants": 8,
+			"position": [
+				-103.0,
+				-830.0
+			],
+			"required_strength": 4
+		},
+		{
+			"breakthrough_strength": 8,
+			"half": [
+				44.0,
+				37.5
+			],
+			"height": 23.0,
+			"hits": 18.0,
+			"name": "Factory",
+			"occupants": 8,
+			"position": [
+				103.0,
+				-830.0
+			],
+			"required_strength": 5
+		},
+		{
+			"breakthrough_strength": 6,
+			"half": [
+				35.0,
+				29.0
+			],
+			"height": 15.0,
+			"hits": 13.0,
+			"name": "Container Yard",
+			"occupants": 8,
+			"position": [
+				286.0,
+				-830.0
+			],
+			"required_strength": 4
+		},
+		{
+			"breakthrough_strength": 6,
+			"half": [
+				35.0,
+				29.0
+			],
+			"height": 15.0,
+			"hits": 13.0,
+			"name": "Warehouse",
+			"occupants": 8,
+			"position": [
+				-286.0,
+				-1095.0
+			],
+			"required_strength": 4
+		},
+		{
+			"breakthrough_strength": 8,
+			"half": [
+				44.0,
+				37.5
+			],
+			"height": 23.0,
+			"hits": 18.0,
+			"name": "Factory",
+			"occupants": 8,
+			"position": [
+				-103.0,
+				-1095.0
+			],
+			"required_strength": 5
+		},
+		{
+			"breakthrough_strength": 8,
+			"half": [
+				44.0,
+				37.5
+			],
+			"height": 23.0,
+			"hits": 18.0,
+			"name": "Power Station",
+			"occupants": 8,
+			"position": [
+				103.0,
+				-1095.0
+			],
+			"required_strength": 5
+		},
+		{
+			"breakthrough_strength": 6,
+			"half": [
+				35.0,
+				29.0
+			],
+			"height": 15.0,
+			"hits": 13.0,
+			"name": "Distribution Depot",
+			"occupants": 8,
+			"position": [
+				286.0,
+				-1095.0
+			],
+			"required_strength": 4
+		},
+		{
+			"breakthrough_strength": 6,
+			"half": [
+				35.0,
+				29.0
+			],
+			"height": 15.0,
+			"hits": 13.0,
+			"name": "Container Yard",
+			"occupants": 8,
+			"position": [
+				-286.0,
+				-1360.0
+			],
+			"required_strength": 4
+		},
+		{
+			"breakthrough_strength": 6,
+			"half": [
+				35.0,
+				29.0
+			],
+			"height": 15.0,
+			"hits": 13.0,
+			"name": "Warehouse",
+			"occupants": 8,
+			"position": [
+				-103.0,
+				-1360.0
+			],
+			"required_strength": 4
+		},
+		{
+			"breakthrough_strength": 8,
+			"half": [
+				44.0,
+				37.5
+			],
+			"height": 23.0,
+			"hits": 18.0,
+			"name": "Water Works",
+			"occupants": 8,
+			"position": [
+				103.0,
+				-1360.0
+			],
+			"required_strength": 5
+		},
+		{
+			"breakthrough_strength": 8,
+			"half": [
+				44.0,
+				37.5
+			],
+			"height": 23.0,
+			"hits": 18.0,
+			"name": "Factory",
+			"occupants": 8,
+			"position": [
+				286.0,
+				-1360.0
+			],
+			"required_strength": 5
+		}
+	],
+	"source": "317743c00894de06150c0e7eef65db298206d8a2"
+}
