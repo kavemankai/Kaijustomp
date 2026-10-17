@@ -80,7 +80,7 @@ func _run() -> void:
 	if not _check(demo.defcon == 2 and "armoured" in kinds, "No armoured units at DEFCON 2"): return
 	var armour_index := kinds.find("armoured")
 	var apc: Dictionary = demo.officers[armour_index]
-	if not _check(apc["collider"] is StaticBody3D and apc["node"].get_node_or_null("ResponseHull") != null, "APC has no physical cover or art"): return
+	if not _check(apc["collider"] is StaticBody3D and apc["node"].get_node_or_null("VisualHull/ResponseHull") != null, "APC has no physical cover or art"): return
 	if not _check(demo._response_for_collider(apc["collider"]) == armour_index, "APC can't be hit by collision"): return
 	var before_alert: float = demo.alert
 	demo._damage_response(armour_index, 500.0)
