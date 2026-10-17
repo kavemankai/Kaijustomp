@@ -205,7 +205,7 @@ func _build_beach() -> void:
 	_add_building(Vector3(45, 0, -54), Vector2(14, 12), 7.0, Color(0.64, 0.62, 0.49), "Hotel", 3, 7, 5, 12)
 	# Keep the proven first six buildings intact. Six additional coastal districts
 	# spread weak and strong structures along both directions of the beach.
-	for district in [-4, -3, -2, -1, 1, 2, 3, 4]:
+	for district in [-3, -2, -1, 1, 2, 3]:
 		var anchor := float(district) * 150.0
 		var stagger := float(absi(district) % 2) * 4.0
 		_add_building(Vector3(anchor - 35, 0, -35 - stagger), Vector2(5, 5), 2.9, Color(0.71, 0.58, 0.34), "Beach kiosk", 1, 3, 3, 2)
@@ -241,6 +241,15 @@ func _build_beach() -> void:
 		_add_building(at, Vector2(31, 22), 7.5, Color("becbc3"),
 			"Supermarket" if side < 0 else "Hardware Store", 4, 11, 6, 12)
 	# The original 80 indices must remain stable for previously tested scenes.
+	# Two new coastal wings are appended AFTER the first 80 buildings,
+	# preserving every original building index used by game regression tests.
+	for district in [-4, 4]:
+		var anchor := float(district) * 150.0
+		_add_building(Vector3(anchor - 35, 0, -35), Vector2(5, 5), 2.9, Color("b8a87a"), "Beach kiosk", 1, 3, 3, 2)
+		_add_building(Vector3(anchor + 4, 0, -44), Vector2(6, 5), 3.1, Color("a79d8b"), "Wooden shed", 1, 3, 3, 1)
+		_add_building(Vector3(anchor - 9, 0, -58), Vector2(12, 10), 4.6, Color("dbaf89"), "Cafe", 2, 5, 4, 5)
+		_add_building(Vector3(anchor + 36, 0, -53), Vector2(11, 10), 4.0, Color("96b9ac"), "Beach shop", 2, 4, 4, 3)
+		_add_building(Vector3(anchor - 54, 0, -55), Vector2(14, 12), 7.5, Color("a4a7a9"), "Apartments", 3, 7, 5, 10)
 	# Northern outer suburbs supply a continuous transition to heavy industry.
 	for row in range(2):
 		for column in range(6):
