@@ -52,6 +52,9 @@ func legal(key: String) -> bool:
 	if not defs.has(key) or defs[key]["readiness"] != "playable": return false
 	if int(ranks.get(key,0)) >= int(defs[key]["cap"]): return false
 	if key == "physical_growth" and growth_policy == "legacy": return false
+	# Working traversal adaptations depend on organs, never on a picture alone.
+	var required := {"gene_029":"gene_022","gene_121":"gene_029","gene_122":"gene_121","gene_052":"gene_015","gene_119":"gene_084","gene_180":"gene_062"}
+	if required.has(key) and int(ranks.get(required[key],0))<1: return false
 	var proposed := ranks.duplicate()
 	proposed[key] = int(proposed.get(key,0))+1
 	return AnatomyResolver.resolve(proposed)["legal"]

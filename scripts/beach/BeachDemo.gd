@@ -670,7 +670,10 @@ func _camera_offset() -> Vector3:
 	# visible on the narrower screen without changing movement orientation.
 	var viewport_size := get_viewport().get_visible_rect().size
 	# Scale only the distance, not the established portrait chase angle.
-	return CAMERA_OFFSET * (PORTRAIT_CAMERA_DISTANCE if viewport_size.y > viewport_size.x else 1.0) * maxf(1.0, growth_scale) + Vector3(0, _camera_height(), 0)
+	var zoom := maxf(1.0,growth_scale)
+	if is_instance_valid(genetics) and genetics.enabled and genetics.dimensions.get("axial",false):
+		zoom=maxf(zoom,float(genetics.dimensions["length"])/9.0)
+	return CAMERA_OFFSET*(PORTRAIT_CAMERA_DISTANCE if viewport_size.y>viewport_size.x else 1.0)*zoom+Vector3(0,_camera_height(),0)
 
 func _camera_height() -> float:
 	return (growth_scale - 1.0) * 0.65 + (growth_scale * 0.75 if upright_form else 0.0)
@@ -678,7 +681,10 @@ func _camera_height() -> float:
 func _camera_look_target() -> Vector3:
 	# Bigger and upright forms remain framed with the exact original camera
 	# angle and control mapping at hatchling size.
-	return beast.global_position + Vector3(0, _camera_height(), -2.8 * maxf(1.0, growth_scale))
+	var lead := maxf(1.0,growth_scale)
+	if is_instance_valid(genetics) and genetics.enabled and genetics.dimensions.get("axial",false):
+		lead=maxf(lead,float(genetics.dimensions["length"])/7.5)
+	return beast.global_position+Vector3(0,_camera_height(),-2.8*lead)
 
 
 func _build_population() -> void:
@@ -1168,6 +1174,12 @@ func _update_movement(delta: float) -> void:
 	if direction.length_squared() > 1.0:
 		direction = direction.normalized()
 	var moving := direction.length_squared() > 0.003
+	if moving and genetics.enabled and genetics.trail.live and genetics.traversal.mode=="ground":
+		# Nokia-Snake handling: head leads; the body never slides sideways
+		# toward the stick vector or automatically becomes bipedal.
+		var turn_rate := 5.0 if genetics.morphology.primary=="snake" else 3.0
+		beast.rotation.y=lerp_angle(beast.rotation.y,atan2(-direction.x,-direction.z),minf(1.0,turn_rate*delta))
+		direction=-beast.global_transform.basis.z*minf(1.0,direction.length())
 	if sprint_locked and stamina >= max_stamina - 0.01:
 		sprint_locked = false
 	sprint_active = sprint_requested and not sprint_locked and moving and stamina > 0.0
@@ -1188,7 +1200,14 @@ func _update_movement(delta: float) -> void:
 	if bite_timer > 0.0:
 		speed *= genetics.effects.feeding_slowdown()
 	var travelled := 0.0
-	if moving:
+	var movement_origin := beast.global_position
+	var handled := genetics.enabled and genetics.traversal.direction_input(direction,genetics.traversal.vertical_input,speed,delta)
+	if handled:
+		travelled=beast.global_position.distance_to(movement_origin)
+		run_phase+=travelled*TAU/(2.5*maxf(1.0,growth_scale))
+		if moving and genetics.traversal.mode != "climb":
+			beast.rotation.y=lerp_angle(beast.rotation.y,atan2(-direction.x,-direction.z),minf(1.0,5.0*delta))
+	if moving and not handled:
 		beast.rotation.y = lerp_angle(beast.rotation.y, atan2(-direction.x, -direction.z), minf(1.0, TURN_RESPONSE * delta))
 		var next_pos := beast.global_position + direction * speed * delta
 		next_pos.x = clampf(next_pos.x, -PLAYABLE_HALF_LENGTH, PLAYABLE_HALF_LENGTH)
@@ -1223,7 +1242,11 @@ func _update_movement(delta: float) -> void:
 		beast.velocity = (beast.global_position-previous_position)/maxf(delta,.001)
 		run_phase += travelled * TAU / (2.5 * maxf(1.0, growth_scale))
 	strike_timer = maxf(0.0, strike_timer - delta)
-	if not moving: beast.velocity = Vector3.ZERO
+	if not moving and not handled: beast.velocity=Vector3.ZERO
+	if genetics.enabled:
+		genetics.trail.advance(beast.global_position)
+		if genetics.trail.live and is_instance_valid(world):
+			world.ensure_region(genetics.trail.point_at(genetics.trail.total_length*.9),maxf(30.0,genetics.trail.radius*5.0))
 	_update_creature_animation(delta, travelled > 0.0001)
 	bite_timer = maxf(0.0, bite_timer - delta)
 
@@ -1289,7 +1312,7 @@ func _update_creature_animation(delta: float, moving: bool) -> void:
 	if is_instance_valid(genetics) and genetics.enabled and genetics.morphology.visible:
 		# The hidden legacy muzzle pose must not move a custom body's collider
 		# after its sweep. Keep the proof head within its conservative envelope.
-		head_collision_node.position = Vector3(0,1.4,-1.0)*growth_scale
+		head_collision_node.position=Vector3(0,maxf(1.1,float(genetics.dimensions.get("height",2.0))*.55),-minf(2.0,beast_collision_shape.radius))
 	if is_instance_valid(prey_in_mouth):
 		var mouth := head_pivot.to_global(Vector3(0, -.43, -1.16))
 		if upright_form:
@@ -1314,7 +1337,8 @@ func _update_creature_animation(delta: float, moving: bool) -> void:
 		previous_step = step
 		coastal_effects.burst(beast.global_position + Vector3(0, .12, 0), 2, growth_scale)
 	if is_instance_valid(ground_shadow):
-		ground_shadow.scale = Vector3(growth_scale, 1, growth_scale)
+		ground_shadow.visible=not (genetics.enabled and (genetics.trail.live or genetics.traversal.mode=="burrow"))
+		ground_shadow.scale=Vector3(growth_scale,1,growth_scale)
 
 func _grab_pose_strength() -> float:
 	if bite_timer <= 0.0:
@@ -2193,6 +2217,7 @@ func _notification(what: int) -> void:
 		sprint_active = false
 		if is_instance_valid(touch_input):
 			touch_input.reset_input()
+		if is_instance_valid(genetics): genetics.traversal.vertical_input=0.0
 		if is_instance_valid(world) and not world.test_mode: world.save_now(true)
 
 func _index_for_world_id(id: String) -> int:

@@ -93,7 +93,7 @@ func run() -> void:
 	check(demo.growth_scale==1.0 and not demo.upright_form,"E120 optional growth")
 	check(system.genome.select_gene("physical_growth","growth"),"growth offered")
 	system.refresh()
-	check(is_equal_approx(demo.growth_scale,1.2),"chosen physical scale")
+	check(is_equal_approx(demo.growth_scale,float(BodyDimensionsPolicy.measure("reptile",1)["scale_metric"])),"chosen physical scale metric")
 	root.size=Vector2i(540,960)
 	system.hud.refresh()
 	system.hud.open()
