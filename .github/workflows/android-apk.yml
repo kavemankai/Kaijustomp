@@ -201,6 +201,14 @@ jobs:
           grep -q 'SHOPPING CARS DEBUG TEST PASSED' "$RUNNER_TEMP/shopping-cars-debug.log"
           if grep -E 'SCRIPT ERROR|Parse Error|TEST FAILED|Invalid call|Invalid access' "$RUNNER_TEMP/shopping-cars-debug.log"; then exit 1; fi
 
+      - name: Verify giant structures, car stomps, upright grab and tongue
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --path . --script res://scripts/ci/test_giant_demolition_feeding.gd 2>&1 | tee "$RUNNER_TEMP/giant-feeding.log"
+          grep -q 'GIANT FEEDING TEST PASSED' "$RUNNER_TEMP/giant-feeding.log"
+          if grep -E 'SCRIPT ERROR|Parse Error|TEST FAILED|Invalid call|Invalid access' "$RUNNER_TEMP/giant-feeding.log"; then exit 1; fi
+
       - name: Export portrait Android debug APK
         shell: bash
         run: |
@@ -227,6 +235,10 @@ jobs:
           if [ "$BUILD_BRANCH" = 'feature/expanded-suburb-shops-cars-debug' ]; then
             sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.shoppingpreview"@' export_presets.cfg
             sed -i 's@^package/name=.*@package/name="Kaijustomp Shopping Preview"@' export_presets.cfg
+          fi
+          if [ "$BUILD_BRANCH" = 'feature/giant-demolition-upright-feeding' ]; then
+            sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.giantpreview"@' export_presets.cfg
+            sed -i 's@^package/name=.*@package/name="Kaijustomp Giant Preview"@' export_presets.cfg
           fi
           APK="Kaijustomp-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:7}-debug.apk"
           echo "APK_NAME=$APK" >> "$GITHUB_ENV"
@@ -273,6 +285,9 @@ jobs:
           fi
           if [ "$BUILD_BRANCH" = 'feature/expanded-suburb-shops-cars-debug' ]; then
             EXPECTED_PACKAGE='com.kavemankai.kaijustomp.shoppingpreview'
+          fi
+          if [ "$BUILD_BRANCH" = 'feature/giant-demolition-upright-feeding' ]; then
+            EXPECTED_PACKAGE='com.kavemankai.kaijustomp.giantpreview'
           fi
           grep -q "name='$EXPECTED_PACKAGE'" "$RUNNER_TEMP/apk-badging.txt"
           grep -q '^launchable-activity:' "$RUNNER_TEMP/apk-badging.txt"
@@ -391,6 +406,23 @@ jobs:
           ASSET_SIZE=$(gh release view "$TAG" --json assets --jq '.assets[] | select(.name == "Kaijustomp-growth-preview.apk") | .size')
           test "$LOCAL_SIZE" = "$ASSET_SIZE"
           echo "Preview APK: https://github.com/${GH_REPO}/releases/download/${TAG}/Kaijustomp-growth-preview.apk" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish immutable giant demolition preview
+        if: github.ref == 'refs/heads/feature/giant-demolition-upright-feeding' && github.event_name != 'pull_request'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG="giant-feeding-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:7}"
+          cat > "$RUNNER_TEMP/giant-notes.md" <<EOF
+          Giant demolition and feeding preview from ${GITHUB_SHA}. At E34 large-form horizontal footprint contacts allow crushing roofs and parked cars; physical mass now contributes to demolition strength independently of Strength mutations. Upright feeding uses two animated hands instead of a diving head, plus reusable animated tongue for 45% longer range beyond ordinary arm reach. Debug EVO, shops, cars and existing controls/camera remain. Distinct package com.kavemankai.kaijustomp.giantpreview. Automated Godot and Android export CI gates passed before publication; phone performance and visual acceptance still require review.
+          EOF
+          gh release create "$TAG" "build/android/$APK_NAME" "build/android/$APK_NAME.sha256" --target "$GITHUB_SHA" --title "Kaijustomp giant feeding ${GITHUB_RUN_NUMBER}" --notes-file "$RUNNER_TEMP/giant-notes.md" --prerelease
+          LOCAL_SIZE=$(stat -c "%s" "build/android/$APK_NAME")
+          ASSET_SIZE=$(gh release view "$TAG" --json assets --jq ".assets[] | select(.name == \"$APK_NAME\") | .size")
+          test "$LOCAL_SIZE" = "$ASSET_SIZE"
 
       - name: Publish immutable shopping district preview
         if: github.ref == 'refs/heads/feature/expanded-suburb-shops-cars-debug' && github.event_name != 'pull_request'
