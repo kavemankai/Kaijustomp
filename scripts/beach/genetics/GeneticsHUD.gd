@@ -110,7 +110,7 @@ func refresh() -> void:
 	button.disabled = model.scene.evolving or model.scene.choice_open or model.scene.reveal_active or model.scene.objective_hud.opened
 	stance_button.visible = model.enabled and (model.effects.has(58) or model.effects.has(85)) and not button.disabled and not dialog.visible and not model.scene.game_over
 	stance_button.text = ("STANCE ON" if model.effects.stance else "REST / GUARD")+("\nMOVE TO CANCEL" if model.effects.has(58) else "\nSPRINT TO CANCEL")
-	var ready:=model.enabled and not button.disabled and not dialog.visible and not model.scene.game_over
+	var ready: bool=model.enabled and not button.disabled and not dialog.visible and not model.scene.game_over
 	traverse_button.visible=ready and (model.traversal.can_use("flight") or model.traversal.can_use("glide") or model.traversal.can_use("burrow") or model.traversal.can_use("climb"))
 	traverse_button.text="LAND / EXIT" if model.traversal.mode!="ground" else "TRAVERSE"
 	ascend_button.visible=ready and model.traversal.mode in ["flight","climb"]
