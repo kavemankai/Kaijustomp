@@ -98,6 +98,12 @@ var sprint_button: Button
 var evolve_button: Button
 var retry_button: Button
 var debug_evolve_button: Button
+var debug_batch_dialog: ConfirmationDialog
+var debug_batch_spin: SpinBox
+var debug_batch_preview: Label
+const DEBUG_BATCH_MAX := 60
+const DEBUG_TOTAL_LEVEL_CAP := 120
+const DEBUG_MUTATION_CYCLE := ["armour", "strength", "speed", "stamina", "health", "jaw", "regen", "cocoon", "metamorphosis"]
 var modal_shade: ColorRect
 var modal: CenterContainer
 var choice_column: VBoxContainer
@@ -649,6 +655,8 @@ func _build_ui() -> void:
 	debug_evolve_button.visible = OS.has_feature("debug")
 	debug_evolve_button.pressed.connect(_debug_evolve)
 	debug_evolve_button.focus_mode = Control.FOCUS_NONE
+	if OS.has_feature("debug"):
+		_build_debug_batch_dialog()
 	modal_shade = ColorRect.new()
 	modal_shade.color = Color(.04,.10,.12,.58)
 	modal_shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -714,17 +722,136 @@ func _cost() -> int:
 	return 55 + evolutions * 25
 
 
+func _build_debug_batch_dialog() -> void:
+	# Compact Android-friendly selector, deliberately isolated from the
+	# regular mutation-selection modal. Everything is created once.
+	debug_batch_dialog = ConfirmationDialog.new()
+	debug_batch_dialog.title = "DEBUG: BATCH EVOLUTION"
+	debug_batch_dialog.ok_button_text = "EVOLVE ALL"
+	debug_batch_dialog.cancel_button_text = "CANCEL"
+	debug_batch_dialog.process_mode = Node.PROCESS_MODE_ALWAYS
+	debug_batch_dialog.exclusive = true
+	debug_batch_dialog.theme = CoastalHUD.theme()
+	ui_layer.add_child(debug_batch_dialog)
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 12)
+	debug_batch_dialog.add_child(column)
+	column.position = Vector2(14, 8)
+	var heading := Label.new()
+	heading.text = "Levels to add (not target level)"
+	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	column.add_child(heading)
+	debug_batch_spin = SpinBox.new()
+	debug_batch_spin.min_value = 1.0
+	debug_batch_spin.max_value = float(DEBUG_BATCH_MAX)
+	debug_batch_spin.step = 1.0
+	debug_batch_spin.value = 5.0
+	debug_batch_spin.rounded = true
+	debug_batch_spin.custom_minimum_size = Vector2(310, 55)
+	column.add_child(debug_batch_spin)
+	var presets := HBoxContainer.new()
+	presets.add_theme_constant_override("separation", 5)
+	column.add_child(presets)
+	for preset in [1, 5, 10, 20, 34, 50]:
+		var button := Button.new()
+		button.text = str(preset)
+		button.custom_minimum_size = Vector2(46, 48)
+		button.focus_mode = Control.FOCUS_NONE
+		button.pressed.connect(_debug_select_preset.bind(preset))
+		presets.add_child(button)
+	debug_batch_preview = Label.new()
+	debug_batch_preview.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	debug_batch_preview.add_theme_font_size_override("font_size", 16)
+	column.add_child(debug_batch_preview)
+	var hint := Label.new()
+	hint.text = "Instant growth and automatic mutations. No eating required."
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint.add_theme_font_size_override("font_size", 12)
+	column.add_child(hint)
+	debug_batch_spin.value_changed.connect(_debug_refresh_batch_preview)
+	debug_batch_dialog.confirmed.connect(_debug_apply_selected_batch)
+
+
+func _debug_select_preset(count: int) -> void:
+	if is_instance_valid(debug_batch_spin):
+		debug_batch_spin.value = mini(count, _debug_levels_available())
+
+
+func _debug_levels_available() -> int:
+	return maxi(0, mini(DEBUG_BATCH_MAX, DEBUG_TOTAL_LEVEL_CAP - evolutions))
+
+
+func _debug_refresh_batch_preview(_value: float = 0.0) -> void:
+	if not is_instance_valid(debug_batch_preview):
+		return
+	var count := maxi(0, mini(int(debug_batch_spin.value), _debug_levels_available()))
+	var target := evolutions + count
+	debug_batch_preview.text = "E%d  →  E%d    |    SIZE %.2fx" % [
+		evolutions, target, GrowthProgression.target_scale(target)]
+	debug_batch_dialog.get_ok_button().disabled = count < 1
+
+
 func _debug_evolve() -> void:
-	# Available only in test/debug builds. This starts a free evolution without
-	# changing regular feeding costs, then skips the dangerous countdown so
-	# testers can inspect growth/mutations rapidly. Choice and skin reveal stay
-	# intact, with no queued double-evolution during pause.
+	# The on-screen button now opens a level-count selector; never opens 34
+	# sequential choice menus. Keep it entirely out of release builds.
 	if not OS.has_feature("debug") or game_over or evolving or choice_open or reveal_active:
 		return
-	biomass = maxi(biomass, _cost())
-	_start_evolution()
-	if evolving:
-		_finish_evolution()
+	if not is_instance_valid(debug_batch_dialog):
+		return
+	var available := _debug_levels_available()
+	if available < 1:
+		return
+	debug_batch_spin.max_value = float(available)
+	debug_batch_spin.value = float(mini(5, available))
+	_debug_refresh_batch_preview()
+	debug_batch_dialog.popup_centered(Vector2i(390, 280))
+	if is_instance_valid(touch_input):
+		touch_input.reset_input()
+
+
+func _debug_apply_selected_batch() -> void:
+	if is_instance_valid(debug_batch_spin):
+		_debug_evolve_batch(int(debug_batch_spin.value))
+
+
+func _debug_evolve_batch(level_count: int) -> void:
+	# Debug-only one-frame state change. Each level records a real evolution
+	# and earns an automatic mutation; only size milestones update physics.
+	# No vulnerable timer, old-skin pile, modal or 60 sequential reveals.
+	if not OS.has_feature("debug") or game_over or evolving or choice_open or reveal_active:
+		return
+	if level_count <= 0 or level_count > _debug_levels_available():
+		return
+	for i in range(level_count):
+		var id: String = DEBUG_MUTATION_CYCLE[evolutions % DEBUG_MUTATION_CYCLE.size()]
+		match id:
+			"armour": armour += 1
+			"strength": strength += 1
+			"speed": speed_bonus += 1.6
+			"stamina": max_stamina += 35.0
+			"health": max_hp += 25.0
+			"jaw": bite_duration = maxf(.23, bite_duration * .78)
+			"regen": regeneration += 1
+			"cocoon": cocoon_rank += 1
+			"metamorphosis": metamorphosis_rank += 1
+		if int(mutation_visual_counts.get(id, 0)) < 3:
+			_apply_mutation_visual(id)
+		else:
+			mutation_visual_counts[id] = int(mutation_visual_counts.get(id, 0)) + 1
+		_record_evolution(id)
+		evolutions += 1
+		if GrowthProgression.is_growth_step(evolutions):
+			_apply_growth_milestone(evolutions)
+	hp = max_hp
+	stamina = max_stamina
+	sprint_locked = false
+	sprint_requested = false
+	sprint_active = false
+	bite_timer = 0.0
+	_reset_evolution_pose()
+	_update_creature_animation(.0, false)
+	_update_camera(1.0)
+	_update_hud()
 
 
 func _physics_process(delta: float) -> void:
@@ -1541,7 +1668,7 @@ func _update_hud() -> void:
 	coastal_hud.update_state(hp, max_hp, stamina, max_stamina, biomass, _cost(), evolutions, status if evolving or game_over else district_name)
 	if is_instance_valid(debug_evolve_button):
 		debug_evolve_button.visible = OS.has_feature("debug") and not game_over
-		debug_evolve_button.disabled = evolving or choice_open or reveal_active
+		debug_evolve_button.disabled = evolving or choice_open or reveal_active or evolutions >= DEBUG_TOTAL_LEVEL_CAP
 	evolve_button.visible = not evolving and not game_over and biomass >= _cost()
 	evolution_progress.visible = evolving
 	if evolving:

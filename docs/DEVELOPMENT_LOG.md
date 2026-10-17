@@ -1,5 +1,10 @@
 # Development log
 
+## 2026-10-17 — selectable multi-level DEBUG EVO
+
+Player requested choosing how many levels to evolve in one batch. On isolated `feature/debug-batch-evolution`, replace DEBUG EVO's single forced mutation menu with a portrait numeric/preset selector (1/5/10/20/34/50, editable 1–60) and apply all levels in one operation. Record one automatic real mutation and ordered history entry per step, compute all sparse growth milestones, and update the correct final anatomy, collision and camera without repeated 34 skin reveals. Keep normal progression intact, debug-build-only gating, input guards and sensible E120 test limit. Add 11th CI regression and distinct APK package; verify on phone before merging. See [BATCH_DEBUG_EVOLUTION.md](BATCH_DEBUG_EVOLUTION.md).
+
+
 ## 2026-10-17 — E34 collision destruction and feeding feedback
 
 Phone playtest screenshot at evolution 34 shows the giant above houses. Player reports giant cannot destroy buildings or cars and requests upright feeding with arms grabbing, plus an extendable tongue for greater reach. Branch `feature/giant-demolition-upright-feeding`: fix growth-stage mass demolition via X/Z contact on movement, scale vehicle/structure impact power without requiring Strength mutations. Animate paired forelimb grip instead of diving head, hand-to-mouth prey pull and visible tongue for upright targets beyond ordinary arm reach. Preserve four-legged controls/camera, mutations and free DEBUG EVO. Add a tenth headless regression and separate Android package; await physical phone test and visual acceptance. See [GIANT_FEEDING.md](GIANT_FEEDING.md).

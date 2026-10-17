@@ -95,24 +95,22 @@ func _run() -> void:
 	if not _check(demo.officers.size() == 2, "Police did not respond beyond the first suburb"): return
 	for cop in demo.officers:
 		if not _check(cop["node"].global_position.distance_to(demo.beast.global_position) < 75.0, "Police dispatched back to beach"): return
-	# Free evolution must not alter the live progression cost or growth cadence.
+	# The former debug one-level shortcut now selects a batch count.
 	if not _check(demo._cost() == 55 and demo.evolutions == 0, "Pre-debug progression changed"): return
 	if OS.has_feature("debug"):
 		if not _check(demo.debug_evolve_button.visible, "Visible developer button missing from debug build"): return
-		for n in range(5):
-			demo.biomass = 0
-			demo._debug_evolve()
-			if not _check(demo.choice_open and paused and not demo.evolving and demo.evolutions == n, "Free evolution did not open safe mutation choice"): return
-			demo._debug_evolve()
-			if not _check(demo.evolutions == n, "Overlapping debug request bypassed safe paused modal"): return
-			demo._choose_mutation("speed")
-			_complete_reveal(demo)
-			await process_frame
-			if not _check(not paused and demo.evolutions == n+1 and demo.biomass == 0, "Debug failed to complete cost-free evolution"): return
+		demo.biomass = 0
+		demo._debug_evolve()
+		if not _check(demo.debug_batch_dialog.visible and not demo.choice_open and demo.evolutions == 0, "Debug button did not open a level selector"): return
+		demo.debug_batch_spin.value = 5.0
+		demo.debug_batch_dialog.hide()
+		demo._debug_apply_selected_batch()
+		if not _check(demo.evolutions == 5 and demo.biomass == 0 and not paused and not demo.choice_open and not demo.reveal_active, "Batch debug skipped fewer than five or consumed food"): return
 		if not _check(demo.growth_stage == 1 and is_equal_approx(demo.growth_scale, 1.20), "Free debug choices broke growth level 5"): return
 	else:
 		demo.biomass = 0
 		demo._debug_evolve()
+		demo._debug_evolve_batch(5)
 		if not _check(not demo.evolving and demo.evolutions == 0, "Free cheat active outside debug builds"): return
-	print("SHOPPING CARS DEBUG TEST PASSED: 80 buildings, 14 shops, solid moving and smashable vehicles, shopping crowds, local police, free debug evolutions and level-5 growth")
+	print("SHOPPING CARS DEBUG TEST PASSED: 80 buildings, 14 shops, solid moving and smashable vehicles, shopping crowds, local police, five-level batch debug and level-5 growth")
 	quit(0)
