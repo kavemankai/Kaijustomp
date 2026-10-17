@@ -305,8 +305,9 @@ func _damage_car(index: int, amount: float) -> void:
 		car["node"].queue_free()
 		_make_debris(at, 8)
 		alert += 7.0
-		# The driver flees the wreck and becomes a normal edible pedestrian.
+		# Occupants still flee even when the giant has outgrown human prey.
 		_spawn_civilian(at + Vector3(3.7, 0, 2.7))
+		_award_demolition_biomass(DietProgression.car_biomass(growth_scale))
 	cars[index] = car
 
 
@@ -1172,6 +1173,8 @@ func _damage_building(index: int, hits: float) -> void:
 				3: spawn_offset = Vector3(randf_range(-half.x, half.x), 0, -half.y - 2.0)
 			_spawn_civilian(source + spawn_offset)
 		b["hidden"] = 0
+		_award_demolition_biomass(DietProgression.structure_biomass(
+			growth_scale, String(b["name"]), Vector2(half.x * 2.0, half.y * 2.0)))
 		Input.vibrate_handheld(65)
 	buildings[index] = b
 
@@ -1201,7 +1204,9 @@ func _update_debris(delta: float) -> void:
 		debris[i] = d
 
 func _update_biting(_delta: float) -> void:
-	if bite_timer > 0.0:
+	# Once the hands dwarf a human-sized target, stop attempting the tiny
+	# lift-to-mouth animation. People still panic and flee in the world.
+	if bite_timer > 0.0 or not DietProgression.can_grab_people(growth_scale):
 		return
 	var facing := -beast.global_transform.basis.z
 	var reach := _bite_reach()
@@ -1249,6 +1254,16 @@ func _feed(amount: int) -> void:
 	alert += 5.0
 	bite_timer = bite_duration
 	Input.vibrate_handheld(28)
+
+
+func _award_demolition_biomass(amount: int) -> void:
+	# Structure/car feeding is tied to the one-time destruction event, not
+	# repetitive attack attempts. No tiny-grab animation is played.
+	if amount <= 0:
+		return
+	biomass += amount
+	hp = minf(max_hp, hp + 5.0)
+
 
 func _update_civilians(delta: float) -> void:
 	for i in range(civilians.size() - 1, -1, -1):
@@ -1665,6 +1680,9 @@ func _update_hud() -> void:
 		int(ceil(hp)), int(max_hp), biomass, _cost(), int(100.0 * stamina / max_stamina), evolutions, status
 	]
 	var district_name := "SHOPPING DISTRICT" if beast.global_position.z < SHOPPING_DISTRICT_Z else ("COASTAL NEIGHBOURHOOD" if beast.global_position.z < -82.0 else ("COASTAL KAIJU" if upright_form else "COASTAL HATCHLING"))
+	var food_source := DietProgression.diet_label(growth_scale)
+	if food_source != "PEOPLE":
+		district_name = "COASTAL DIET: " + food_source if beast.global_position.z > -82.0 else ("SHOPPING: " if beast.global_position.z < SHOPPING_DISTRICT_Z else "SUBURB: ") + food_source
 	coastal_hud.update_state(hp, max_hp, stamina, max_stamina, biomass, _cost(), evolutions, status if evolving or game_over else district_name)
 	if is_instance_valid(debug_evolve_button):
 		debug_evolve_button.visible = OS.has_feature("debug") and not game_over
