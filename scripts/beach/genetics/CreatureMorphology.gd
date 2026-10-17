@@ -43,7 +43,7 @@ func configure(genome: GenomeState, generic_ranks: Dictionary = {}) -> void:
 	else:
 		_core(body, primary)
 		for family in families:
-			if genome.ranks.has(GeneRegistry.seed_key(family)): _signature(body,family,genome.ranks.has("gene_061"))
+			if genome.ranks.has(GeneRegistry.seed_key(family)): _signature(body,family,genome.ranks.has("gene_061"),int(genome.ranks[GeneRegistry.seed_key(family)]))
 		for id in traits: _trait(MutationExpressionLibrary.trait_frame(body, primary, id),id)
 		MutationExpressionLibrary.render(body,primary,generic_ranks)
 		var merged := CoastalArt.merge(body,"GeneticCore")
@@ -141,43 +141,43 @@ func _core(body: Node3D, family: String) -> void:
 		var eye_y := 1.98 if family == "bird" else (1.69 if family == "ape" else (1.51 if family == "snake" else 1.08))
 		for s in [-1,1]: eye(body,Vector3(s*.40,eye_y,-1.32))
 
-func _signature(body: Node3D, family: String, pincer_hands: bool = false) -> void:
+func _signature(body: Node3D, family: String, pincer_hands: bool = false, tier: int = 1) -> void:
 	match family:
 		"reptile":
-			for i in range(6):
-				var plate := CoastalArt.box(body,Vector3(0,1.40,.9-i*.40),Vector3(.36,.42,.26),Color("de8a49"))
+			for i in range(5+mini(4,tier)):
+				var plate := CoastalArt.box(body,Vector3(0,1.40,.95-i*.32),Vector3(.36+tier*.045,.42+tier*.045,.26),Color("de8a49"))
 				plate.rotation.z=PI*.25
 		"biomass":
 			for s in [-1,1]:
-				for i in range(3):
-					link(body,Vector3(s*.55,1.1,i*.4-.3),Vector3(s*(1.0+i*.10),1.6+i*.15,i*.4-.5),.095,Color("d58b9b"))
+				for i in range(1+mini(4,tier)):
+					link(body,Vector3(s*.55,1.1,i*.4-.3),Vector3(s*(1.0+i*.10),1.6+i*.15+tier*.10,i*.4-.5),.095+tier*.008,Color("d58b9b"))
 				oval(body,Vector3(s*.65,.95,.3),Vector3(.3,.4,.4),Color("733f65"))
 		"snake":
-			for s in [-1,1]: link(body,Vector3(s*.32,1.12,-1.49),Vector3(s*.26,.73,-1.92),.10,CREAM)
+			for s in [-1,1]: link(body,Vector3(s*.32,1.12,-1.49),Vector3(s*.26,.73,-1.92-tier*.095),.10+tier*.02,CREAM)
 		"bird":
 			for s in [-1,1]:
-				for i in range(5):
-					var feather := oval(body,Vector3(s*(.88+i*.24),1.1-i*.07,.1+i*.14),Vector3(.28,.10,.74-i*.04),Color("d6ad63") if i%2 else Color("5b7a85"))
+				for i in range(3+mini(4,tier)):
+					var feather := oval(body,Vector3(s*(.88+i*.24),1.1-i*.07,.1+i*.14),Vector3(.28+tier*.025,.10,.74-i*.03+tier*.07),Color("d6ad63") if i%2 else Color("5b7a85"))
 					feather.rotation.y=s*(.3+i*.12)
 		"crab":
-			oval(body,Vector3(0,1.29,.25),Vector3(.98,.24,1.0),Color("d46b3d"))
+			oval(body,Vector3(0,1.29,.25),Vector3(.98+tier*.14,.24+tier*.03,1.0+tier*.08),Color("d46b3d"))
 			for s in [-1,1]:
-				link(body,Vector3(s*.65,.9,-.6),Vector3(s*1.35,.6,-1.25),.22,Color("c96534"))
+				link(body,Vector3(s*.65,.9,-.6),Vector3(s*1.35,.6,-1.25),.22+tier*.03,Color("c96534"))
 				for t in [-1,1]: link(body,Vector3(s*1.35,.6,-1.2),Vector3(s*1.35+t*.20,.59,-1.95),.15,Color("e19151"))
 		"spider":
 			for s in [-1,1]:
-				for i in range(3): eye(body,Vector3(s*(.16+i*.18),1.20,-1.33),.09)
+				for i in range(2+mini(3,tier)): eye(body,Vector3(s*(.16+i*.16),1.20,-1.33),.08+tier*.01)
 		"ape":
-			oval(body,Vector3(0,1.15,-.05),Vector3(.96,.62,.70),Color("795744"))
+			oval(body,Vector3(0,1.15,-.05),Vector3(.96+tier*.07,.62+tier*.055,.70+tier*.06),Color("795744"))
 			for s in [-1,1]:
-				link(body,Vector3(s*.75,1.35,-.35),Vector3(s*1.35,.45,-1.0),.30,Color("795744"))
+				link(body,Vector3(s*.75,1.35,-.35),Vector3(s*1.35,.45,-1.0),.30+tier*.045,Color("795744"))
 				if not pincer_hands: oval(body,Vector3(s*1.4,.4,-1.15),Vector3(.36,.3,.38),Color("a37b59"))
 		"worm":
-			for i in range(5): oval(body,Vector3(0,.30,-.6+i*.38),Vector3(.70,.13,.13),CREAM)
+			for i in range(3+mini(5,tier)): oval(body,Vector3(0,.30,-.6+i*.31),Vector3(.70+tier*.04,.13+tier*.015,.13),CREAM)
 		"mole":
 			for s in [-1,1]:
 				oval(body,Vector3(s*.9,.45,-.8),Vector3(.4,.3,.47),Color("aa8a72"))
-				for i in range(3): link(body,Vector3(s*(.65+i*.18),.45,-1.0),Vector3(s*(.65+i*.18),.20,-1.87),.09,CREAM)
+				for i in range(3): link(body,Vector3(s*(.65+i*.18),.45,-1.0),Vector3(s*(.65+i*.18),.20,-1.87-tier*.11),.09+tier*.01,CREAM)
 			oval(body,Vector3(0,.72,-1.50),Vector3(.28,.22,.40),Color("d49e9d"))
 
 func animate(phase: float, moving: bool) -> void:
