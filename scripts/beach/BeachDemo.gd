@@ -909,6 +909,8 @@ func _update_tongue_lash() -> void:
 		return
 	if not tongue_active or not is_instance_valid(prey_in_mouth) or bite_timer <= 0.0:
 		tongue_root.visible = false
+		if bite_timer <= 0.0:
+			tongue_active = false
 		return
 	var source := head_pivot.to_global(Vector3(0, -.26, -1.34))
 	var target: Vector3 = prey_in_mouth.global_position
@@ -1093,15 +1095,23 @@ func _update_biting(_delta: float) -> void:
 			_capture_and_feed(cop, 16)
 			return
 
+func _normal_grab_reach() -> float:
+	return maxf(BITE_RANGE * growth_scale, -head_collision_node.position.z + head_collision_shape.radius * .8) if upright_form else BITE_RANGE * growth_scale
+
+
 func _bite_reach() -> float:
-	# Preserve hatchling reach/cone. Raised jaws must still collect ground prey.
-	return maxf(BITE_RANGE * growth_scale, -head_collision_node.position.z + head_collision_shape.radius * 0.8) if upright_form else BITE_RANGE * growth_scale
+	# Only the upright form gains an extra 45% reach through a retractable
+	# tongue; hatchling balance and the existing input cone remain unchanged.
+	return _normal_grab_reach() * (1.45 if upright_form else 1.0)
+
 
 func _capture_and_feed(prey: Node3D, amount: int) -> void:
-	# Remove the target from AI updates immediately, but keep its mesh for
-	# the brief jaw-grab/swallow visual instead of making it vanish at contact.
+	# The grabbed actor stays rendered while a pair of arms pulls it toward
+	# the face. Beyond ordinary arm reach an animated tongue begins the pull.
 	if is_instance_valid(prey_in_mouth):
 		prey_in_mouth.queue_free()
+	prey_origin = prey.global_position
+	tongue_active = upright_form and prey_origin.distance_to(beast.global_position) > _normal_grab_reach()
 	prey_in_mouth = prey
 	prey.reparent(head_pivot, true)
 	_feed(amount)
