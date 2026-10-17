@@ -1,3 +1,9 @@
+# Mission build desktop probe - 17 October 2026
+
+APK229 source `c9776a3`, same existing rendered traversal probe with mission logic active and menu closed. Startup 661.438 ms / 1,118 nodes; sampled peak process-tree RSS 240.78 MiB. CPU update p95 across representative sizes 7.855-9.007 ms, maximum 13.131 ms; generation max 5.616 ms. E120 retained 149 chunks / 1,580 nodes / 231 registry slots. Raw data: [validation/objectives/rendered.json](validation/objectives/rendered.json). Single desktop run, not a controlled performance comparison or Android FPS validation. Objective rows allocate on opening and remain bounded by the fixed 13-goal set. Phone frame pacing/thermals and open-menu scrolling still need testing.
+
+---
+
 # Streamed world measurements - 17 October 2026
 
 Exact source `9c4d94e`, APK227. [WORLD_TEST_RESULTS.md](WORLD_TEST_RESULTS.md) records final probe scope and full measurements; [raw data](validation/world/README.md) preserves results. Windows headless startup 550.655 ms / 1,101 nodes / 36.44 MiB static; rendered startup 629.304 ms. Sampled process-tree peak RSS is 123.46 MiB headless and 239.81 MiB rendered. These differ from engine static allocation and exclude full GPU accounting.

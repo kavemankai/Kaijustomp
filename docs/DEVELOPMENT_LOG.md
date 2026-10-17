@@ -1,6 +1,6 @@
 # 2026-10-17 - missions and landmark implementation
 
-Added concurrent exploration, discovery, demolition, existing evolution milestones, responder victories and alive DEFCON escape objectives. Five generated landmark identities decorate stable existing parcels; Banksia remains unchanged. A compact portrait tracker and scrollable selection panel clear touch state and pause gameplay while open. Completions award one-time Renown badges rather than biomass. Optional validated objective records migrate old world saves, preserve future formats, and use existing bounded async checkpoints. New regression and rendered capture helpers cover objectives/persistence/UI/identity; final APK evidence follows in the handover.
+Added concurrent exploration, discovery, demolition, existing evolution milestones, responder victories and alive DEFCON escape objectives. Five generated landmark identities decorate stable existing parcels; Banksia remains unchanged. A compact portrait tracker and scrollable selection panel clear touch state and pause gameplay while open. Completions award one-time Renown badges rather than biomass. Optional validated objective records migrate old world saves, preserve future formats, and use existing bounded async checkpoints. New regression and rendered capture helpers cover objectives/persistence/UI/identity; Delivered as APK229 from c9776a3; all 24 Windows/Linux suites and Android packaging checks pass. Artifact, digest and remaining device acceptance are in the current handover.
 
 ---
 

@@ -1,3 +1,19 @@
+# Missions and landmarks verification - 17 October 2026
+
+[World Preview APK #229](https://github.com/kavemankai/Kaijustomp/releases/download/persistent-world-229-c9776a3/Kaijustomp-229-c9776a3-debug.apk), source `c9776a3b7370ce04986a8916d2a90a9e811be20d`, [Android run229](https://github.com/kavemankai/Kaijustomp/actions/runs/39017558000). 28,104,076 bytes, package `com.kavemankai.kaijustomp.worldpreview`, version `0.1.229-debug`, ARM64. SHA-256 `2532a6bd9e970e79540a3183fef685cb45485889750069944499ab5991acec93`.
+
+All **24 suites**, import and launch pass on Windows and Linux CI for the exact source. Android push/PR runs [229](https://github.com/kavemankai/Kaijustomp/actions/runs/39017558000) / [230](https://github.com/kavemankai/Kaijustomp/actions/runs/39017560533) and smoke [155](https://github.com/kavemankai/Kaijustomp/actions/runs/39017557974) / [156](https://github.com/kavemankai/Kaijustomp/actions/runs/39017560557) pass. CI confirms APK v2/v3 signatures, package/launcher, ZIP CRC and both ARM64 libraries' native 16 KiB alignment. Downloaded release bytes independently match the published SHA-256 and byte count; ZIP CRC and both native libraries' 16 KiB alignment pass locally. See validation/objectives/apk-verification.json.
+
+`test_world_objectives` adds actual discovery/travel, all six destinations and distinctive art, landmark damage/tombstones through unload, duplicate reward prevention, responder combat, alive DEFCON cooldown, E22/E34 credit, objective UI pause/selection/control reset, disk progress/track restoration, legacy destruction credit, malformed records and future-format preservation. All original gameplay and streamed-world suites remain intact. Renown is derived from completion flags and does not award biomass.
+
+[Raw results and captures](validation/objectives/README.md) include final Windows JSON and 540x960 tracker/list/harbour/command images. The rendered RTX3050 Laptop/OpenGL3.3 traversal probe records startup **661.438 ms / 1,118 nodes / 40.37 MiB static**, sampled peak process-tree RSS **240.78 MiB**, CPU update p95 **7.855-9.007 ms**, p99 **9.257-12.120 ms**, maximum **13.131 ms**, and generation max **5.616 ms**. E120 retains **149 chunks / 1,580 nodes / 231 registry slots** in this route. The objective menu is closed during traversal; its rows allocate only when opened, and remain bounded by 13 goals. Different workloads and scheduling preclude claims of measured improvement over APK227.
+
+Phone installation, portrait multitouch/scrolling, sustained FPS/memory/thermals and natural mission/progression pacing remain unverified. Synthetic UI signals and settled screenshots do not substitute for those checks. Smaller custom world extents may omit default landmark destinations. See WORLD_OBJECTIVES.md for scope and save compatibility.
+
+The historical results below apply to APK227, not the new mission build.
+
+---
+
 # Persistent world verification - 17 October 2026
 
 Delivered gameplay/build source: `9c4d94e328a1fcde517441aef2a73751fd0c42e9`, branch `feature/persistent-streamed-world`. [Draft PR #18](https://github.com/kavemankai/Kaijustomp/pull/18) targets `integration/stable-baseline`. No merge or approved-release replacement occurred. Later documentation commits do not change this APK source.

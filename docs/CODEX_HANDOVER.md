@@ -1,7 +1,16 @@
-# Missions and landmarks follow-up - implementation candidate
+# Missions and landmarks delivered - 17 October 2026
 
-The branch now adds 13 persistent optional objectives, six landmark destinations (five distinctive generated structures plus preserved Banksia Heights), a portrait tracker/selection panel and one-time Renown badges. Existing evolution, biomass and DEFCON escalation remain unchanged. Old world-preview saves gain objective records without resetting the world. See WORLD_OBJECTIVES.md for contracts. New APK publication and final verification evidence will replace this candidate note after CI.
+[Download World Preview APK #229](https://github.com/kavemankai/Kaijustomp/releases/download/persistent-world-229-c9776a3/Kaijustomp-229-c9776a3-debug.apk) | [immutable release](https://github.com/kavemankai/Kaijustomp/releases/tag/persistent-world-229-c9776a3) | [draft PR #18](https://github.com/kavemankai/Kaijustomp/pull/18). Gameplay/build source `c9776a3b7370ce04986a8916d2a90a9e811be20d`; later documentation commits only record evidence. Branch `feature/persistent-streamed-world` still targets integration/stable-baseline; no merge or approved-build replacement.
 
+Adds **13 optional persistent objectives**, **six landmark destinations** (five distinctive generated structures plus unchanged Banksia Heights), a portrait tracker/scrollable selection panel, target direction/distance and one-time **10 Renown** badges. Exploration, demolition, evolution milestones and DEFCON combat/escape goals are concurrently active. Renown is a displayed achievement score, not biomass/currency; evolution, diet and escalation remain unchanged. Opening the objective list pauses gameplay and clears touch input. Old world-preview saves gain optional validated progress without resetting the world; destroyed structures and evolution receive reconstructable credit. RESTART still clears the run.
+
+Import/launch and **all 24 suites pass on Windows and Linux CI**, including the original 16. Push/PR smoke and Android runs are green for this source. CI verifies package/launcher, ARM64, v2/v3 signatures, ZIP CRC and native 16 KiB alignment. Downloaded bytes independently match the digest/size; local CRC and native alignment pass. Verification is recorded in WORLD_TEST_RESULTS.md. Package `com.kavemankai.kaijustomp.worldpreview`, version `0.1.229-debug`, 28,104,076 bytes; updates APK227's world-preview package and remains separate from approved/integration packages.
+
+SHA-256: `2532a6bd9e970e79540a3183fef685cb45485889750069944499ab5991acec93`.
+
+Read [WORLD_OBJECTIVES.md](WORLD_OBJECTIVES.md) for objective/landmark IDs, persistence and UI ownership. Raw tests, rendered probe, selected CI evidence and portrait captures are in [validation/objectives](validation/objectives/README.md). Final desktop rendered CPU update p95 ranges 7.855-9.007 ms, peak process-tree RSS 240.78 MiB. These are single-run desktop observations, not Android FPS/thermal acceptance. Phone installation/touch, long natural progression and mission pacing remain unverified. This mission set has no narrative quest chain or spendable Renown shop.
+
+The prior world milestone below records APK227 and its distinct measurements; it is retained for history.
 ---
 
 # Persistent streamed world handover - 17 October 2026

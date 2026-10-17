@@ -1,6 +1,6 @@
 # Missions, landmarks and progression objectives
 
-This additive feature builds on World Preview APK227 without changing world dimensions, generator version, building IDs/footprints/rewards, core evolution or DEFCON escalation. Delivery APK and final verification are recorded in CODEX_HANDOVER.md after CI publication.
+This additive feature builds on World Preview APK227 without changing world dimensions, generator version, building IDs/footprints/rewards, core evolution or DEFCON escalation. Delivered as World Preview APK229, source `c9776a3`; final artifact and verification are recorded in CODEX_HANDOVER.md and WORLD_TEST_RESULTS.md.
 
 ## Playing
 

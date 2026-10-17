@@ -1,0 +1,14 @@
+{
+  "source": "c9776a3b7370ce04986a8916d2a90a9e811be20d",
+  "apk": "Kaijustomp-229-c9776a3-debug.apk",
+  "bytes": 28104076,
+  "sha256": "2532a6bd9e970e79540a3183fef685cb45485889750069944499ab5991acec93",
+  "matches_published_digest": true,
+  "zip_crc_passed": true,
+  "native_libraries": [
+    "lib/arm64-v8a/libc++_shared.so",
+    "lib/arm64-v8a/libgodot_android.so"
+  ],
+  "alignment": "PASS: lib/arm64-v8a/libc++_shared.so (4 load segments, 16 KiB compatible)\nPASS: lib/arm64-v8a/libgodot_android.so (4 load segments, 16 KiB compatible)",
+  "signature_package_verification": "GitHub Actions Android job117352689329 (v2/v3; worldpreview; ARM64; launcher). Physical device unavailable."
+}
