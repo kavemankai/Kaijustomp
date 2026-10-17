@@ -47,6 +47,21 @@ func read_save() -> bool:
 		if not parsed is Dictionary: continue
 		var version := int(parsed.get("version", -1))
 		var saved_events = parsed.get("events",{})
+		var saved_player = parsed.get("player",{})
+		if saved_player is Dictionary and saved_player.get("genetics") is Dictionary:
+			var genetics_version = saved_player["genetics"].get("version",0)
+			var genome_version = saved_player["genetics"].get("genome",{}).get("version",0) if saved_player["genetics"].get("genome") is Dictionary else 0
+			var effects_version = saved_player["genetics"].get("effects",{}).get("version",0) if saved_player["genetics"].get("effects") is Dictionary else 0
+			if (_number(genetics_version) and float(genetics_version)>1) or (_number(genome_version) and float(genome_version)>1) or (_number(effects_version) and float(effects_version)>1):
+				writable=false
+				recovery="unsupported"
+				return false
+		if saved_events is Dictionary and saved_events.get("lineage_archive") is Dictionary:
+			var archive_version = saved_events["lineage_archive"].get("version",0)
+			if _number(archive_version) and float(archive_version)>1:
+				writable=false
+				recovery="unsupported"
+				return false
 		if saved_events is Dictionary and saved_events.get("objectives") is Dictionary:
 			var objective_version = saved_events["objectives"].get("version",0)
 			if _number(objective_version) and float(objective_version)>1:
@@ -108,7 +123,8 @@ static func _valid_document(data: Dictionary) -> bool:
 				if not entry.get(key) is String: return false
 			if not entry.get("size_changed") is bool: return false
 	for key in p:
-		if key not in ["position","mutations","history","evacuations"] and not _number(p[key]): return false
+		if key not in ["position","mutations","history","evacuations","genetics"] and not _number(p[key]): return false
+	if p.has("genetics") and not BeachGenetics.valid(p["genetics"]): return false
 	if p.has("evacuations"):
 		if not p["evacuations"] is Array: return false
 		for event in p["evacuations"]:
@@ -121,6 +137,7 @@ static func _valid_document(data: Dictionary) -> bool:
 				if not _number(event.get(key)) or float(event[key])<0: return false
 	var events = data.get("events",{})
 	if not events is Dictionary: return false
+	if events.has("lineage_archive") and not LineageArchive.valid(events["lineage_archive"]): return false
 	if events.has("objectives") and not WorldObjectives.valid(events["objectives"]): return false
 	var vehicles = events.get("vehicles",{})
 	if not vehicles is Dictionary: return false

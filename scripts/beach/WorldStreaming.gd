@@ -301,8 +301,13 @@ func descriptors_in_rect(rect: Rect2) -> Array[Dictionary]:
 				result.append(d)
 	return result
 
-func save_now(force_flush: bool = false) -> bool:
-	if scene.evolving or scene.choice_open or scene.reveal_active:
+func checkpoint_genetics() -> bool:
+	# CI/capture scripts use in-memory worlds unless they explicitly select a path.
+	if test_mode and state.path=="user://persistent-world-v1.json": return true
+	return save_now(true,true)
+
+func save_now(force_flush: bool = false, frozen_choice: bool = false) -> bool:
+	if scene.evolving or (scene.choice_open and not frozen_choice) or scene.reveal_active:
 		if force_flush: save_writer.flush()
 		return false
 	remember_all()
@@ -311,6 +316,8 @@ func save_now(force_flush: bool = false) -> bool:
 	snapshot["position"] = [scene.beast.position.x,scene.beast.position.y,scene.beast.position.z]
 	snapshot["history"] = scene.evolution_history
 	snapshot["mutations"] = scene.mutation_visual_counts
+	snapshot["genetics"] = scene.genetics.record()
+	state.events["lineage_archive"] = scene.genetics.archive.record()
 	var pending := []
 	for event in scene.evacuations.pending:
 		pending.append({"center":[event["center"].x,event["center"].z],"half":[event["half"].x,event["half"].y],"remaining":event["remaining"],"released":event["released"]})
@@ -331,6 +338,7 @@ func _exit_tree() -> void:
 
 func restore_player() -> void:
 	var p := state.player
+	scene.genetics.restore(p,state.events,test_mode)
 	if p.is_empty(): return
 	for field in PLAYER_FIELDS:
 		if p.has(field): scene.set(field,p[field])
@@ -343,12 +351,15 @@ func restore_player() -> void:
 	var level: int = scene.evolutions
 	while level>0 and not GrowthProgression.is_growth_step(level): level-=1
 	if level>0: scene._apply_growth_milestone(level)
+	scene.genetics.refresh()
 	var pos: Array = p.get("position",[0,0,0])
 	var at := Vector3(float(pos[0]),0,float(pos[2]))
 	if WorldLayout.inside(at): scene.beast.position = at
 	for event in p.get("evacuations",[]):
 		scene.evacuations.pending.append({"center":Vector3(event["center"][0],0,event["center"][1]),"half":Vector2(event["half"][0],event["half"][1]),"remaining":int(event["remaining"]),"released":int(event["released"])})
 	scene._update_camera(1)
+	if scene.genetics.enabled and not scene.genetics.genome.draft.is_empty() and scene.hp>0:
+		scene.call_deferred("_resume_genetic_choice")
 
 func restore_vehicles() -> void:
 	var vehicles: Dictionary = state.events.get("vehicles",{})

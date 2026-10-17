@@ -136,6 +136,14 @@ jobs:
           mkdir -p build/android
           sed -i -E "s@^version/code=.*@version/code=${GITHUB_RUN_NUMBER}@" export_presets.cfg
           sed -i -E "s@^version/name=.*@version/name=\"0.1.${GITHUB_RUN_NUMBER}-debug\"@" export_presets.cfg
+          if [ "$BUILD_BRANCH" = 'feature/persistent-streamed-world' ]; then
+            sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.worldpreview"@' export_presets.cfg
+            sed -i 's@^package/name=.*@package/name="Kaijustomp World Preview"@' export_presets.cfg
+          fi
+          if [ "$BUILD_BRANCH" = 'feature/nine-form-genetics-preview' ]; then
+            sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.geneticpreview"@' export_presets.cfg
+            sed -i 's@^package/name=.*@package/name="Kaijustomp Genetics Preview"@' export_presets.cfg
+          fi
           if [ "$BUILD_BRANCH" = 'integration/stable-baseline' ]; then
             sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.integrationpreview"@' export_presets.cfg
             sed -i 's@^package/name=.*@package/name="Kaijustomp Integration Preview"@' export_presets.cfg
@@ -211,10 +219,16 @@ jobs:
         run: |
           set -euo pipefail
           APK="build/android/$APK_NAME"
-          "$ANDROID_SDK_ROOT/build-tools/35.0.0/apksigner" verify --verbose "$APK"
+          "$ANDROID_SDK_ROOT/build-tools/35.0.0/apksigner" verify --verbose "$APK" | tee "$RUNNER_TEMP/apk-signature.txt"
+          grep -q 'Verified using v2 scheme.*true' "$RUNNER_TEMP/apk-signature.txt"
+          grep -q 'Verified using v3 scheme.*true' "$RUNNER_TEMP/apk-signature.txt"
+          "$ANDROID_SDK_ROOT/build-tools/35.0.0/zipalign" -c -P 16 4 "$APK"
           "$ANDROID_SDK_ROOT/build-tools/35.0.0/aapt" dump badging "$APK" > "$RUNNER_TEMP/apk-badging.txt"
           grep -E '^(package:|application-label:|launchable-activity:|native-code:)' "$RUNNER_TEMP/apk-badging.txt"
-          EXPECTED_PACKAGE='com.kavemankai.kaijustomp.worldpreview'
+          EXPECTED_PACKAGE='com.kavemankai.kaijustomp.geneticpreview'
+          if [ "$BUILD_BRANCH" = 'feature/persistent-streamed-world' ]; then
+            EXPECTED_PACKAGE='com.kavemankai.kaijustomp.worldpreview'
+          fi
           if [ "$BUILD_BRANCH" = 'integration/stable-baseline' ]; then
             EXPECTED_PACKAGE='com.kavemankai.kaijustomp.integrationpreview'
           fi
@@ -539,6 +553,28 @@ jobs:
           Workflow: https://github.com/${GH_REPO}/actions/runs/${GITHUB_RUN_ID}
           EOF
           gh release create "$TAG" "build/android/$APK_NAME" "build/android/$APK_NAME.sha256" --target "$GITHUB_SHA" --title "Kaijustomp integration ${GITHUB_RUN_NUMBER}" --notes-file "$RUNNER_TEMP/integration-notes.md" --prerelease
+          test "$(stat -c '%s' "build/android/$APK_NAME")" = "$(gh release view "$TAG" --json assets --jq ".assets[] | select(.name == \"$APK_NAME\") | .size")"
+
+      - name: Publish immutable genetics preview
+        if: github.ref == 'refs/heads/feature/nine-form-genetics-preview' && github.event_name == 'push'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG="genetics-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:7}"
+          cat > "$RUNNER_TEMP/genetics-notes.md" <<EOF
+          Genetics ground-controller preview from ${GITHUB_SHA}, dependent on unmerged PR18.
+          Nine family proof bodies, three hybrid fixtures, deterministic legal drafts, curated 35 source genes, optional physical growth, lineage archive and a fresh organism in the retained world after death.
+          All 500 source concepts remain indexed; only 35 source genes are playable. Runtime cards describe bounded adaptations; flight, wall climbing and underground travel are locked.
+          Package com.kavemankai.kaijustomp.geneticpreview installs separately from the world and approved previews.
+          Godot 4.5 import/launch, every discovered regression and Android signature/package/ZIP/native 16 KiB checks gate this prerelease.
+          Physical phone touch, sustained frame pacing, thermals, art and natural progression acceptance remain unverified.
+          Workflow: https://github.com/${GH_REPO}/actions/runs/${GITHUB_RUN_ID}
+          See docs/evolution/GENETICS_HANDOVER.md for exact evidence and limits.
+          EOF
+          gh release create "$TAG" "build/android/$APK_NAME" "build/android/$APK_NAME.sha256" --target "$GITHUB_SHA" --title "Kaijustomp genetics ${GITHUB_RUN_NUMBER}" --notes-file "$RUNNER_TEMP/genetics-notes.md" --prerelease
           test "$(stat -c '%s' "build/android/$APK_NAME")" = "$(gh release view "$TAG" --json assets --jq ".assets[] | select(.name == \"$APK_NAME\") | .size")"
 
       - name: Publish immutable persistent world preview

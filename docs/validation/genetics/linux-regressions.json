@@ -1,0 +1,198 @@
+{
+  "godot": "4.5.stable.official.876b29033",
+  "suites": 30,
+  "results": [
+    {
+      "name": "import",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 6.792
+    },
+    {
+      "name": "launch",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.922
+    },
+    {
+      "name": "test_authored_world",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.902
+    },
+    {
+      "name": "test_batch_debug_evolution",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.555
+    },
+    {
+      "name": "test_beach_combat",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.554
+    },
+    {
+      "name": "test_coastal_art",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.553
+    },
+    {
+      "name": "test_defcon_response",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.647
+    },
+    {
+      "name": "test_evolution",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.552
+    },
+    {
+      "name": "test_genetics_core",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.34
+    },
+    {
+      "name": "test_genetics_curated",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.271
+    },
+    {
+      "name": "test_genetics_gameplay",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.086
+    },
+    {
+      "name": "test_genetics_lives",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.459
+    },
+    {
+      "name": "test_genetics_physics",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.738
+    },
+    {
+      "name": "test_giant_demolition_feeding",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.552
+    },
+    {
+      "name": "test_growth_gameplay",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 2.113
+    },
+    {
+      "name": "test_growth_milestones",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.554
+    },
+    {
+      "name": "test_integration_stability",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.644
+    },
+    {
+      "name": "test_long_beach",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.738
+    },
+    {
+      "name": "test_outer_world_offscreen",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.552
+    },
+    {
+      "name": "test_representative_scales",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.738
+    },
+    {
+      "name": "test_scale_diet",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.653
+    },
+    {
+      "name": "test_shopping_cars_debug",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.65
+    },
+    {
+      "name": "test_stylized_creature",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 2.02
+    },
+    {
+      "name": "test_suburb_evolution",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.74
+    },
+    {
+      "name": "test_world_async_save",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.347
+    },
+    {
+      "name": "test_world_generation",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.253
+    },
+    {
+      "name": "test_world_objectives",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.09
+    },
+    {
+      "name": "test_world_persistence",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.345
+    },
+    {
+      "name": "test_world_response",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.831
+    },
+    {
+      "name": "test_world_resume",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.557
+    },
+    {
+      "name": "test_world_streaming",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 24.62
+    },
+    {
+      "name": "test_world_tracking",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.996
+    }
+  ]
+}

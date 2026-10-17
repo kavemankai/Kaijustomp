@@ -86,6 +86,7 @@ var buildings: Array[Dictionary] = []
 var objectives := WorldObjectives.new()
 var objective_hud: ObjectiveHUD
 var world: WorldStreaming
+var genetics: BeachGenetics
 var simple_building_mesh: BoxMesh
 var simple_building_materials: Dictionary = {}
 var debris: Array[Dictionary] = []
@@ -154,6 +155,9 @@ func _ready() -> void:
 	add_child(coastal_effects)
 	world = WorldStreaming.new()
 	add_child(world)
+	genetics = BeachGenetics.new()
+	add_child(genetics)
+	genetics.setup(self)
 	world.setup(self)
 	projectile_system.prepare_collision = world.ensure_segment
 
@@ -355,6 +359,7 @@ func _attack_car(index: int, sprinting: bool) -> void:
 	var car: Dictionary = cars[index]
 	if car["destroyed"]:
 		return
+	genetics.effects.corrode("car",String(car["id"]))
 	var impact_strength := _effective_demolition_strength()
 	if sprinting and (impact_strength >= 2 or growth_scale >= 2.5):
 		_damage_car(index, float(car["hits"]))
@@ -795,6 +800,8 @@ func _damage_response(index: int, damage: float) -> void:
 	if index < 0 or index >= officers.size():
 		return
 	var foe: Dictionary = officers[index]
+	if is_instance_valid(genetics): genetics.on_response_hit(index)
+	damage += genetics.effects.contact_bonus(index)
 	foe["health"] = float(foe["health"]) - damage
 	if float(foe["health"]) <= 0:
 		var point: Vector3 = foe["node"].global_position
@@ -878,7 +885,10 @@ func _build_ui() -> void:
 	retry_button.text = "RESTART"
 	_place_right_button(retry_button, -342, -263)
 	retry_button.visible = false
-	retry_button.pressed.connect(_restart_run)
+	retry_button.pressed.connect(func():
+		if genetics.enabled: genetics.new_organism_keep_world()
+		else: genetics.hud.reset_dialog.popup_centered(Vector2i(420,180))
+	)
 	# Developer-only test shortcut. Shares the former restart slot while alive.
 	debug_evolve_button = Button.new()
 	debug_evolve_button.text = "DEBUG\nEVO"
@@ -999,6 +1009,18 @@ func _build_debug_batch_dialog() -> void:
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.add_theme_font_size_override("font_size", 12)
 	column.add_child(hint)
+	var recipes := OptionButton.new()
+	recipes.add_item("DEBUG: replace genome with a proof recipe")
+	for family in GeneRegistry.FORMS: recipes.add_item(String(family).capitalize())
+	for hybrid in ["Reptile + Bird","Ape + Crab","Worm + Mole"]: recipes.add_item(hybrid)
+	recipes.item_selected.connect(func(index: int):
+		if index==0 or not is_instance_valid(genetics): return
+		if index<=9: genetics.fixture([GeneRegistry.FORMS[index-1]])
+		else: genetics.fixture([["reptile","bird"],["ape","crab"],["worm","mole"]][index-10],3)
+		debug_batch_dialog.hide()
+		_update_hud()
+	)
+	column.add_child(recipes)
 	debug_batch_spin.value_changed.connect(_debug_refresh_batch_preview)
 	debug_batch_dialog.confirmed.connect(_debug_apply_selected_batch)
 
@@ -1018,7 +1040,7 @@ func _debug_refresh_batch_preview(_value: float = 0.0) -> void:
 	var count := maxi(0, mini(int(debug_batch_spin.value), _debug_levels_available()))
 	var target := evolutions + count
 	debug_batch_preview.text = "E%d  →  E%d    |    SIZE %.2fx" % [
-		evolutions, target, GrowthProgression.target_scale(target)]
+		evolutions, target, growth_scale if is_instance_valid(genetics) and genetics.enabled and genetics.genome.growth_policy=="chosen" else GrowthProgression.target_scale(target)]
 	debug_batch_dialog.get_ok_button().disabled = count < 1
 
 
@@ -1055,6 +1077,11 @@ func _debug_evolve_batch(level_count: int) -> void:
 		return
 	for i in range(level_count):
 		var id: String = DEBUG_MUTATION_CYCLE[evolutions % DEBUG_MUTATION_CYCLE.size()]
+		if genetics.enabled:
+			var offers := MutationDraft.create(genetics.genome,genetics.genome.draft_seed,evolutions,genetics.focus)
+			if offers.is_empty(): break
+			id = offers[0]
+			if not genetics.genome.select_gene(id,"life_%d_evo_%d" % [genetics.life_id,evolutions+1]): break
 		match id:
 			"armour": armour += 1
 			"strength": strength += 1
@@ -1065,7 +1092,9 @@ func _debug_evolve_batch(level_count: int) -> void:
 			"regen": regeneration += 1
 			"cocoon": cocoon_rank += 1
 			"metamorphosis": metamorphosis_rank += 1
-		if int(mutation_visual_counts.get(id, 0)) < 3:
+		if id not in DEBUG_MUTATION_CYCLE:
+			pass
+		elif int(mutation_visual_counts.get(id, 0)) < 3:
 			_apply_mutation_visual(id)
 		else:
 			mutation_visual_counts[id] = int(mutation_visual_counts.get(id, 0)) + 1
@@ -1079,8 +1108,10 @@ func _debug_evolve_batch(level_count: int) -> void:
 	sprint_requested = false
 	sprint_active = false
 	bite_timer = 0.0
+	if genetics.enabled: genetics.refresh()
 	_reset_evolution_pose()
 	_update_creature_animation(.0, false)
+	if genetics.enabled: _resolve_growth_clearance()
 	_update_camera(1.0)
 	_update_hud()
 
@@ -1090,6 +1121,9 @@ func _physics_process(delta: float) -> void:
 	if is_instance_valid(objective_hud) and objective_hud.opened:
 		if is_instance_valid(world): world.advance(delta)
 		_update_hud()
+		return
+	if is_instance_valid(genetics) and genetics.hud.dialog.visible:
+		if is_instance_valid(world): world.advance(delta)
 		return
 	# The root runs during pause for UI, but no enemies, damage or movement do.
 	if reveal_active:
@@ -1112,6 +1146,7 @@ func _physics_process(delta: float) -> void:
 		if regeneration > 0:
 			hp = minf(max_hp, hp + float(regeneration) * 0.6 * delta)
 	_update_police(delta)
+	if is_instance_valid(genetics): genetics.advance(delta)
 	_update_projectiles(delta)
 	_update_debris(delta)
 	if evolving and evolution_clock <= 0.0 and not game_over:
@@ -1137,7 +1172,7 @@ func _update_movement(delta: float) -> void:
 		sprint_locked = false
 	sprint_active = sprint_requested and not sprint_locked and moving and stamina > 0.0
 	if sprint_active:
-		stamina = maxf(0.0, stamina - delta * SPRINT_BURN_RATE)
+		stamina = maxf(0.0, stamina - delta * SPRINT_BURN_RATE * genetics.sprint_cost(beast.position))
 		if stamina <= 0.0:
 			sprint_active = false
 			sprint_requested = false
@@ -1149,8 +1184,9 @@ func _update_movement(delta: float) -> void:
 	# Input dictates travel instantly. The body turns rapidly to match travel,
 	# rather than requiring tank-like rotation before moving.
 	var speed := (BASE_WALK + speed_bonus) * (SPRINT_MULTIPLIER if sprint_active else 1.0)
+	speed *= genetics.speed_multiplier(beast.position)
 	if bite_timer > 0.0:
-		speed *= 0.53
+		speed *= genetics.effects.feeding_slowdown()
 	var travelled := 0.0
 	if moving:
 		beast.rotation.y = lerp_angle(beast.rotation.y, atan2(-direction.x, -direction.z), minf(1.0, TURN_RESPONSE * delta))
@@ -1184,8 +1220,10 @@ func _update_movement(delta: float) -> void:
 		# resolves stomp/ram attacks without requiring a direct wall hit.
 		_giant_proximity_contact()
 		travelled = beast.global_position.distance_to(previous_position)
+		beast.velocity = (beast.global_position-previous_position)/maxf(delta,.001)
 		run_phase += travelled * TAU / (2.5 * maxf(1.0, growth_scale))
 	strike_timer = maxf(0.0, strike_timer - delta)
+	if not moving: beast.velocity = Vector3.ZERO
 	_update_creature_animation(delta, travelled > 0.0001)
 	bite_timer = maxf(0.0, bite_timer - delta)
 
@@ -1248,6 +1286,10 @@ func _update_creature_animation(delta: float, moving: bool) -> void:
 		head_collision_node.position = beast.to_local(head_pivot.to_global(Vector3(0, -0.16, -1.11)))
 	else:
 		head_collision_node.position = Vector3(0, 0.94, -2.20 - 0.67 * snap) * growth_scale
+	if is_instance_valid(genetics) and genetics.enabled and genetics.morphology.visible:
+		# The hidden legacy muzzle pose must not move a custom body's collider
+		# after its sweep. Keep the proof head within its conservative envelope.
+		head_collision_node.position = Vector3(0,1.4,-1.0)*growth_scale
 	if is_instance_valid(prey_in_mouth):
 		var mouth := head_pivot.to_global(Vector3(0, -.43, -1.16))
 		if upright_form:
@@ -1381,6 +1423,9 @@ func _attack_building(index: int, running: bool) -> void:
 	var b: Dictionary = buildings[index]
 	if b["destroyed"]:
 		return
+	genetics.breach(index)
+	genetics.effects.corrode("building",String(b["id"]))
+	if buildings[index]["destroyed"]: return
 	# Weak forms always chip away at even heavy buildings. High tier buildings
 	# take many minutes at baseline strength, but the first hit shows a crack.
 	var impact_strength := _effective_demolition_strength()
@@ -1477,7 +1522,7 @@ func _update_biting(_delta: float) -> void:
 		var npc: Node3D = civilians[i]["node"]
 		var toward := npc.global_position - beast.global_position
 		toward.y = 0.0
-		if toward.length_squared() <= reach * reach and facing.dot(toward.normalized()) >= BITE_CONE_DOT:
+		if toward.length_squared() <= reach * reach and facing.dot(toward.normalized()) >= genetics.cone():
 			civilians.remove_at(i)
 			_capture_and_feed(npc, 12)
 			return
@@ -1487,7 +1532,7 @@ func _update_biting(_delta: float) -> void:
 		var cop: Node3D = officers[i]["node"]
 		var toward := cop.global_position - beast.global_position
 		toward.y = 0.0
-		if toward.length_squared() <= reach * reach and facing.dot(toward.normalized()) >= BITE_CONE_DOT:
+		if toward.length_squared() <= reach * reach and facing.dot(toward.normalized()) >= genetics.cone():
 			officers.remove_at(i)
 			objectives.responder_defeated()
 			_capture_and_feed(cop, 16)
@@ -1500,7 +1545,7 @@ func _normal_grab_reach() -> float:
 func _bite_reach() -> float:
 	# Only the upright form gains an extra 45% reach through a retractable
 	# tongue; hatchling balance and the existing input cone remain unchanged.
-	return _normal_grab_reach() * (1.45 if upright_form else 1.0)
+	return _normal_grab_reach() * (1.45 if upright_form else 1.0) * genetics.reach_multiplier()
 
 
 func _capture_and_feed(prey: Node3D, amount: int) -> void:
@@ -1509,13 +1554,16 @@ func _capture_and_feed(prey: Node3D, amount: int) -> void:
 	if is_instance_valid(prey_in_mouth):
 		prey_in_mouth.queue_free()
 	prey_origin = prey.global_position
+	if genetics.enabled and genetics.genome.total()>0:
+		genetics.genome.credit_behaviour(genetics.genome.ordered_families()[0],"fed_%d" % prey.get_instance_id())
 	tongue_active = upright_form and prey_origin.distance_to(beast.global_position) > _normal_grab_reach()
 	prey_in_mouth = prey
 	prey.reparent(head_pivot, true)
 	_feed(amount)
+	if genetics.enabled: genetics.refresh()
 
 func _feed(amount: int) -> void:
-	biomass += amount
+	biomass += int(ceil(amount*genetics.effects.feed_multiplier()))
 	hp = minf(max_hp, hp + 15.0)
 	_add_alert(5.0)
 	bite_timer = bite_duration
@@ -1527,7 +1575,7 @@ func _award_demolition_biomass(amount: int) -> void:
 	# repetitive attack attempts. No tiny-grab animation is played.
 	if amount <= 0:
 		return
-	biomass += amount
+	biomass += int(ceil(amount*genetics.effects.feed_multiplier()))
 	hp = minf(max_hp, hp + 5.0)
 
 
@@ -1560,6 +1608,8 @@ func _update_civilians(delta: float) -> void:
 						civilians.remove_at(i)
 						continue
 				var new_pos := person.global_position + travel * float(c["speed"]) * delta
+				travel = genetics.effects.lure_direction(person.global_position,travel)
+				new_pos = person.global_position + travel * float(c["speed"]) * delta
 				new_pos.x = clampf(new_pos.x, -PLAYABLE_HALF_LENGTH + 1.0, PLAYABLE_HALF_LENGTH - 1.0)
 				new_pos.z = clampf(new_pos.z, NEIGHBOURHOOD_FAR_Z + 6.0, WorldLayout.shore(new_pos.x)-3)
 				if _blocking_building(new_pos) < 0:
@@ -1690,6 +1740,7 @@ func _update_police(delta: float) -> void:
 		var desired := 55.0 if helicopter else (30.0 if kind == "armoured" else 12.0)
 		if distance > desired:
 			var travel := to_beast.normalized() * delta * float(foe["speed"]) * maxf(1.0, sqrt(growth_scale))
+			if float(foe.get("gene_slow",0))>0: travel *= .5
 			if helicopter:
 				unit.global_position += travel
 			else:
@@ -1731,6 +1782,7 @@ func _update_police(delta: float) -> void:
 				var aim := beast.global_position + Vector3(0, 1.75 * growth_scale, 0)
 				var moving_player := sprint_active or touch_vector.length_squared() > .05
 				var spread := 2.2 if moving_player else .65
+				if genetics.effects.concealed(): spread+=2.0
 				aim += Vector3(randf_range(-spread,spread),randf_range(-spread*.4,spread*.4),randf_range(-spread,spread))
 				# APC rounds originate beyond their own hull, and aircraft rounds
 				# stay alive long enough to actually reach the player at range.
@@ -1761,6 +1813,9 @@ func _take_damage(raw: float) -> void:
 	if game_over:
 		return
 	var damage := raw * pow(0.78, armour)
+	damage *= genetics.damage_multiplier()
+	damage *= genetics.effects.incoming(raw)
+	genetics.effects.retaliate()
 	if evolving:
 		# The cocoon protects health and resists transformation interruption.
 		damage *= pow(0.82, cocoon_rank)
@@ -1775,6 +1830,7 @@ func _take_damage(raw: float) -> void:
 			shedding.abort_shed()
 		evolving = false
 		retry_button.visible = true
+		genetics.finalize_death()
 		if is_instance_valid(world) and not world.test_mode: world.save_now()
 	elif evolving and evolution_damage >= _cocoon_break_limit():
 		_reset_evolution_pose()
@@ -1822,6 +1878,33 @@ func _start_evolution() -> void:
 	evolution_clock = evolution_total
 	shedding.begin_shed(beast_visual)
 
+func _resume_genetic_choice() -> void:
+	if game_over or not genetics.enabled or genetics.genome.draft.is_empty(): return
+	shedding.begin_shed(beast_visual)
+	_finish_evolution()
+
+func _show_genetic_choices() -> void:
+	for child in choice_column.get_children():
+		choice_column.remove_child(child)
+		child.queue_free()
+	genetics.prepare_draft()
+	genetics.hud.refresh()
+	var header := Label.new()
+	header.text = "CHOOSE ONE ADAPTATION\n" + genetics.genome.label()
+	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	header.add_theme_font_size_override("font_size",18)
+	choice_column.add_child(header)
+	var lanes := ["STRENGTHEN","EXPLORE","ADAPT"]
+	for i in range(genetics.genome.draft.size()):
+		var key: String = genetics.genome.draft[i]
+		var card := Button.new()
+		card.custom_minimum_size = Vector2(430,150)
+		card.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		card.add_theme_font_size_override("font_size",14)
+		card.text = "%d · %s\n%s" % [i+1,lanes[i],genetics.preview(key)]
+		card.pressed.connect(_choose_mutation.bind(key))
+		choice_column.add_child(card)
+
 func _finish_evolution() -> void:
 	evolving = false
 	_reset_evolution_pose()
@@ -1829,6 +1912,9 @@ func _finish_evolution() -> void:
 	get_tree().paused = true
 	modal.visible = true
 	modal_shade.show()
+	if genetics.enabled:
+		_show_genetic_choices()
+		return
 	for child in choice_column.get_children():
 		child.queue_free()
 	var header := Label.new()
@@ -1873,6 +1959,8 @@ func _finish_evolution() -> void:
 func _choose_mutation(id: String) -> void:
 	if not choice_open:
 		return
+	if genetics.enabled and not genetics.choose(id): return
+	if not genetics.enabled and id not in DEBUG_MUTATION_CYCLE: return
 	match id:
 		"armour": armour += 1
 		"speed": speed_bonus += 1.6
@@ -1883,7 +1971,7 @@ func _choose_mutation(id: String) -> void:
 		"regen": regeneration += 1
 		"cocoon": cocoon_rank += 1
 		"metamorphosis": metamorphosis_rank += 1
-	_apply_mutation_visual(id)
+	if id in DEBUG_MUTATION_CYCLE: _apply_mutation_visual(id)
 	_record_evolution(id)
 	biomass = maxi(0, biomass - _cost())
 	evolutions += 1
@@ -1903,6 +1991,7 @@ func _choose_mutation(id: String) -> void:
 	touch_input.reset_input()
 
 func _apply_growth_milestone(level: int) -> void:
+	if is_instance_valid(genetics) and genetics.enabled and genetics.genome.growth_policy == "chosen": return
 	# Mutations are continuous. Size only changes at 5/10/16/22/28/34,
 	# then every six later evolutions. Keep progression deterministic.
 	if not GrowthProgression.is_growth_step(level):
@@ -1952,6 +2041,7 @@ func _growth_position_clear(position: Vector3) -> bool:
 
 
 func _evolution_label(id: String) -> String:
+	if GeneRegistry.definitions().has(id): return GeneRegistry.definitions()[id]["name"]
 	match id:
 		"armour": return "Hardened Scales"
 		"speed": return "Fleet Limbs"
@@ -1973,8 +2063,8 @@ func _record_evolution(id: String) -> void:
 		"mutation_id": id,
 		"label": _evolution_label(id),
 		"growth_milestone": GrowthProgression.stage_for(evolutions + 1),
-		"size_changed": GrowthProgression.is_growth_step(evolutions + 1),
-		"form": GrowthProgression.form_name(evolutions + 1)
+		"size_changed": id == "physical_growth" if genetics.enabled and genetics.genome.growth_policy == "chosen" else GrowthProgression.is_growth_step(evolutions + 1),
+		"form": genetics.genome.identity()["anatomy"]["body_plan"] if genetics.enabled else GrowthProgression.form_name(evolutions + 1)
 	})
 
 
@@ -2008,6 +2098,9 @@ func _on_reveal_finished() -> void:
 	Input.vibrate_handheld(85)
 	get_tree().paused = false
 	touch_input.reset_input()
+	if genetics.enabled:
+		genetics.refresh()
+		if not world.test_mode: world.save_now(true)
 
 
 func _apply_mutation_visual(id: String) -> void:
@@ -2030,6 +2123,7 @@ func _update_camera(delta: float) -> void:
 	follow_camera.look_at(_camera_look_target(), Vector3.UP)
 
 func _update_hud() -> void:
+	if is_instance_valid(genetics): genetics.hud.refresh()
 	var status := "EVOLVING %.1fs  |  DAMAGE %.0f/%.0f" % [evolution_clock, evolution_damage, _cocoon_break_limit()] if evolving else ("GAME OVER" if game_over else "Hunt / feed / escape / evolve")
 	stats_label.text = "HP %d/%d    BIOMASS %d/%d\nSTAMINA %d%%    EVOLUTIONS %d\n%s" % [
 		int(ceil(hp)), int(max_hp), biomass, _cost(), int(100.0 * stamina / max_stamina), evolutions, status
@@ -2077,7 +2171,10 @@ func _input(event: InputEvent) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_SPACE and reveal_active:
+		if choice_open and genetics.enabled and event.keycode in [KEY_1,KEY_2,KEY_3]:
+			var index := int(event.keycode)-KEY_1
+			if index < genetics.genome.draft.size(): _choose_mutation(genetics.genome.draft[index])
+		elif event.keycode == KEY_SPACE and reveal_active:
 			shedding.accelerate_reveal()
 		elif event.keycode == KEY_E:
 			_start_evolution()
@@ -2086,7 +2183,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.keycode == KEY_SHIFT:
 			_toggle_sprint()
 		elif event.keycode == KEY_R and game_over:
-			_restart_run()
+			if genetics.enabled: genetics.new_organism_keep_world()
+			else: genetics.hud.reset_dialog.popup_centered(Vector2i(420,180))
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_APPLICATION_PAUSED:

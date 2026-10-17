@@ -1,0 +1,41 @@
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:48:30.2474005Z PASS import (6.792s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:48:32.1697269Z PASS launch (1.922s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:48:33.0714803Z PASS test_authored_world (0.902s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:48:34.6266284Z PASS test_batch_debug_evolution (1.555s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:48:36.1802838Z PASS test_beach_combat (1.554s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:48:37.7334017Z PASS test_coastal_art (1.553s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:48:39.3806164Z PASS test_defcon_response (1.647s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:48:40.9331018Z PASS test_evolution (1.552s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:48:41.2736253Z PASS test_genetics_core (0.34s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:48:42.5450073Z PASS test_genetics_curated (1.271s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:48:43.6311013Z PASS test_genetics_gameplay (1.086s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:48:45.0906093Z PASS test_genetics_lives (1.459s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:48:46.8288556Z PASS test_genetics_physics (1.738s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:48:48.3806441Z PASS test_giant_demolition_feeding (1.552s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:48:50.4934038Z PASS test_growth_gameplay (2.113s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:48:52.0475698Z PASS test_growth_milestones (1.554s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:48:53.6918942Z PASS test_integration_stability (1.644s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:48:55.4296261Z PASS test_long_beach (1.738s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:48:56.9818362Z PASS test_outer_world_offscreen (1.552s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:48:58.7199408Z PASS test_representative_scales (1.738s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:49:00.3732541Z PASS test_scale_diet (1.653s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:49:02.0236776Z PASS test_shopping_cars_debug (1.65s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:49:04.0439724Z PASS test_stylized_creature (2.02s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:49:05.7841293Z PASS test_suburb_evolution (1.74s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:49:06.1314478Z PASS test_world_async_save (0.347s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:49:06.3843840Z PASS test_world_generation (0.253s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:49:07.4743307Z PASS test_world_objectives (1.09s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:49:07.8194199Z PASS test_world_persistence (0.345s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:49:09.6507416Z PASS test_world_response (1.831s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:49:11.2075438Z PASS test_world_resume (1.557s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:49:35.8271251Z PASS test_world_streaming (24.62s)
+build-android-apk	Import, launch and run every gameplay regression	2026-10-17T12:49:36.8230369Z PASS test_world_tracking (0.996s)
+build-android-apk	Export portrait Android debug APK	2026-10-17T12:49:48.3569179Z PASS: lib/arm64-v8a/libc++_shared.so (4 load segments, 16 KiB compatible)
+build-android-apk	Export portrait Android debug APK	2026-10-17T12:49:48.3570279Z PASS: lib/arm64-v8a/libgodot_android.so (4 load segments, 16 KiB compatible)
+build-android-apk	Verify Android APK signature and package	2026-10-17T12:49:48.6771478Z Verified using v2 scheme (APK Signature Scheme v2): true
+build-android-apk	Verify Android APK signature and package	2026-10-17T12:49:48.6772966Z Verified using v3 scheme (APK Signature Scheme v3): true
+build-android-apk	Verify Android APK signature and package	2026-10-17T12:49:48.9408110Z package: name='com.kavemankai.kaijustomp.geneticpreview' versionCode='233' versionName='0.1.233-debug' platformBuildVersionName='15' platformBuildVersionCode='35' compileSdkVersion='35' compileSdkVersionCodename='15'
+build-android-apk	Verify Android APK signature and package	2026-10-17T12:49:48.9410165Z application-label:'Kaijustomp Genetics Preview'
+build-android-apk	Verify Android APK signature and package	2026-10-17T12:49:48.9411042Z launchable-activity: name='com.godot.game.GodotApp'  label='Kaijustomp Genetics Preview' icon=''
+build-android-apk	Verify Android APK signature and package	2026-10-17T12:49:48.9411628Z native-code: 'arm64-v8a'
+build-android-apk	Verify Android APK signature and package	2026-10-17T12:49:48.9674731Z 80493fdf6c6ddd2d7d206b996028ea69b476548e5140784216f0b467047b42f3  Kaijustomp-233-7b217d9-debug.apk

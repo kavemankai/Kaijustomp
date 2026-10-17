@@ -1,0 +1,501 @@
+source_id,source_key,name,catalogued,runtime_defined,integrated,visualized,automated_tested,playable_prototype,runtime_effect_or_reason
+1,001_splittongue_organ,Splittongue Organ,yes,yes,yes,yes,yes,yes,Forked tongue marks nearby prey (28 units).
+2,002_ecdysial_shedding,Ecdysial Shedding,yes,yes,yes,yes,yes,yes,Loose scutes give 22% damage resistance for 3 seconds every 12 seconds.
+3,003_basking_scales,Basking Scales,yes,no,no,no,no,no,Concept only; absent from live drafts.
+4,004_gular_pouch_inflatable,Gular Pouch (Inflatable),yes,no,no,no,no,no,Concept only; absent from live drafts.
+5,005_prehensile_tail_tip,Prehensile Tail Tip,yes,no,no,no,no,no,Concept only; absent from live drafts.
+6,006_sub_dermal_osteoderms,Sub-dermal Osteoderms,yes,yes,yes,yes,yes,yes,Dorsal osteoderms: 18% less damage per rank (capped).
+7,007_acidic_saliva_gland,Acidic Saliva Gland,yes,yes,yes,yes,yes,yes,Acid saliva corrodes contacted structures and cars for 3 seconds; maximum 8 targets.
+8,008_cold_blooded_inertia,Cold-Blooded Inertia,yes,no,no,no,no,no,Concept only; absent from live drafts.
+9,009_spike_row_ridge,Spike-Row Ridge,yes,yes,yes,yes,yes,yes,Ridge spines add 6 damage to close responder impacts.
+10,010_vertical_pupil_array,Vertical Pupil Array,yes,no,no,no,no,no,Concept only; absent from live drafts.
+11,011_fangs_of_the_pit_viper,Fangs of the Pit Viper,yes,yes,yes,yes,yes,yes,Venom fangs: contact envenoms responders for 3 seconds; no effect on vehicles.
+12,012_scavenger_jaw,Scavenger Jaw,yes,yes,yes,yes,yes,yes,Scavenger jaw grants 25% more biomass from eligible food; diet gates remain.
+13,013_sub_aqueous_nostrils,Sub-Aqueous Nostrils,yes,no,no,no,no,no,Concept only; absent from live drafts.
+14,014_thermal_pits,Thermal Pits,yes,yes,yes,yes,yes,yes,Thermal pits mark prey through cover within 40 units.
+15,015_clawed_digging_spades,Clawed Digging Spades,yes,yes,yes,yes,yes,yes,Digging spades: surface breach every 4 seconds chips nearby structures; no tunnelling.
+16,016_chitinous_underbelly,Chitinous Underbelly,yes,no,no,no,no,no,Concept only; absent from live drafts.
+17,017_venom_sac_neurotoxic,Venom Sac (Neurotoxic),yes,no,no,no,no,no,Concept only; absent from live drafts.
+18,018_venom_sac_necrotic,Venom Sac (Necrotic),yes,no,no,no,no,no,Concept only; absent from live drafts.
+19,019_tail_club_node,Tail Club Node,yes,yes,yes,yes,yes,yes,Tail club strikes a nearby rear responder for 10 damage and slows it for 2 seconds; 4s cooldown.
+20,020_camouflage_chromatophores,Camouflage Chromatophores,yes,yes,yes,yes,yes,yes,Still camouflage adds 2 units of enemy aim spread after 2 seconds without movement.
+21,021_downy_proto_feathers,Downy Proto-Feathers,yes,no,no,no,no,no,Concept only; absent from live drafts.
+22,022_hollow_bone_struts,Hollow Bone Struts,yes,yes,yes,yes,yes,yes,Feathered winglets: +12% ground speed per rank; +10% incoming damage. Flight locked.
+23,023_beak_sharpening_rhamphotheca,Beak Sharpening (Rhamphotheca),yes,no,no,no,no,no,Concept only; absent from live drafts.
+24,024_aero_dynamic_crest,Aero-Dynamic Crest,yes,no,no,no,no,no,Concept only; absent from live drafts.
+25,025_nictitating_membrane,Nictitating Membrane,yes,no,no,no,no,no,Concept only; absent from live drafts.
+26,026_taloned_hallux,Taloned Hallux,yes,no,no,no,no,no,Concept only; absent from live drafts.
+27,027_syrinx_expansion,Syrinx Expansion,yes,no,no,no,no,no,Concept only; absent from live drafts.
+28,028_keeled_sternum_foundation,Keeled Sternum Foundation,yes,no,no,no,no,no,Concept only; absent from live drafts.
+29,029_gliding_patagium_primitive,Gliding Patagium (Primitive),yes,no,no,no,no,no,Concept only; absent from live drafts.
+30,030_raptor_vision,Raptor Vision,yes,yes,yes,yes,yes,yes,Raptor eyes mark prey out to 52 units and widen the feeding cone.
+31,031_crop_storage_pouch,Crop Storage Pouch,yes,no,no,no,no,no,Concept only; absent from live drafts.
+32,032_uropygial_preen_gland,Uropygial Preen Gland,yes,no,no,no,no,no,Concept only; absent from live drafts.
+33,033_pelagic_salt_gland,Pelagic Salt Gland,yes,no,no,no,no,no,Concept only; absent from live drafts.
+34,034_scavenger_scythe_beak,Scavenger Scythe Beak,yes,no,no,no,no,no,Concept only; absent from live drafts.
+35,035_tendon_locking_feet,Tendon-Locking Feet,yes,no,no,no,no,no,Concept only; absent from live drafts.
+36,036_wing_spur_knuckles,Wing-Spur Knuckles,yes,yes,yes,yes,yes,yes,Wing spurs add 14 responder contact damage while sprinting.
+37,037_high_frequency_auditory_slits,High-Frequency Auditory Slits,yes,no,no,no,no,no,Concept only; absent from live drafts.
+38,038_frugivore_crop,Frugivore Crop,yes,no,no,no,no,no,Concept only; absent from live drafts.
+39,039_pneumatic_air_sacs,Pneumatic Air Sacs,yes,yes,yes,yes,yes,yes,Air sacs reduce sprint drain by 20%.
+40,040_flock_call_resonance,Flock-Call Resonance,yes,no,no,no,no,no,Concept only; absent from live drafts.
+41,041_opposable_hallux,Opposable Hallux,yes,no,no,no,no,no,Concept only; absent from live drafts.
+42,042_dense_guard_hair,Dense Guard Hair,yes,yes,yes,yes,yes,yes,Guard hair reduces small-arms damage (raw <=10) by 12%.
+43,043_canine_hyper_tusks,Canine Hyper-Tusks,yes,yes,yes,yes,yes,yes,Tusks add 8 penetrating damage on responder contact.
+44,044_shoulder_girdle_rotator,Shoulder Girdle Rotator,yes,yes,yes,yes,yes,yes,Long grasping arms: +18% feeding reach per rank and wider capture cone.
+45,045_echolocation_whiskers,Echolocation Whiskers,yes,no,no,no,no,no,Concept only; absent from live drafts.
+46,046_omnivorous_grinder_molars,Omnivorous Grinder Molars,yes,no,no,no,no,no,Concept only; absent from live drafts.
+47,047_adrenal_gland_hyper_drive,Adrenal Gland Hyper-Drive,yes,yes,yes,yes,yes,yes,Adrenal veins give 25% more speed below 35% health.
+48,048_brachiating_forelimbs,Brachiating Forelimbs,yes,no,no,no,no,no,Concept only; absent from live drafts.
+49,049_sub_cutaneous_fat_layer,Sub-Cutaneous Fat Layer,yes,yes,yes,yes,yes,yes,Fat layer reduces heavy hits by 20%; 8% slower movement.
+50,050_scent_marking_glands,Scent-Marking Glands,yes,no,no,no,no,no,Concept only; absent from live drafts.
+51,051_pack_hunter_coordination_node,Pack-Hunter Coordination Node,yes,no,no,no,no,no,Concept only; absent from live drafts.
+52,052_burrowing_fore_claws,Burrowing Fore-Claws,yes,no,no,no,no,no,Concept only; absent from live drafts.
+53,053_semi_aquatic_webbed_paws,Semi-Aquatic Webbed Paws,yes,no,no,no,no,no,Concept only; absent from live drafts.
+54,054_cranial_crest_anchor,Cranial Crest Anchor,yes,no,no,no,no,no,Concept only; absent from live drafts.
+55,055_high_capacity_lungs,High-Capacity Lungs,yes,no,no,no,no,no,Concept only; absent from live drafts.
+56,056_prehensile_tail_muscular,Prehensile Tail (Muscular),yes,no,no,no,no,no,Concept only; absent from live drafts.
+57,057_nocturnal_tapetum_lucidum,Nocturnal Tapetum Lucidum,yes,yes,yes,yes,yes,yes,"Eyeshine marks nearby prey within 34 units; perception proof, no day/night system."
+58,058_hibernation_torpor_node,Hibernation Torpor Node,yes,yes,yes,yes,yes,yes,"REST stance heals 2 HP/s while still, but incoming damage rises 20%. Move to cancel."
+59,059_milk_gland_primitives,Milk-Gland Primitives,yes,no,no,no,no,no,Concept only; absent from live drafts.
+60,060_bone_crushing_premolars,Bone-Crushing Premolars,yes,no,no,no,no,no,Concept only; absent from live drafts.
+61,061_chitinous_exoskeleton_tier_1,Chitinous Exoskeleton (Tier 1),yes,yes,yes,yes,yes,yes,Segmented shell and pincers: 16% damage reduction per rank; 6% slower per rank.
+62,062_compound_ocelli,Compound Ocelli,yes,yes,yes,yes,yes,yes,"Ocelli and eight-leg frame: mark nearest prey within 38 units, wider feeding cone."
+63,063_mandible_scythes,Mandible Scythes,yes,no,no,no,no,no,Concept only; absent from live drafts.
+64,064_book_lungs,Book Lungs,yes,no,no,no,no,no,Concept only; absent from live drafts.
+65,065_silk_spinneret_gland_1,Silk Spinneret (Gland 1),yes,no,no,no,no,no,Concept only; absent from live drafts.
+66,066_segmented_abdomen,Segmented Abdomen,yes,no,no,no,no,no,Concept only; absent from live drafts.
+67,067_venomous_chelicerae,Venomous Chelicerae,yes,no,no,no,no,no,Concept only; absent from live drafts.
+68,068_walking_leg_array_hexapod,Walking Leg Array (Hexapod),yes,no,no,no,no,no,Concept only; absent from live drafts.
+69,069_walking_leg_array_octopod,Walking Leg Array (Octopod),yes,no,no,no,no,no,Concept only; absent from live drafts.
+70,070_molting_vulnerability_state,Molting Vulnerability State,yes,no,no,no,no,no,Concept only; absent from live drafts.
+71,071_pheromone_beacon,Pheromone Beacon,yes,no,no,no,no,no,Concept only; absent from live drafts.
+72,072_carapace_spikes,Carapace Spikes,yes,yes,yes,yes,yes,yes,Shell spikes deflect every fourth small-arms hit. Heavy rounds remain effective.
+73,073_hydraulic_joint_fluid,Hydraulic Joint Fluid,yes,yes,yes,yes,yes,yes,Hydraulic joints give 20% speed during the first 2 seconds of a sprint.
+74,074_stinger_telson,Stinger Telson,yes,no,no,no,no,no,Concept only; absent from live drafts.
+75,075_burrowing_scavenger_rostrum,Burrowing Scavenger Rostrum,yes,no,no,no,no,no,Concept only; absent from live drafts.
+76,076_reflective_pearlescent_shell,Reflective Pearlescent Shell,yes,no,no,no,no,no,Concept only; absent from live drafts.
+77,077_detritivore_gut,Detritivore Gut,yes,no,no,no,no,no,Concept only; absent from live drafts.
+78,078_cephalothorax_fusion,Cephalothorax Fusion,yes,no,no,no,no,no,Concept only; absent from live drafts.
+79,079_false_eyespot_markings,False Eyespot Markings,yes,no,no,no,no,no,Concept only; absent from live drafts.
+80,080_auditory_tympanal_organs,Auditory Tympanal Organs,yes,no,no,no,no,no,Concept only; absent from live drafts.
+81,081_mucus_slime_coating,Mucus Slime Coating,yes,yes,yes,yes,yes,yes,Mucus reduces feeding slowdown: retain 75% speed instead of 53%.
+82,082_cutaneous_respiration,Cutaneous Respiration,yes,no,no,no,no,no,Concept only; absent from live drafts.
+83,083_regenerative_tail_autotomy,Regenerative Tail Autotomy,yes,no,no,no,no,no,Concept only; absent from live drafts.
+84,084_muscular_foot_gastropod,Muscular Foot (Gastropod),yes,yes,yes,yes,yes,yes,Segmented ventral crawler: 25% cheaper sprint on coastal sand; 12% slower inland.
+85,085_shell_mantle_conical,Shell Mantle (Conical),yes,yes,yes,yes,yes,yes,GUARD stance halves movement and reduces damage 40%. Sprint cancels the stance.
+86,086_radula_rasping_tongue,Radula Rasping Tongue,yes,no,no,no,no,no,Concept only; absent from live drafts.
+87,087_cephalopod_ink_sac,Cephalopod Ink Sac,yes,no,no,no,no,no,Concept only; absent from live drafts.
+88,088_bioluminescent_lure,Bioluminescent Lure,yes,yes,yes,yes,yes,yes,Lure stalk draws quiet prey within 12 units while still; stops above alert 35.
+89,089_osmotic_balance_gland,Osmotic Balance Gland,yes,no,no,no,no,no,Concept only; absent from live drafts.
+90,090_toxin_secreting_skin_glands,Toxin-Secreting Skin Glands,yes,yes,yes,yes,yes,yes,Toxin skin pulses 4 damage against responders within 3 units after a hit; 2s cooldown.
+91,091_lateral_line_system,Lateral Line System,yes,no,no,no,no,no,Concept only; absent from live drafts.
+92,092_metamorphic_gills_to_lungs_node,Metamorphic Gills-to-Lungs Node,yes,no,no,no,no,no,Concept only; absent from live drafts.
+93,093_adhesive_suction_pads,Adhesive Suction Pads,yes,no,no,no,no,no,Concept only; absent from live drafts.
+94,094_amorphous_cartilage_skeleton,Amorphous Cartilage Skeleton,yes,no,no,no,no,no,Concept only; absent from live drafts.
+95,095_electro_reception_pores,Electro-Reception Pores,yes,yes,yes,yes,yes,yes,"Electroreception marks nearby vehicles/responders within 32 units, including behind cover."
+96,096_peridermal_cyst_state,Peridermal Cyst State,yes,no,no,no,no,no,Concept only; absent from live drafts.
+97,097_siphonate_breathing_tube,Siphonate Breathing Tube,yes,no,no,no,no,no,Concept only; absent from live drafts.
+98,098_toxic_spores_fungal_symbiosis,Toxic Spores (Fungal Symbiosis),yes,no,no,no,no,no,Concept only; absent from live drafts.
+99,099_degenerative_acid_slime,Degenerative Acid Slime,yes,yes,yes,yes,yes,yes,Acid slime chips one nearby structure/car each second within 4 units; six pooled trail marks.
+100,100_chimeric_flesh_matrix,Chimeric Flesh Matrix,yes,yes,yes,yes,yes,yes,Patchwork tendrils: support incompatible heavy arms; wider explore offers.
+101,101_titan_jaw_extension,Titan Jaw Extension,yes,no,no,no,no,no,Concept only; absent from live drafts.
+102,102_bony_cranial_crest,Bony Cranial Crest,yes,no,no,no,no,no,Concept only; absent from live drafts.
+103,103_thermodynamic_blood_pumping,Thermodynamic Blood Pumping,yes,no,no,no,no,no,Concept only; absent from live drafts.
+104,104_raptorial_fore_claws,Raptorial Fore-Claws,yes,no,no,no,no,no,Concept only; absent from live drafts.
+105,105_thickened_scute_armor,Thickened Scute Armor,yes,no,no,no,no,no,Concept only; absent from live drafts.
+106,106_venomous_spit_gland,Venomous Spit Gland,yes,no,no,no,no,no,Concept only; absent from live drafts.
+107,107_whip_tail_momentum,Whip Tail Momentum,yes,no,no,no,no,no,Concept only; absent from live drafts.
+108,108_sub_dermal_heat_radiator,Sub-Dermal Heat Radiator,yes,no,no,no,no,no,Concept only; absent from live drafts.
+109,109_apex_predator_roar,Apex Predator Roar,yes,no,no,no,no,no,Concept only; absent from live drafts.
+110,110_swamp_camouflage_webbing,Swamp-Camouflage Webbing,yes,no,no,no,no,no,Concept only; absent from live drafts.
+111,111_gorgon_gland,Gorgon Gland,yes,no,no,no,no,no,Concept only; absent from live drafts.
+112,112_mandible_crushers,Mandible Crushers,yes,no,no,no,no,no,Concept only; absent from live drafts.
+113,113_spiked_elbow_shields,Spiked Elbow Shields,yes,no,no,no,no,no,Concept only; absent from live drafts.
+114,114_deep_forest_stalker_stripe,Deep-Forest Stalker Stripe,yes,no,no,no,no,no,Concept only; absent from live drafts.
+115,115_pyretic_gland_primitive_fire,Pyretic Gland (Primitive Fire),yes,no,no,no,no,no,Concept only; absent from live drafts.
+116,116_crushing_tail_flail,Crushing Tail Flail,yes,no,no,no,no,no,Concept only; absent from live drafts.
+117,117_basal_ridge_frill,Basal Ridge Frill,yes,no,no,no,no,no,Concept only; absent from live drafts.
+118,118_acidic_blood_circulation,Acidic Blood Circulation,yes,no,no,no,no,no,Concept only; absent from live drafts.
+119,119_sub_terra_burrowing_shovel_head,Sub-Terra Burrowing Shovel Head,yes,no,no,no,no,no,Concept only; absent from live drafts.
+120,120_draconic_horn_buds,Draconic Horn Buds,yes,no,no,no,no,no,Concept only; absent from live drafts.
+121,121_true_flight_patagium_leathery,True Flight Patagium (Leathery),yes,no,no,no,no,no,Concept only; absent from live drafts.
+122,122_soaring_thermal_wings,Soaring Thermal Wings,yes,no,no,no,no,no,Concept only; absent from live drafts.
+123,123_dive_bombing_aerodynamics,Dive-Bombing Aerodynamics,yes,no,no,no,no,no,Concept only; absent from live drafts.
+124,124_serrated_beak_blade,Serrated Beak Blade,yes,no,no,no,no,no,Concept only; absent from live drafts.
+125,125_taloned_cargo_grasps,Taloned Cargo Grasps,yes,no,no,no,no,no,Concept only; absent from live drafts.
+126,126_sonic_screech,Sonic Screech,yes,no,no,no,no,no,Concept only; absent from live drafts.
+127,127_plumage_armor_dense_quills,Plumage Armor (Dense Quills),yes,no,no,no,no,no,Concept only; absent from live drafts.
+128,128_avian_lung_air_loops,Avian Lung Air-Loops,yes,no,no,no,no,no,Concept only; absent from live drafts.
+129,129_prey_tracking_eye_bullets,Prey-Tracking Eye Bullets,yes,no,no,no,no,no,Concept only; absent from live drafts.
+130,130_gliding_tail_streamers,Gliding Tail Streamers,yes,no,no,no,no,no,Concept only; absent from live drafts.
+131,131_vulture_stomach_acid,Vulture Stomach Acid,yes,no,no,no,no,no,Concept only; absent from live drafts.
+132,132_thermal_updraft_exploiter,Thermal Updraft Exploiter,yes,no,no,no,no,no,Concept only; absent from live drafts.
+133,133_wing_tip_razor_feathers,Wing-Tip Razor Feathers,yes,no,no,no,no,no,Concept only; absent from live drafts.
+134,134_cranial_helmet_plating,Cranial Helmet Plating,yes,no,no,no,no,no,Concept only; absent from live drafts.
+135,135_gorging_crop_expansion,Gorging Crop Expansion,yes,no,no,no,no,no,Concept only; absent from live drafts.
+136,136_harpy_screamer_node,Harpy Screamer Node,yes,no,no,no,no,no,Concept only; absent from live drafts.
+137,137_storm_chaser_plumage,Storm-Chaser Plumage,yes,no,no,no,no,no,Concept only; absent from live drafts.
+138,138_ambush_perching_nodes,Ambush Perching Nodes,yes,no,no,no,no,no,Concept only; absent from live drafts.
+139,139_plumage_oil_dispersion,Plumage Oil Dispersion,yes,no,no,no,no,no,Concept only; absent from live drafts.
+140,140_proto_dragon_snout,Proto-Dragon Snout,yes,no,no,no,no,no,Concept only; absent from live drafts.
+141,141_gorilla_class_shoulder_vault,Gorilla-Class Shoulder Vault,yes,no,no,no,no,no,Concept only; absent from live drafts.
+142,142_sabre_tooth_extensions,Sabre-Tooth Extensions,yes,no,no,no,no,no,Concept only; absent from live drafts.
+143,143_rhino_class_nasal_horn,Rhino-Class Nasal Horn,yes,no,no,no,no,no,Concept only; absent from live drafts.
+144,144_bipedal_stride_adaptation,Bipedal Stride Adaptation,yes,no,no,no,no,no,Concept only; absent from live drafts.
+145,145_thickened_hide_pachyderm,Thickened Hide (Pachyderm),yes,no,no,no,no,no,Concept only; absent from live drafts.
+146,146_territorial_roar_basin,Territorial Roar Basin,yes,no,no,no,no,no,Concept only; absent from live drafts.
+147,147_pack_alpha_ferocity_buff,Pack-Alpha Ferocity Buff,yes,no,no,no,no,no,Concept only; absent from live drafts.
+148,148_crushing_great_ape_fists,Crushing Great-Ape Fists,yes,no,no,no,no,no,Concept only; absent from live drafts.
+149,149_grizzly_fat_reserves,Grizzly Fat Reserves,yes,no,no,no,no,no,Concept only; absent from live drafts.
+150,150_gluttonous_metabolism,Gluttonous Metabolism,yes,no,no,no,no,no,Concept only; absent from live drafts.
+151,151_tusked_jaw_sweep,Tusked Jaw Sweep,yes,no,no,no,no,no,Concept only; absent from live drafts.
+152,152_ape_agility_vault,Ape Agility Vault,yes,no,no,no,no,no,Concept only; absent from live drafts.
+153,153_sonic_ground_slap,Sonic Ground Slap,yes,no,no,no,no,no,Concept only; absent from live drafts.
+154,154_sub_zero_fur_shaggy_coat,Sub-Zero Fur Shaggy Coat,yes,no,no,no,no,no,Concept only; absent from live drafts.
+155,155_prehensile_foot_grip,Prehensile Foot Grip,yes,no,no,no,no,no,Concept only; absent from live drafts.
+156,156_venom_resistant_liver,Venom-Resistant Liver,yes,no,no,no,no,no,Concept only; absent from live drafts.
+157,157_skilled_tool_debris_lifter,Skilled Tool/Debris Lifter,yes,no,no,no,no,no,Concept only; absent from live drafts.
+158,158_alpha_scent_musk,Alpha Scent Musk,yes,no,no,no,no,no,Concept only; absent from live drafts.
+159,159_heavy_duty_bone_structure,Heavy-Duty Bone Structure,yes,no,no,no,no,no,Concept only; absent from live drafts.
+160,160_primate_intelligence_spark,Primate Intelligence Spark,yes,no,no,no,no,no,Concept only; absent from live drafts.
+161,161_chitinous_exoskeleton_tier_2_plated,Chitinous Exoskeleton (Tier 2 - Plated),yes,no,no,no,no,no,Concept only; absent from live drafts.
+162,162_mantid_forearm_scythes,Mantid Forearm Scythes,yes,no,no,no,no,no,Concept only; absent from live drafts.
+163,163_web_launcher_gland_bolide,Web-Launcher Gland (Bolide),yes,no,no,no,no,no,Concept only; absent from live drafts.
+164,164_centipede_segment_proliferation,Centipede Segment Proliferation,yes,no,no,no,no,no,Concept only; absent from live drafts.
+165,165_scorpion_tail_stinger_heavy,Scorpion Tail Stinger (Heavy),yes,no,no,no,no,no,Concept only; absent from live drafts.
+166,166_compound_eye_facet_expansion,Compound Eye Facet Expansion,yes,no,no,no,no,no,Concept only; absent from live drafts.
+167,167_mandible_grinder_press,Mandible Grinder Press,yes,no,no,no,no,no,Concept only; absent from live drafts.
+168,168_acid_spray_gland,Acid-Spray Gland,yes,no,no,no,no,no,Concept only; absent from live drafts.
+169,169_burrowing_drill_rostrum,Burrowing Drill Rostrum,yes,no,no,no,no,no,Concept only; absent from live drafts.
+170,170_carapace_spine_clusters,Carapace Spine Clusters,yes,no,no,no,no,no,Concept only; absent from live drafts.
+171,171_swarm_queen_pheromone_emitter,Swarm Queen Pheromone Emitter,yes,no,no,no,no,no,Concept only; absent from live drafts.
+172,172_reflective_mirror_scales,Reflective Mirror Scales,yes,no,no,no,no,no,Concept only; absent from live drafts.
+173,173_hydraulic_leg_pistons,Hydraulic Leg Pistons,yes,no,no,no,no,no,Concept only; absent from live drafts.
+174,174_sub_carapace_air_reservoirs,Sub-Carapace Air Reservoirs,yes,no,no,no,no,no,Concept only; absent from live drafts.
+175,175_venom_gland_specialization_necrotic,Venom-Gland Specialization (Necrotic),yes,no,no,no,no,no,Concept only; absent from live drafts.
+176,176_chitin_regeneration_nodes,Chitin Regeneration Nodes,yes,no,no,no,no,no,Concept only; absent from live drafts.
+177,177_silk_anchor_cables,Silk Anchor Cables,yes,no,no,no,no,no,Concept only; absent from live drafts.
+178,178_stalker_camouflage_pattern,Stalker Camouflage Pattern,yes,no,no,no,no,no,Concept only; absent from live drafts.
+179,179_mandible_venom_injection,Mandible Venom Injection,yes,no,no,no,no,no,Concept only; absent from live drafts.
+180,180_arachnid_wall_climbing_hooks,Arachnid Wall-Climbing Hooks,yes,no,no,no,no,no,Concept only; absent from live drafts.
+181,181_giant_salamander_mucus_shield,Giant Salamander Mucus Shield,yes,no,no,no,no,no,Concept only; absent from live drafts.
+182,182_amphibious_tail_fin,Amphibious Tail Fin,yes,no,no,no,no,no,Concept only; absent from live drafts.
+183,183_cephalopod_jet_propulsion,Cephalopod Jet Propulsion,yes,no,no,no,no,no,Concept only; absent from live drafts.
+184,184_constrictor_body_coils,Constrictor Body Coils,yes,no,no,no,no,no,Concept only; absent from live drafts.
+185,185_regenerative_limb_matrix,Regenerative Limb Matrix,yes,no,no,no,no,no,Concept only; absent from live drafts.
+186,186_acidic_slime_trail,Acidic Slime Trail,yes,no,no,no,no,no,Concept only; absent from live drafts.
+187,187_bioluminescent_communication_array,Bioluminescent Communication Array,yes,no,no,no,no,no,Concept only; absent from live drafts.
+188,188_deep_sea_pressure_resistance,Deep-Sea Pressure Resistance,yes,no,no,no,no,no,Concept only; absent from live drafts.
+189,189_amorphous_mass_shift,Amorphous Mass Shift,yes,no,no,no,no,no,Concept only; absent from live drafts.
+190,190_electro_shock_organ_bio_battery,Electro-Shock Organ (Bio-Battery),yes,no,no,no,no,no,Concept only; absent from live drafts.
+191,191_gastropod_shell_fortification,Gastropod Shell Fortification,yes,no,no,no,no,no,Concept only; absent from live drafts.
+192,192_radula_drill_tongue,Radula Drill Tongue,yes,no,no,no,no,no,Concept only; absent from live drafts.
+193,193_toxin_cloud_exhalation,Toxin-Cloud Exhalation,yes,no,no,no,no,no,Concept only; absent from live drafts.
+194,194_lateral_line_wave_sensor,Lateral Line Wave Sensor,yes,no,no,no,no,no,Concept only; absent from live drafts.
+195,195_camouflage_chromatophore_shift,Camouflage Chromatophore Shift,yes,no,no,no,no,no,Concept only; absent from live drafts.
+196,196_parasitic_spore_injector,Parasitic Spore Injector,yes,no,no,no,no,no,Concept only; absent from live drafts.
+197,197_siren_song_resonance,Siren Song Resonance,yes,no,no,no,no,no,Concept only; absent from live drafts.
+198,198_osmotic_nutrient_absorption,Osmotic Nutrient Absorption,yes,no,no,no,no,no,Concept only; absent from live drafts.
+199,199_abyssal_cold_resistance,Abyssal Cold Resistance,yes,no,no,no,no,no,Concept only; absent from live drafts.
+200,200_chimeric_flesh_re_alignment,Chimeric Flesh Re-alignment,yes,no,no,no,no,no,Concept only; absent from live drafts.
+201,201_atomic_breath_core_alpha,Atomic Breath Core (Alpha),yes,no,no,no,no,no,Concept only; absent from live drafts.
+202,202_tectonic_plate_armor,Tectonic Plate Armor,yes,no,no,no,no,no,Concept only; absent from live drafts.
+203,203_draconic_wings_leathery_titan,Draconic Wings (Leathery Titan),yes,no,no,no,no,no,Concept only; absent from live drafts.
+204,204_triple_jaw_array,Triple-Jaw Array,yes,no,no,no,no,no,Concept only; absent from live drafts.
+205,205_magma_blood_circulation,Magma-Blood Circulation,yes,no,no,no,no,no,Concept only; absent from live drafts.
+206,206_seismic_stomp,Seismic Stomp,yes,no,no,no,no,no,Concept only; absent from live drafts.
+207,207_tail_mace_spiked_battering_ram,Tail Mace (Spiked Battering Ram),yes,no,no,no,no,no,Concept only; absent from live drafts.
+208,208_regenerative_nuclear_core,Regenerative Nuclear Core,yes,no,no,no,no,no,Concept only; absent from live drafts.
+209,209_cranial_horn_crown,Cranial Horn Crown,yes,no,no,no,no,no,Concept only; absent from live drafts.
+210,210_venomous_mist_exhalation,Venomous Mist Exhalation,yes,no,no,no,no,no,Concept only; absent from live drafts.
+211,211_sub_dermal_heat_sinks,Sub-Dermal Heat Sinks,yes,no,no,no,no,no,Concept only; absent from live drafts.
+212,212_apex_predator_dominance_aura,Apex Predator Dominance Aura,yes,no,no,no,no,no,Concept only; absent from live drafts.
+213,213_swamp_titan_growth_spores,Swamp-Titan Growth Spores,yes,no,no,no,no,no,Concept only; absent from live drafts.
+214,214_plate_spike_resonance,Plate-Spike Resonance,yes,no,no,no,no,no,Concept only; absent from live drafts.
+215,215_lightning_rod_horns,Lightning-Rod Horns,yes,no,no,no,no,no,Concept only; absent from live drafts.
+216,216_crushing_jaws_of_the_destroyer,Crushing Jaws of the Destroyer,yes,no,no,no,no,no,Concept only; absent from live drafts.
+217,217_basal_frill_solar_absorber,Basal Frill Solar Absorber,yes,no,no,no,no,no,Concept only; absent from live drafts.
+218,218_acid_spitting_throat_gland,Acid-Spitting Throat Gland,yes,no,no,no,no,no,Concept only; absent from live drafts.
+219,219_excavation_tunneling_claws,Excavation Tunneling Claws,yes,no,no,no,no,no,Concept only; absent from live drafts.
+220,220_draconic_ancestry_full_awakening,Draconic Ancestry Full Awakening,yes,no,no,no,no,no,Concept only; absent from live drafts.
+221,221_stratospheric_flight_wings,Stratospheric Flight Wings,yes,no,no,no,no,no,Concept only; absent from live drafts.
+222,222_plasma_charged_talons,Plasma-Charged Talons,yes,no,no,no,no,no,Concept only; absent from live drafts.
+223,223_sonic_boom_dive,Sonic Boom Dive,yes,no,no,no,no,no,Concept only; absent from live drafts.
+224,224_hurricane_gale_wings,Hurricane Gale Wings,yes,no,no,no,no,no,Concept only; absent from live drafts.
+225,225_avian_beak_lance,Avian Beak Lance,yes,no,no,no,no,no,Concept only; absent from live drafts.
+226,226_plasma_screech_beam,Plasma Screech Beam,yes,no,no,no,no,no,Concept only; absent from live drafts.
+227,227_titan_quilled_armor,Titan Quilled Armor,yes,no,no,no,no,no,Concept only; absent from live drafts.
+228,228_high_altitude_oxygen_compressor,High-Altitude Oxygen Compressor,yes,no,no,no,no,no,Concept only; absent from live drafts.
+229,229_prey_dropping_drop_zone,Prey-Dropping Drop-Zone,yes,no,no,no,no,no,Concept only; absent from live drafts.
+230,230_storm_call_resonance,Storm-Call Resonance,yes,no,no,no,no,no,Concept only; absent from live drafts.
+231,231_scavenger_emperor_crop,Scavenger Emperor Crop,yes,no,no,no,no,no,Concept only; absent from live drafts.
+232,232_thermal_updraft_harvester,Thermal Updraft Harvester,yes,no,no,no,no,no,Concept only; absent from live drafts.
+233,233_razor_edge_wing_tips,Razor-Edge Wing Tips,yes,no,no,no,no,no,Concept only; absent from live drafts.
+234,234_titan_skull_plating,Titan Skull Plating,yes,no,no,no,no,no,Concept only; absent from live drafts.
+235,235_gorging_maw_expansion,Gorging Maw Expansion,yes,no,no,no,no,no,Concept only; absent from live drafts.
+236,236_harpy_shockwave_node,Harpy Shockwave Node,yes,no,no,no,no,no,Concept only; absent from live drafts.
+237,237_lightning_absorbing_plumage,Lightning-Absorbing Plumage,yes,no,no,no,no,no,Concept only; absent from live drafts.
+238,238_perching_fortress_talons,Perching Fortress Talons,yes,no,no,no,no,no,Concept only; absent from live drafts.
+239,239_flammable_oil_excretion,Flammable Oil Excretion,yes,no,no,no,no,no,Concept only; absent from live drafts.
+240,240_sky_titan_apex_evolution,Sky-Titan Apex Evolution,yes,no,no,no,no,no,Concept only; absent from live drafts.
+241,241_colossal_gorilla_stature,Colossal Gorilla Stature,yes,no,no,no,no,no,Concept only; absent from live drafts.
+242,242_seismic_ground_pound,Seismic Ground Pound,yes,no,no,no,no,no,Concept only; absent from live drafts.
+243,243_sabre_tooth_titan_fangs,Sabre-Tooth Titan Fangs,yes,no,no,no,no,no,Concept only; absent from live drafts.
+244,244_rhino_titan_charging_horn,Rhino-Titan Charging Horn,yes,no,no,no,no,no,Concept only; absent from live drafts.
+245,245_titan_pachyderm_hide,Titan Pachyderm Hide,yes,no,no,no,no,no,Concept only; absent from live drafts.
+246,246_primate_apocalypse_roar,Primate Apocalypse Roar,yes,no,no,no,no,no,Concept only; absent from live drafts.
+247,247_pack_alpha_titan_command,Pack-Alpha Titan Command,yes,no,no,no,no,no,Concept only; absent from live drafts.
+248,248_crushing_great_ape_smash,Crushing Great-Ape Smash,yes,no,no,no,no,no,Concept only; absent from live drafts.
+249,249_glacial_mammoth_coat,Glacial Mammoth Coat,yes,no,no,no,no,no,Concept only; absent from live drafts.
+250,250_metabolic_rage_engine,Metabolic Rage Engine,yes,no,no,no,no,no,Concept only; absent from live drafts.
+251,251_tusked_sweeping_gore,Tusked Sweeping Gore,yes,no,no,no,no,no,Concept only; absent from live drafts.
+252,252_primate_intelligence_mastery,Primate Intelligence Mastery,yes,no,no,no,no,no,Concept only; absent from live drafts.
+253,253_sonic_chest_beating_drum,Sonic Chest-Beating Drum,yes,no,no,no,no,no,Concept only; absent from live drafts.
+254,254_sub_zero_blizzard_aura,Sub-Zero Blizzard Aura,yes,no,no,no,no,no,Concept only; absent from live drafts.
+255,255_prehensile_tail_anchor,Prehensile Tail Anchor,yes,no,no,no,no,no,Concept only; absent from live drafts.
+256,256_venom_proof_bloodstream,Venom-Proof Bloodstream,yes,no,no,no,no,no,Concept only; absent from live drafts.
+257,257_debris_throwing_precision,Debris-Throwing Precision,yes,no,no,no,no,no,Concept only; absent from live drafts.
+258,258_alpha_territory_stomp,Alpha Territory Stomp,yes,no,no,no,no,no,Concept only; absent from live drafts.
+259,259_heavy_density_core,Heavy-Density Core,yes,no,no,no,no,no,Concept only; absent from live drafts.
+260,260_primate_titan_apex_form,Primate Titan Apex Form,yes,no,no,no,no,no,Concept only; absent from live drafts.
+261,261_chitinous_exoskeleton_tier_3_fortress,Chitinous Exoskeleton (Tier 3 - Fortress),yes,no,no,no,no,no,Concept only; absent from live drafts.
+262,262_mantid_titan_scythe_arms,Mantid Titan Scythe Arms,yes,no,no,no,no,no,Concept only; absent from live drafts.
+263,263_web_launcher_ballistic_net,Web-Launcher Ballistic Net,yes,no,no,no,no,no,Concept only; absent from live drafts.
+264,264_centipede_titan_megabody,Centipede Titan Megabody,yes,no,no,no,no,no,Concept only; absent from live drafts.
+265,265_scorpion_titan_stinger_cannon,Scorpion Titan Stinger Cannon,yes,no,no,no,no,no,Concept only; absent from live drafts.
+266,266_compound_titan_facets,Compound Titan Facets,yes,no,no,no,no,no,Concept only; absent from live drafts.
+267,267_mandible_crusher_press_titan,Mandible Crusher Press (Titan),yes,no,no,no,no,no,Concept only; absent from live drafts.
+268,268_acid_spray_titan_torrents,Acid-Spray Titan Torrents,yes,no,no,no,no,no,Concept only; absent from live drafts.
+269,269_drill_rostrum_core_borer,Drill-Rostrum Core Borer,yes,no,no,no,no,no,Concept only; absent from live drafts.
+270,270_carapace_spine_artillery,Carapace Spine Artillery,yes,no,no,no,no,no,Concept only; absent from live drafts.
+271,271_swarm_queen_mind_control,Swarm Queen Mind Control,yes,no,no,no,no,no,Concept only; absent from live drafts.
+272,272_reflective_mirror_titan_shield,Reflective Mirror Titan Shield,yes,no,no,no,no,no,Concept only; absent from live drafts.
+273,273_hydraulic_titan_leap,Hydraulic Titan Leap,yes,no,no,no,no,no,Concept only; absent from live drafts.
+274,274_sub_carapace_nuclear_reactor,Sub-Carapace Nuclear Reactor,yes,no,no,no,no,no,Concept only; absent from live drafts.
+275,275_necrotic_venom_spore_spread,Necrotic Venom Spore Spread,yes,no,no,no,no,no,Concept only; absent from live drafts.
+276,276_chitin_regeneration_engine,Chitin Regeneration Engine,yes,no,no,no,no,no,Concept only; absent from live drafts.
+277,277_silk_suspension_cables,Silk Suspension Cables,yes,no,no,no,no,no,Concept only; absent from live drafts.
+278,278_urban_camouflage_exoskeleton,Urban Camouflage Exoskeleton,yes,no,no,no,no,no,Concept only; absent from live drafts.
+279,279_mandible_venom_wave,Mandible Venom Wave,yes,no,no,no,no,no,Concept only; absent from live drafts.
+280,280_arachnid_titan_apex_form,Arachnid Titan Apex Form,yes,no,no,no,no,no,Concept only; absent from live drafts.
+281,281_abyssal_leviathan_stature,Abyssal Leviathan Stature,yes,no,no,no,no,no,Concept only; absent from live drafts.
+282,282_tsunami_generating_tail,Tsunami-Generating Tail,yes,no,no,no,no,no,Concept only; absent from live drafts.
+283,283_cephalopod_jet_propulsion_titan,Cephalopod Jet Propulsion (Titan),yes,no,no,no,no,no,Concept only; absent from live drafts.
+284,284_constrictor_titan_coils,Constrictor Titan Coils,yes,no,no,no,no,no,Concept only; absent from live drafts.
+285,285_regenerative_titan_flesh,Regenerative Titan Flesh,yes,no,no,no,no,no,Concept only; absent from live drafts.
+286,286_acidic_slime_flood,Acidic Slime Flood,yes,no,no,no,no,no,Concept only; absent from live drafts.
+287,287_bioluminescent_flash_bang,Bioluminescent Flash Bang,yes,no,no,no,no,no,Concept only; absent from live drafts.
+288,288_deep_sea_pressure_core,Deep-Sea Pressure Core,yes,no,no,no,no,no,Concept only; absent from live drafts.
+289,289_amorphous_mass_titan,Amorphous Mass Titan,yes,no,no,no,no,no,Concept only; absent from live drafts.
+290,290_bio_electric_lightning_storm,Bio-Electric Lightning Storm,yes,no,no,no,no,no,Concept only; absent from live drafts.
+291,291_gastropod_shell_fortification,Gastropod Shell Fortification,yes,no,no,no,no,no,Concept only; absent from live drafts.
+292,292_radula_drill_beam,Radula Drill Beam,yes,no,no,no,no,no,Concept only; absent from live drafts.
+293,293_toxic_fog_blanket,Toxic Fog Blanket,yes,no,no,no,no,no,Concept only; absent from live drafts.
+294,294_lateral_line_seismic_radar,Lateral Line Seismic Radar,yes,no,no,no,no,no,Concept only; absent from live drafts.
+295,295_chromatophore_city_mimic,Chromatophore City Mimic,yes,no,no,no,no,no,Concept only; absent from live drafts.
+296,296_parasitic_spore_hive,Parasitic Spore Hive,yes,no,no,no,no,no,Concept only; absent from live drafts.
+297,297_siren_song_hypnotic_pulse,Siren Song Hypnotic Pulse,yes,no,no,no,no,no,Concept only; absent from live drafts.
+298,298_osmotic_city_drain,Osmotic City Drain,yes,no,no,no,no,no,Concept only; absent from live drafts.
+299,299_abyssal_cold_zero_aura,Abyssal Cold Zero Aura,yes,no,no,no,no,no,Concept only; absent from live drafts.
+300,300_chimeric_titan_apex_matrix,Chimeric Titan Apex Matrix,yes,no,no,no,no,no,Concept only; absent from live drafts.
+301,301_magma_core_heart,Magma-Core Heart,yes,no,no,no,no,no,Concept only; absent from live drafts.
+302,302_continental_tectonic_plates,Continental Tectonic Plates,yes,no,no,no,no,no,Concept only; absent from live drafts.
+303,303_intercontinental_atomic_beam,Intercontinental Atomic Beam,yes,no,no,no,no,no,Concept only; absent from live drafts.
+304,304_draconic_eclipse_wings,Draconic Eclipse Wings,yes,no,no,no,no,no,Concept only; absent from live drafts.
+305,305_volcanic_eruption_roar,Volcanic Eruption Roar,yes,no,no,no,no,no,Concept only; absent from live drafts.
+306,306_seismic_fault_line_rager,Seismic Fault-Line Rager,yes,no,no,no,no,no,Concept only; absent from live drafts.
+307,307_tail_of_extinction,Tail of Extinction,yes,no,no,no,no,no,Concept only; absent from live drafts.
+308,308_radioactive_fallout_aura,Radioactive Fallout Aura,yes,no,no,no,no,no,Concept only; absent from live drafts.
+309,309_cranial_horn_crown_of_ruin,Cranial Horn Crown of Ruin,yes,no,no,no,no,no,Concept only; absent from live drafts.
+310,310_venomous_atmosphere_saturation,Venomous Atmosphere Saturation,yes,no,no,no,no,no,Concept only; absent from live drafts.
+311,311_thermal_core_overcharge,Thermal Core Overcharge,yes,no,no,no,no,no,Concept only; absent from live drafts.
+312,312_apex_destroyer_domination,Apex Destroyer Domination,yes,no,no,no,no,no,Concept only; absent from live drafts.
+313,313_swamp_titan_world_bog,Swamp-Titan World Bog,yes,no,no,no,no,no,Concept only; absent from live drafts.
+314,314_plate_spike_emp_generator,Plate-Spike EMP Generator,yes,no,no,no,no,no,Concept only; absent from live drafts.
+315,315_lightning_rod_world_spire,Lightning-Rod World Spire,yes,no,no,no,no,no,Concept only; absent from live drafts.
+316,316_jaws_of_the_world_eater,Jaws of the World Eater,yes,no,no,no,no,no,Concept only; absent from live drafts.
+317,317_basal_frill_solar_absorber,Basal Frill Solar Absorber,yes,no,no,no,no,no,Concept only; absent from live drafts.
+318,318_acid_ocean_excretion,Acid-Ocean Excretion,yes,no,no,no,no,no,Concept only; absent from live drafts.
+319,319_sub_terra_mantle_burrower,Sub-Terra Mantle Burrower,yes,no,no,no,no,no,Concept only; absent from live drafts.
+320,320_draconic_deity_ascendance,Draconic Deity Ascendance,yes,no,no,no,no,no,Concept only; absent from live drafts.
+321,321_stratospheric_orbital_wings,Stratospheric Orbital Wings,yes,no,no,no,no,no,Concept only; absent from live drafts.
+322,322_plasma_storm_generator,Plasma-Storm Generator,yes,no,no,no,no,no,Concept only; absent from live drafts.
+323,323_sonic_boom_global_shockwave,Sonic Boom Global Shockwave,yes,no,no,no,no,no,Concept only; absent from live drafts.
+324,324_hurricane_epoch_wings,Hurricane Epoch Wings,yes,no,no,no,no,no,Concept only; absent from live drafts.
+325,325_beak_of_world_piercing,Beak of World Piercing,yes,no,no,no,no,no,Concept only; absent from live drafts.
+326,326_plasma_screech_world_beam,Plasma Screech World Beam,yes,no,no,no,no,no,Concept only; absent from live drafts.
+327,327_quill_artillery_barrage,Quill Artillery Barrage,yes,no,no,no,no,no,Concept only; absent from live drafts.
+328,328_high_altitude_void_core,High-Altitude Void Core,yes,no,no,no,no,no,Concept only; absent from live drafts.
+329,329_global_migration_swarm,Global Migration Swarm,yes,no,no,no,no,no,Concept only; absent from live drafts.
+330,330_storm_call_apocalypse,Storm-Call Apocalypse,yes,no,no,no,no,no,Concept only; absent from live drafts.
+331,331_scavenger_emperor_mass_consumption,Scavenger Emperor Mass Consumption,yes,no,no,no,no,no,Concept only; absent from live drafts.
+332,332_thermal_updraft_world_engine,Thermal Updraft World Engine,yes,no,no,no,no,no,Concept only; absent from live drafts.
+333,333_razor_edge_wing_horizon,Razor-Edge Wing Horizon,yes,no,no,no,no,no,Concept only; absent from live drafts.
+334,334_titan_skull_of_the_firmament,Titan Skull of the Firmament,yes,no,no,no,no,no,Concept only; absent from live drafts.
+335,335_gorging_maw_of_the_sky,Gorging Maw of the Sky,yes,no,no,no,no,no,Concept only; absent from live drafts.
+336,336_harpy_screamer_global_echo,Harpy Screamer Global Echo,yes,no,no,no,no,no,Concept only; absent from live drafts.
+337,337_lightning_absorbing_world_shield,Lightning-Absorbing World Shield,yes,no,no,no,no,no,Concept only; absent from live drafts.
+338,338_perching_mountain_spires,Perching Mountain Spires,yes,no,no,no,no,no,Concept only; absent from live drafts.
+339,339_flammable_atmosphere_ignition,Flammable Atmosphere Ignition,yes,no,no,no,no,no,Concept only; absent from live drafts.
+340,340_sky_titan_deity_ascendance,Sky-Titan Deity Ascendance,yes,no,no,no,no,no,Concept only; absent from live drafts.
+341,341_colossal_mountain_gorilla_stature,Colossal Mountain Gorilla Stature,yes,no,no,no,no,no,Concept only; absent from live drafts.
+342,342_seismic_continental_pound,Seismic Continental Pound,yes,no,no,no,no,no,Concept only; absent from live drafts.
+343,343_sabre_tooth_world_tusks,Sabre-Tooth World Tusks,yes,no,no,no,no,no,Concept only; absent from live drafts.
+344,344_rhino_titan_continental_charge,Rhino-Titan Continental Charge,yes,no,no,no,no,no,Concept only; absent from live drafts.
+345,345_titan_pachyderm_world_armor,Titan Pachyderm World Armor,yes,no,no,no,no,no,Concept only; absent from live drafts.
+346,346_primate_apocalypse_roar,Primate Apocalypse Roar,yes,no,no,no,no,no,Concept only; absent from live drafts.
+347,347_pack_alpha_global_legion,Pack-Alpha Global Legion,yes,no,no,no,no,no,Concept only; absent from live drafts.
+348,348_great_ape_planetary_smash,Great-Ape Planetary Smash,yes,no,no,no,no,no,Concept only; absent from live drafts.
+349,349_glacial_ice_age_aura,Glacial Ice Age Aura,yes,no,no,no,no,no,Concept only; absent from live drafts.
+350,350_metabolic_rage_cataclysm,Metabolic Rage Cataclysm,yes,no,no,no,no,no,Concept only; absent from live drafts.
+351,351_tusked_world_sweep,Tusked World Sweep,yes,no,no,no,no,no,Concept only; absent from live drafts.
+352,352_primate_intelligence_singularity,Primate Intelligence Singularity,yes,no,no,no,no,no,Concept only; absent from live drafts.
+353,353_sonic_chest_beating_global_drum,Sonic Chest-Beating Global Drum,yes,no,no,no,no,no,Concept only; absent from live drafts.
+354,354_sub_zero_planetary_core,Sub-Zero Planetary Core,yes,no,no,no,no,no,Concept only; absent from live drafts.
+355,355_prehensile_tail_orbit,Prehensile Tail Orbit,yes,no,no,no,no,no,Concept only; absent from live drafts.
+356,356_venom_proof_world_body,Venom-Proof World Body,yes,no,no,no,no,no,Concept only; absent from live drafts.
+357,357_debris_throwing_orbital_launcher,Debris-Throwing Orbital Launcher,yes,no,no,no,no,no,Concept only; absent from live drafts.
+358,358_alpha_territory_planet,Alpha Territory Planet,yes,no,no,no,no,no,Concept only; absent from live drafts.
+359,359_heavy_density_singularity,Heavy-Density Singularity,yes,no,no,no,no,no,Concept only; absent from live drafts.
+360,360_primate_titan_deity_ascendance,Primate Titan Deity Ascendance,yes,no,no,no,no,no,Concept only; absent from live drafts.
+361,361_chitin_world_fortress,Chitin World Fortress,yes,no,no,no,no,no,Concept only; absent from live drafts.
+362,362_mantid_world_scythe_arms,Mantid World-Scythe Arms,yes,no,no,no,no,no,Concept only; absent from live drafts.
+363,363_web_launcher_global_net,Web-Launcher Global Net,yes,no,no,no,no,no,Concept only; absent from live drafts.
+364,364_centipede_world_megabody,Centipede World Megabody,yes,no,no,no,no,no,Concept only; absent from live drafts.
+365,365_scorpion_world_stinger,Scorpion World Stinger,yes,no,no,no,no,no,Concept only; absent from live drafts.
+366,366_compound_world_facets,Compound World Facets,yes,no,no,no,no,no,Concept only; absent from live drafts.
+367,367_mandible_crusher_world_press,Mandible Crusher World Press,yes,no,no,no,no,no,Concept only; absent from live drafts.
+368,368_acid_spray_global_deluge,Acid-Spray Global Deluge,yes,no,no,no,no,no,Concept only; absent from live drafts.
+369,369_drill_rostrum_core_borer,Drill-Rostrum Core Borer,yes,no,no,no,no,no,Concept only; absent from live drafts.
+370,370_carapace_spine_planetary_artillery,Carapace Spine Planetary Artillery,yes,no,no,no,no,no,Concept only; absent from live drafts.
+371,371_swarm_queen_global_mind,Swarm Queen Global Mind,yes,no,no,no,no,no,Concept only; absent from live drafts.
+372,372_reflective_mirror_world_shield,Reflective Mirror World Shield,yes,no,no,no,no,no,Concept only; absent from live drafts.
+373,373_hydraulic_planetary_leap,Hydraulic Planetary Leap,yes,no,no,no,no,no,Concept only; absent from live drafts.
+374,374_sub_carapace_core_reactor,Sub-Carapace Core Reactor,yes,no,no,no,no,no,Concept only; absent from live drafts.
+375,375_necrotic_venom_planetary_decay,Necrotic Venom Planetary Decay,yes,no,no,no,no,no,Concept only; absent from live drafts.
+376,376_chitin_regeneration_world_engine,Chitin Regeneration World Engine,yes,no,no,no,no,no,Concept only; absent from live drafts.
+377,377_silk_suspension_orbit,Silk Suspension Orbit,yes,no,no,no,no,no,Concept only; absent from live drafts.
+378,378_urban_mimic_world_camouflage,Urban Mimic World Camouflage,yes,no,no,no,no,no,Concept only; absent from live drafts.
+379,379_mandible_venom_wave_global,Mandible Venom Wave (Global),yes,no,no,no,no,no,Concept only; absent from live drafts.
+380,380_arachnid_titan_deity_ascendance,Arachnid Titan Deity Ascendance,yes,no,no,no,no,no,Concept only; absent from live drafts.
+381,381_abyssal_world_leviathan,Abyssal World Leviathan,yes,no,no,no,no,no,Concept only; absent from live drafts.
+382,382_tsunami_global_deluge,Tsunami Global Deluge,yes,no,no,no,no,no,Concept only; absent from live drafts.
+383,383_cephalopod_world_jet_propulsion,Cephalopod World Jet Propulsion,yes,no,no,no,no,no,Concept only; absent from live drafts.
+384,384_constrictor_world_coils,Constrictor World Coils,yes,no,no,no,no,no,Concept only; absent from live drafts.
+385,385_regenerative_world_flesh,Regenerative World Flesh,yes,no,no,no,no,no,Concept only; absent from live drafts.
+386,386_acidic_slime_ocean,Acidic Slime Ocean,yes,no,no,no,no,no,Concept only; absent from live drafts.
+387,387_bioluminescent_global_flash,Bioluminescent Global Flash,yes,no,no,no,no,no,Concept only; absent from live drafts.
+388,388_deep_sea_core_resistance,Deep-Sea Core Resistance,yes,no,no,no,no,no,Concept only; absent from live drafts.
+389,389_amorphous_mass_world_liquefaction,Amorphous Mass World Liquefaction,yes,no,no,no,no,no,Concept only; absent from live drafts.
+390,390_bio_electric_lightning_storm,Bio-Electric Lightning Storm,yes,no,no,no,no,no,Concept only; absent from live drafts.
+391,391_gastropod_world_shell_dome,Gastropod World Shell Dome,yes,no,no,no,no,no,Concept only; absent from live drafts.
+392,392_radula_drill_core_borer,Radula Drill Core Borer,yes,no,no,no,no,no,Concept only; absent from live drafts.
+393,393_toxic_fog_global_saturation,Toxic Fog Global Saturation,yes,no,no,no,no,no,Concept only; absent from live drafts.
+394,394_lateral_line_global_wave_sensor,Lateral Line Global Wave Sensor,yes,no,no,no,no,no,Concept only; absent from live drafts.
+395,395_chromatophore_planet_camouflage,Chromatophore Planet Camouflage,yes,no,no,no,no,no,Concept only; absent from live drafts.
+396,396_parasitic_spore_hive_global,Parasitic Spore Hive (Global),yes,no,no,no,no,no,Concept only; absent from live drafts.
+397,397_siren_song_global_hypnosis,Siren Song Global Hypnosis,yes,no,no,no,no,no,Concept only; absent from live drafts.
+398,398_osmotic_world_drain,Osmotic World Drain,yes,no,no,no,no,no,Concept only; absent from live drafts.
+399,399_abyssal_cold_zero_planet,Abyssal Cold Zero Planet,yes,no,no,no,no,no,Concept only; absent from live drafts.
+400,400_chimeric_deity_ascendance,Chimeric Deity Ascendance,yes,no,no,no,no,no,Concept only; absent from live drafts.
+401,401_void_space_respiration,Void-Space Respiration,yes,no,no,no,no,no,Concept only; absent from live drafts.
+402,402_gravitational_singularity_core,Gravitational Singularity Core,yes,no,no,no,no,no,Concept only; absent from live drafts.
+403,403_interdimensional_phase_shifting,Interdimensional Phase Shifting,yes,no,no,no,no,no,Concept only; absent from live drafts.
+404,404_stellar_plasma_breath,Stellar Plasma Breath,yes,no,no,no,no,no,Concept only; absent from live drafts.
+405,405_dark_matter_carapace,Dark Matter Carapace,yes,no,no,no,no,no,Concept only; absent from live drafts.
+406,406_wormhole_generation_claws,Wormhole Generation Claws,yes,no,no,no,no,no,Concept only; absent from live drafts.
+407,407_cosmic_radiation_absorption,Cosmic Radiation Absorption,yes,no,no,no,no,no,Concept only; absent from live drafts.
+408,408_tentacles_of_the_void,Tentacles of the Void,yes,no,no,no,no,no,Concept only; absent from live drafts.
+409,409_reality_warping_roar,Reality-Warping Roar,yes,no,no,no,no,no,Concept only; absent from live drafts.
+410,410_tachyon_flight_wings,Tachyon Flight Wings,yes,no,no,no,no,no,Concept only; absent from live drafts.
+411,411_entropy_slime_trail,Entropy Slime Trail,yes,no,no,no,no,no,Concept only; absent from live drafts.
+412,412_astral_projection_matrix,Astral Projection Matrix,yes,no,no,no,no,no,Concept only; absent from live drafts.
+413,413_supermassive_black_hole_maw,Supermassive Black Hole Maw,yes,no,no,no,no,no,Concept only; absent from live drafts.
+414,414_quantum_superposition_cells,Quantum Superposition Cells,yes,no,no,no,no,no,Concept only; absent from live drafts.
+415,415_nebula_cloud_camouflage,Nebula Cloud Camouflage,yes,no,no,no,no,no,Concept only; absent from live drafts.
+416,416_meteorite_impact_armor,Meteorite Impact Armor,yes,no,no,no,no,no,Concept only; absent from live drafts.
+417,417_pulsar_audio_array,Pulsar Audio Array,yes,no,no,no,no,no,Concept only; absent from live drafts.
+418,418_supernova_regeneration_node,Supernova Regeneration Node,yes,no,no,no,no,no,Concept only; absent from live drafts.
+419,419_dimension_humping_tail_spike,Dimension-Humping Tail Spike,yes,no,no,no,no,no,Concept only; absent from live drafts.
+420,420_cosmic_horror_aesthetic,Cosmic Horror Aesthetic,yes,no,no,no,no,no,Concept only; absent from live drafts.
+421,421_draconic_arachnid_hybridization,Draconic-Arachnid Hybridization,yes,no,no,no,no,no,Concept only; absent from live drafts.
+422,422_avian_cephalopod_fusion,Avian-Cephalopod Fusion,yes,no,no,no,no,no,Concept only; absent from live drafts.
+423,423_mammalian_amphibian_behemoth,Mammalian-Amphibian Behemoth,yes,no,no,no,no,no,Concept only; absent from live drafts.
+424,424_invertebrate_reptilian_scute_shell,Invertebrate-Reptilian Scute-Shell,yes,no,no,no,no,no,Concept only; absent from live drafts.
+425,425_primate_avian_gryphon_titan,Primate-Avian Gryphon Titan,yes,no,no,no,no,no,Concept only; absent from live drafts.
+426,426_molluscan_draconic_shell_dragon,Molluscan-Draconic Shell-Dragon,yes,no,no,no,no,no,Concept only; absent from live drafts.
+427,427_fungal_mammalian_spore_beast,Fungal-Mammalian Spore-Beast,yes,no,no,no,no,no,Concept only; absent from live drafts.
+428,428_arachnid_mammalian_web_tusker,Arachnid-Mammalian Web-Tusker,yes,no,no,no,no,no,Concept only; absent from live drafts.
+429,429_serpentine_primate_snake_ape,Serpentine-Primate Snake-Ape,yes,no,no,no,no,no,Concept only; absent from live drafts.
+430,430_chimeric_abomination_matrix,Chimeric Abomination Matrix,yes,no,no,no,no,no,Concept only; absent from live drafts.
+431,431_deep_core_magma_swimming,Deep-Core Magma Swimming,yes,no,no,no,no,no,Concept only; absent from live drafts.
+432,432_cryo_stasis_glacial_core,Cryo-Stasis Glacial Core,yes,no,no,no,no,no,Concept only; absent from live drafts.
+433,433_high_pressure_abyssal_dive,High-Pressure Abyssal Dive,yes,no,no,no,no,no,Concept only; absent from live drafts.
+434,434_stratospheric_ionosphere_shield,Stratospheric Ionosphere Shield,yes,no,no,no,no,no,Concept only; absent from live drafts.
+435,435_radioactive_wasteland_thriving,Radioactive Wasteland Thriving,yes,no,no,no,no,no,Concept only; absent from live drafts.
+436,436_acid_rain_immunity_membrane,Acid-Rain Immunity Membrane,yes,no,no,no,no,no,Concept only; absent from live drafts.
+437,437_dessert_desiccation_resistance,Dessert Desiccation Resistance,yes,no,no,no,no,no,Concept only; absent from live drafts.
+438,438_subterranean_blind_navigation,Subterranean Blind Navigation,yes,no,no,no,no,no,Concept only; absent from live drafts.
+439,439_urban_ruins_camouflage,Urban Ruins Camouflage,yes,no,no,no,no,no,Concept only; absent from live drafts.
+440,440_storm_eye_stabilization,Storm-Eye Stabilization,yes,no,no,no,no,no,Concept only; absent from live drafts.
+441,441_ambush_predator_patience,Ambush Predator Patience,yes,yes,yes,yes,yes,yes,"After 3 seconds motionless, next responder contact gains 20 damage; rearm by waiting."
+442,442_pack_leader_tactical_coordination,Pack-Leader Tactical Coordination,yes,no,no,no,no,no,Concept only; absent from live drafts.
+443,443_berserker_rage_threshold,Berserker Rage Threshold,yes,no,no,no,no,no,Concept only; absent from live drafts.
+444,444_scavenger_resource_efficiency,Scavenger Resource Efficiency,yes,no,no,no,no,no,Concept only; absent from live drafts.
+445,445_territorial_dominance_aura,Territorial Dominance Aura,yes,no,no,no,no,no,Concept only; absent from live drafts.
+446,446_stealth_stalker_prowl,Stealth Stalker Prowl,yes,no,no,no,no,no,Concept only; absent from live drafts.
+447,447_juggernaut_momentum,Juggernaut Momentum,yes,no,no,no,no,no,Concept only; absent from live drafts.
+448,448_tactical_debris_shield,Tactical Debris Shield,yes,no,no,no,no,no,Concept only; absent from live drafts.
+449,449_intimidation_display_flare,Intimidation Display Flare,yes,no,no,no,no,no,Concept only; absent from live drafts.
+450,450_apex_predator_cunning,Apex Predator Cunning,yes,no,no,no,no,no,Concept only; absent from live drafts.
+451,451_the_undying_hydra_node,The Undying Hydra Node,yes,no,no,no,no,no,Concept only; absent from live drafts.
+452,452_the_living_volcano_node,The Living Volcano Node,yes,no,no,no,no,no,Concept only; absent from live drafts.
+453,453_the_living_hurricane_node,The Living Hurricane Node,yes,no,no,no,no,no,Concept only; absent from live drafts.
+454,454_the_living_earthquake_node,The Living Earthquake Node,yes,no,no,no,no,no,Concept only; absent from live drafts.
+455,455_the_living_emp_node,The Living EMP Node,yes,no,no,no,no,no,Concept only; absent from live drafts.
+456,456_the_living_hive_mind_node,The Living Hive Mind Node,yes,no,no,no,no,no,Concept only; absent from live drafts.
+457,457_the_living_black_hole_node,The Living Black Hole Node,yes,no,no,no,no,no,Concept only; absent from live drafts.
+458,458_the_living_glacier_node,The Living Glacier Node,yes,no,no,no,no,no,Concept only; absent from live drafts.
+459,459_the_living_acid_bath_node,The Living Acid Bath Node,yes,no,no,no,no,no,Concept only; absent from live drafts.
+460,460_the_living_mountain_node,The Living Mountain Node,yes,no,no,no,no,no,Concept only; absent from live drafts.
+461,461_glass_cannon_hyper_claws,Glass-Cannon Hyper-Claws,yes,no,no,no,no,no,Concept only; absent from live drafts.
+462,462_tortoise_longevity_shell,Tortoise Longevity Shell,yes,no,no,no,no,no,Concept only; absent from live drafts.
+463,463_chameleon_skin_shifting,Chameleon Skin Shifting,yes,no,no,no,no,no,Concept only; absent from live drafts.
+464,464_electric_eel_skin_shifting,Electric Eel Skin Shifting,yes,no,no,no,no,no,Concept only; absent from live drafts.
+465,465_porcupine_quill_volley,Porcupine Quill Volley,yes,no,no,no,no,no,Concept only; absent from live drafts.
+466,466_skunk_musk_odor_bomb,Skunk Musk Odor Bomb,yes,no,no,no,no,no,Concept only; absent from live drafts.
+467,467_mandrill_face_markings,Mandrill Face Markings,yes,no,no,no,no,no,Concept only; absent from live drafts.
+468,468_anglerfish_lure_tentacle,Anglerfish Lure Tentacle,yes,no,no,no,no,no,Concept only; absent from live drafts.
+469,469_platypus_electro_bill,Platypus Electro-Bill,yes,no,no,no,no,no,Concept only; absent from live drafts.
+470,470_pistol_shrimp_claw,Pistol Shrimp Claw,yes,no,no,no,no,no,Concept only; absent from live drafts.
+471,471_tardigrade_cryptobiosis_state,Tardigrade Cryptobiosis State,yes,no,no,no,no,no,Concept only; absent from live drafts.
+472,472_axolotl_limb_regeneration,Axolotl Limb Regeneration,yes,no,no,no,no,no,Concept only; absent from live drafts.
+473,473_barnacle_hull_incrustation,Barnacle Hull Incrustation,yes,no,no,no,no,no,Concept only; absent from live drafts.
+474,474_vampire_bat_blood_drain,Vampire Bat Blood-Drain,yes,no,no,no,no,no,Concept only; absent from live drafts.
+475,475_caterpillar_silk_cocooning,Caterpillar Silk Cocooning,yes,no,no,no,no,no,Concept only; absent from live drafts.
+476,476_stag_beetle_horn_pincer,Stag Beetle Horn Pincer,yes,no,no,no,no,no,Concept only; absent from live drafts.
+477,477_jellyfish_bioluminescent_pulse,Jellyfish Bioluminescent Pulse,yes,no,no,no,no,no,Concept only; absent from live drafts.
+478,478_camel_hump_fat_storage,Camel Hump Fat Storage,yes,no,no,no,no,no,Concept only; absent from live drafts.
+479,479_giraffe_neck_elongation,Giraffe Neck Elongation,yes,no,no,no,no,no,Concept only; absent from live drafts.
+480,480_sloth_inertia_resistance,Sloth Inertia Resistance,yes,no,no,no,no,no,Concept only; absent from live drafts.
+481,481_omega_core_star_eater_maw,Omega Core: Star-Eater Maw,yes,no,no,no,no,no,Concept only; absent from live drafts.
+482,482_omega_core_reality_unmaking_breath,Omega Core: Reality-Unmaking Breath,yes,no,no,no,no,no,Concept only; absent from live drafts.
+483,483_omega_core_planetary_mind_meld,Omega Core: Planetary Mind Meld,yes,no,no,no,no,no,Concept only; absent from live drafts.
+484,484_omega_core_immortal_phoenix_rebirth,Omega Core: Immortal Phoenix Rebirth,yes,no,no,no,no,no,Concept only; absent from live drafts.
+485,485_omega_core_tectonic_master_control,Omega Core: Tectonic Master Control,yes,no,no,no,no,no,Concept only; absent from live drafts.
+486,486_omega_core_time_dilation_field,Omega Core: Time-Dilation Field,yes,no,no,no,no,no,Concept only; absent from live drafts.
+487,487_omega_core_infinite_mass_titan,Omega Core: Infinite Mass Titan,yes,no,no,no,no,no,Concept only; absent from live drafts.
+488,488_omega_core_antimatter_bloodstream,Omega Core: Antimatter Bloodstream,yes,no,no,no,no,no,Concept only; absent from live drafts.
+489,489_omega_core_dimensional_nexus_portal,Omega Core: Dimensional Nexus Portal,yes,no,no,no,no,no,Concept only; absent from live drafts.
+490,490_omega_core_the_absolute_apex,Omega Core: The Absolute Apex,yes,no,no,no,no,no,Concept only; absent from live drafts.
+491,491_primal_primordial_soup_matrix,Primal Primordial Soup Matrix,yes,no,no,no,no,no,Concept only; absent from live drafts.
+492,492_bio_mechanical_synthesis_node,Bio-Mechanical Synthesis Node,yes,no,no,no,no,no,Concept only; absent from live drafts.
+493,493_solar_flare_solar_sail_wings,Solar Flare Solar-Sail Wings,yes,no,no,no,no,no,Concept only; absent from live drafts.
+494,494_geothermal_vent_anchor,Geothermal Vent Anchor,yes,no,no,no,no,no,Concept only; absent from live drafts.
+495,495_abyssal_trench_compression_shell,Abyssal Trench Compression Shell,yes,no,no,no,no,no,Concept only; absent from live drafts.
+496,496_atmospheric_ionization_shield,Atmospheric Ionization Shield,yes,no,no,no,no,no,Concept only; absent from live drafts.
+497,497_necrotic_biomass_assimilation,Necrotic Biomass Assimilation,yes,no,no,no,no,no,Concept only; absent from live drafts.
+498,498_harmonic_resonance_vocal_cord,Harmonic Resonance Vocal Cord,yes,no,no,no,no,no,Concept only; absent from live drafts.
+499,499_chimeric_apex_singularity,Chimeric Apex Singularity,yes,no,no,no,no,no,Concept only; absent from live drafts.
+500,500_the_genesis_seed,The Genesis Seed,yes,no,no,no,no,no,Concept only; absent from live drafts.

@@ -1,3 +1,11 @@
+# Genetics ground-controller preview - 17 October 2026
+
+**[Download Genetics Preview APK #233](https://github.com/kavemankai/Kaijustomp/releases/download/genetics-233-7b217d9/Kaijustomp-233-7b217d9-debug.apk)** · [draft PR #19](https://github.com/kavemankai/Kaijustomp/pull/19), dependent on unmerged PR #18. Exact build source `7b217d919dee562a4d4f47a65b18b9261766b365`; later documentation commits only record evidence. Package `com.kavemankai.kaijustomp.geneticpreview`, label Kaijustomp Genetics Preview, ARM64, 28,262,824 bytes. SHA-256 `80493fdf6c6ddd2d7d206b996028ea69b476548e5140784216f0b467047b42f3`.
+
+`feature/nine-form-genetics-preview` starts at `35dc25b`. Adds nine procedural ground family proofs, three functional hybrid fixtures, curated 35 source-gene prototypes, deterministic legal drafts, optional physical growth and archived death/new organism in the retained world. All 500 source entries are indexed; remaining concepts and advanced movement are locked. Official Godot 4.5 import/launch and 30/30 suites pass on Windows/Linux, including the original 25. Push/PR Android and PR smoke checks pass. CI confirms v2/v3 signing, package/launcher, ZIP and ARM64 native 16 KiB checks; downloaded bytes independently match digest/size and pass CRC/ELF checks. Physical phone acceptance remains unverified. See [GENETICS_HANDOVER.md](evolution/GENETICS_HANDOVER.md) for coverage, captures, save policy and limits. Existing World Preview and approved installations/releases remain preserved; nothing was merged or installed.
+
+---
+
 # Three-mission sector tracker delivered - 17 October 2026
 
 [Download World Preview APK #231](https://github.com/kavemankai/Kaijustomp/releases/download/persistent-world-231-3734363/Kaijustomp-231-3734363-debug.apk) | [release](https://github.com/kavemankai/Kaijustomp/releases/tag/persistent-world-231-3734363) | [draft PR #18](https://github.com/kavemankai/Kaijustomp/pull/18). Exact gameplay/build source `373436337c013e46da6c15b78c4723aed948ba4f`; later documentation commits record evidence only. No merge or approved-build replacement.

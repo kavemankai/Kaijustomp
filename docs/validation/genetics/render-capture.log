@@ -1,0 +1,15 @@
+Godot Engine v4.5.stable.official.876b29033 - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 610.78 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 3050 Laptop GPU
+
+CAPTURE res://build/genetics-captures/reptile.png calls=111.0 memory_mib=51.6474895477295
+CAPTURE res://build/genetics-captures/biomass.png calls=111.0 memory_mib=51.6512813568115
+CAPTURE res://build/genetics-captures/snake.png calls=113.0 memory_mib=51.7115306854248
+CAPTURE res://build/genetics-captures/bird.png calls=109.0 memory_mib=51.6406154632568
+CAPTURE res://build/genetics-captures/crab.png calls=115.0 memory_mib=51.6884822845459
+CAPTURE res://build/genetics-captures/spider.png calls=115.0 memory_mib=51.6917400360107
+CAPTURE res://build/genetics-captures/ape.png calls=111.0 memory_mib=51.6627407073975
+CAPTURE res://build/genetics-captures/worm.png calls=113.0 memory_mib=51.72340965271
+CAPTURE res://build/genetics-captures/mole.png calls=111.0 memory_mib=51.6676006317139
+CAPTURE res://build/genetics-captures/reptile_bird.png calls=111.0 memory_mib=51.6739330291748
+CAPTURE res://build/genetics-captures/ape_crab.png calls=115.0 memory_mib=51.7045345306396
+CAPTURE res://build/genetics-captures/worm_mole.png calls=113.0 memory_mib=51.7347393035889

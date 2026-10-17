@@ -1,0 +1,2 @@
+# Preserve the supplied immutable source catalogue byte-for-byte on Windows too.
+data/evolution/kaijustomp_mutation_catalog_500.json -text

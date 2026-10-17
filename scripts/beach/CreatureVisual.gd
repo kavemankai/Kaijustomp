@@ -43,7 +43,7 @@ func _find_skeleton(node: Node) -> Skeleton3D:
 func update_pose(is_upright: bool, moving: bool = false, phase: float = 0.0) -> void:
 	upright = is_upright
 	for i in range(forms.size()):
-		forms[i].visible = (i == 1) == upright
+		forms[i].visible = (i == 1) == upright and not get_meta("genetic_body",false)
 		if not forms[i].visible:
 			continue
 		var skeleton := skeletons[i]
