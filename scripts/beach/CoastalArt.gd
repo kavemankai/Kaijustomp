@@ -303,7 +303,7 @@ static func industrial_building(root: Node3D, footprint: Vector2, height: float,
 		for i in range(3):
 			box(root,Vector3((-1.0+float(i))*w*.23,height+.8,-d*.18),
 				Vector3(w*.18,1.55,d*.38),Color("748f89") if i%2==0 else Color("b49b80"))
-	merge(root,"IndustrialArchitecture")
+	merge(root,"Architecture")
 	shadow(root,Vector2(w+4,d+4),Vector3(0,.005,0))
 	var sign := Label3D.new()
 	sign.name = "IndustrialSign"
