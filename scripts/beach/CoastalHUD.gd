@@ -8,6 +8,13 @@ var level := 0
 var hp_text := "100 / 100"
 var biomass_text := "0 / 55"
 var status := "COASTAL HATCHLING"
+var defcon := 5
+var response_name := "LOCAL POLICE"
+
+func update_defcon(tier: int, detail: String) -> void:
+	defcon = tier
+	response_name = detail
+	queue_redraw()
 
 static func panel(fill: Color, border: Color = Color("446465")) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
@@ -38,7 +45,7 @@ static func theme() -> Theme:
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	position = Vector2(16,20)
-	size = Vector2(286,139)
+	size = Vector2(286,159)
 
 func update_state(hp: float, maximum_hp: float, energy: float, maximum_energy: float,
 		food: int, cost: int, evolution: int, message: String) -> void:
@@ -75,4 +82,6 @@ func _draw() -> void:
 		if values[i] > 0:
 			draw_style_box(panel(colors[i],colors[i]),Rect2(40,y-5,133*values[i],9))
 		draw_string(font,Vector2(184,y+5),labels[i],HORIZONTAL_ALIGNMENT_LEFT,-1,14,cream)
-	draw_string(font,Vector2(14,127),status,HORIZONTAL_ALIGNMENT_LEFT,262,12,Color("b4cbc1"))
+	var threat_color := Color("e8ae8a") if defcon <= 2 else (Color("efc66c") if defcon == 3 else Color("92c4b1"))
+	draw_string(font,Vector2(14,127),"DEFCON %d  /  %s"%[defcon,response_name],HORIZONTAL_ALIGNMENT_LEFT,266,12,threat_color)
+	draw_string(font,Vector2(14,147),status,HORIZONTAL_ALIGNMENT_LEFT,266,12,Color("b4cbc1"))

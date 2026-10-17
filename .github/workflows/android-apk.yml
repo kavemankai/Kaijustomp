@@ -225,6 +225,14 @@ jobs:
           grep -q 'SCALE DIET TEST PASSED' "$RUNNER_TEMP/scale-diet.log"
           if grep -E 'SCRIPT ERROR|Parse Error|TEST FAILED|Invalid call|Invalid access' "$RUNNER_TEMP/scale-diet.log"; then exit 1; fi
 
+      - name: Verify DEFCON enemy waves, armoured response and air support
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --path . --script res://scripts/ci/test_defcon_response.gd 2>&1 | tee "$RUNNER_TEMP/defcon-response.log"
+          grep -q 'DEFCON RESPONSE TEST PASSED' "$RUNNER_TEMP/defcon-response.log"
+          if grep -E 'SCRIPT ERROR|Parse Error|TEST FAILED|Invalid call|Invalid access' "$RUNNER_TEMP/defcon-response.log"; then exit 1; fi
+
       - name: Export portrait Android debug APK
         shell: bash
         run: |
@@ -263,6 +271,10 @@ jobs:
           if [ "$BUILD_BRANCH" = 'feature/scale-driven-diet-transition' ]; then
             sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.dietpreview"@' export_presets.cfg
             sed -i 's@^package/name=.*@package/name="Kaijustomp Diet Preview"@' export_presets.cfg
+          fi
+          if [ "$BUILD_BRANCH" = 'feature/defcon-response-escalation' ]; then
+            sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.defconpreview"@' export_presets.cfg
+            sed -i 's@^package/name=.*@package/name="Kaijustomp DEFCON Preview"@' export_presets.cfg
           fi
           APK="Kaijustomp-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:7}-debug.apk"
           echo "APK_NAME=$APK" >> "$GITHUB_ENV"
@@ -318,6 +330,9 @@ jobs:
           fi
           if [ "$BUILD_BRANCH" = 'feature/scale-driven-diet-transition' ]; then
             EXPECTED_PACKAGE='com.kavemankai.kaijustomp.dietpreview'
+          fi
+          if [ "$BUILD_BRANCH" = 'feature/defcon-response-escalation' ]; then
+            EXPECTED_PACKAGE='com.kavemankai.kaijustomp.defconpreview'
           fi
           grep -q "name='$EXPECTED_PACKAGE'" "$RUNNER_TEMP/apk-badging.txt"
           grep -q '^launchable-activity:' "$RUNNER_TEMP/apk-badging.txt"
@@ -436,6 +451,23 @@ jobs:
           ASSET_SIZE=$(gh release view "$TAG" --json assets --jq '.assets[] | select(.name == "Kaijustomp-growth-preview.apk") | .size')
           test "$LOCAL_SIZE" = "$ASSET_SIZE"
           echo "Preview APK: https://github.com/${GH_REPO}/releases/download/${TAG}/Kaijustomp-growth-preview.apk" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish immutable DEFCON response preview
+        if: github.ref == 'refs/heads/feature/defcon-response-escalation' && github.event_name != 'pull_request'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG="defcon-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:7}"
+          cat > "$RUNNER_TEMP/defcon-notes.md" <<EOF
+          Kaijustomp DEFCON preview ${GITHUB_SHA}. Destruction and feeding drive visible five-stage DEFCON escalation (5 quiet local police to 1 emergency military air response). New distinct tactical officers, National Guard infantry, destroyable armoured carriers and animated attack helicopters. Tiered waves follow player through coastal, suburb and shopping zones; limited to 9 active response units and 72 real bullet tracers, with cooldown/de-escalation. Previous batch DEBUG EVO, diet transition, growth and gameplay preserved. Separate com.kavemankai.kaijustomp.defconpreview Android app. All 13 Godot regression and APK checks gate publication; live on-phone difficulty and performance require testing.
+          EOF
+          gh release create "$TAG" "build/android/$APK_NAME" "build/android/$APK_NAME.sha256" --target "$GITHUB_SHA" --title "Kaijustomp DEFCON ${GITHUB_RUN_NUMBER}" --notes-file "$RUNNER_TEMP/defcon-notes.md" --prerelease
+          LOCAL_SIZE=$(stat -c "%s" "build/android/$APK_NAME")
+          ASSET_SIZE=$(gh release view "$TAG" --json assets --jq ".assets[] | select(.name == \"$APK_NAME\") | .size")
+          test "$LOCAL_SIZE" = "$ASSET_SIZE"
 
       - name: Publish immutable giant-diet transition preview
         if: github.ref == 'refs/heads/feature/scale-driven-diet-transition' && github.event_name != 'pull_request'

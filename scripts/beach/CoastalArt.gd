@@ -362,6 +362,55 @@ static func person(root: Node3D, uniform: bool, variant: int) -> void:
 		merge(pivot)
 	shadow(root,Vector2(.95,.7))
 
+# Lightweight distinguishable responder equipment, independent from civilian
+# animation pivots. All extra armour is merged to one renderer per soldier.
+static func response_uniform(root: Node3D, kind: String) -> void:
+	var kit := Node3D.new()
+	kit.name = "ResponseKit"
+	root.add_child(kit)
+	var body_color := Color("314451") if kind == "swat" else Color("697658")
+	box(kit, Vector3(0,1.24,-.05), Vector3(.61,.52,.38), body_color)
+	box(kit, Vector3(0,1.78,0), Vector3(.51,.16,.49), body_color.darkened(.18))
+	box(kit, Vector3(0,1.50,-.24), Vector3(.42,.14,.11), Color("303f39"))
+	box(kit, Vector3(-.29,1.37,-.15), Vector3(.08,.25,.13), Color("b1b99c"))
+	merge(kit, "ArmourKit")
+
+
+static func response_vehicle(root: Node3D, kind: String) -> void:
+	var air := kind == "helicopter"
+	var paint := Color("697c60") if not air else Color("4a6871")
+	var hull := Node3D.new()
+	hull.name = "VisualHull"
+	root.add_child(hull)
+	if air:
+		oval(hull,Vector3(0,0,0),Vector3(1.45,1.0,3.45),paint)
+		box(hull,Vector3(0,-.14,-.92),Vector3(2.0,.82,1.20),Color("6e99a3"))
+		box(hull,Vector3(0,.0,3.0),Vector3(.35,.29,4.50),paint)
+		box(hull,Vector3(0,.15,5.2),Vector3(2.25,.15,.37),paint)
+		for side in [-1.0,1.0]:
+			box(hull,Vector3(side*1.18,-.90,.5),Vector3(.11,.11,3.2),INK)
+			box(hull,Vector3(side*1.08,-.6,-.1),Vector3(.09,.60,.11),INK)
+	else:
+		box(hull,Vector3(0,1.18,0),Vector3(3.2,1.8,5.8),paint)
+		box(hull,Vector3(0,2.27,-.75),Vector3(2.25,.60,2.75),paint.lightened(.16))
+		box(hull,Vector3(0,2.38,-2.4),Vector3(.48,.47,2.6),INK)
+		for side in [-1.0,1.0]:
+			for z in [-1.75, 1.75]:
+				box(hull,Vector3(side*1.62,.63,z),Vector3(.38,.88,1.25),INK)
+			box(hull,Vector3(side*1.05,1.25,-2.94),Vector3(.53,.22,.09),CREAM)
+	merge(hull,"ResponseHull")
+	if air:
+		var rotor := Node3D.new()
+		rotor.name = "Rotor"
+		rotor.position = Vector3(0,1.22,0)
+		root.add_child(rotor)
+		box(rotor,Vector3.ZERO,Vector3(9.0,.06,.28),INK)
+		box(rotor,Vector3.ZERO,Vector3(.28,.06,8.7),INK)
+		merge(rotor,"Rotors")
+	else:
+		shadow(root,Vector2(4.5,7.1),Vector3(0,.01,0))
+
+
 static func animate_person(root: Node3D, clock: float, moving: bool) -> void:
 	for key in ["StrideLeft","StrideRight"]:
 		var limb := root.get_node_or_null(key) as Node3D

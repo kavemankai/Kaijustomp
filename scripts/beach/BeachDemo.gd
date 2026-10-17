@@ -63,6 +63,9 @@ var strike_timer := 0.0
 var run_phase := 0.0
 var alert := 0.0
 var response_clock := 0.0
+var heat_cooldown := 0.0
+var defcon := 5
+var response_wave := 0
 var game_over := false
 var evolving := false
 var evolution_clock := 0.0
@@ -304,7 +307,7 @@ func _damage_car(index: int, amount: float) -> void:
 		var at: Vector3 = car["node"].global_position
 		car["node"].queue_free()
 		_make_debris(at, 8)
-		alert += 7.0
+		_add_alert(7.0)
 		# Occupants still flee even when the giant has outgrown human prey.
 		_spawn_civilian(at + Vector3(3.7, 0, 2.7))
 		_award_demolition_biomass(DietProgression.car_biomass(growth_scale))
@@ -589,8 +592,70 @@ func _spawn_civilian(pos: Vector3) -> void:
 	civilians.append({"node": _person(pos), "speed": randf_range(3.4, 7.1), "response": response, "panic": false, "delay": 0.0, "shelter": shelter, "direction": Vector3.ZERO})
 
 func _spawn_officer(pos: Vector3, swat: bool = false) -> void:
-	var node := _person(pos, true)
-	officers.append({"node": node, "cooldown": randf_range(0.3, 1.4), "swat": swat})
+	# Backwards-compatible police/SWAT call for existing scene and tests.
+	_spawn_response_enemy(pos, "swat" if swat else "police")
+
+
+func _spawn_response_enemy(pos: Vector3, kind: String) -> void:
+	if officers.size() >= DefconDirector.MAX_RESPONDERS:
+		return
+	var stats: Dictionary = DefconDirector.stats_for(kind)
+	var unit: Node3D
+	var collider: StaticBody3D
+	if DefconDirector.is_vehicle(kind):
+		unit = Node3D.new()
+		unit.name = "Response_" + kind
+		unit.position = pos + Vector3(0, 22.0, 0) if kind == "helicopter" else pos
+		add_child(unit)
+		CoastalArt.response_vehicle(unit, kind)
+		if kind == "armoured":
+			collider = StaticBody3D.new()
+			collider.collision_layer = 1
+			collider.collision_mask = 1
+			unit.add_child(collider)
+			var hitbox := CollisionShape3D.new()
+			var block := BoxShape3D.new()
+			block.size = Vector3(3.3, 2.5, 6.0)
+			hitbox.shape = block
+			hitbox.position.y = 1.25
+			collider.add_child(hitbox)
+	else:
+		unit = _person(pos, true)
+		CoastalArt.response_uniform(unit, kind)
+	officers.append({"node": unit, "collider": collider, "cooldown": randf_range(.3, 1.4),
+		"kind": kind, "swat": kind != "police", "health": float(stats["health"]),
+		"damage": float(stats["damage"]), "range": float(stats["range"]),
+		"rate": float(stats["rate"]), "speed": float(stats["speed"])})
+
+
+func _response_for_collider(collider: Object) -> int:
+	for i in range(officers.size()):
+		if officers[i]["collider"] != null and officers[i]["collider"] == collider:
+			return i
+	return -1
+
+
+func _damage_response(index: int, damage: float) -> void:
+	if index < 0 or index >= officers.size():
+		return
+	var foe: Dictionary = officers[index]
+	foe["health"] = float(foe["health"]) - damage
+	if float(foe["health"]) <= 0:
+		var point: Vector3 = foe["node"].global_position
+		foe["node"].queue_free()
+		officers.remove_at(index)
+		_add_alert(12.0)
+		if DefconDirector.is_vehicle(String(foe["kind"])):
+			_make_debris(Vector3(point.x, 0, point.z), 8)
+	else:
+		officers[index] = foe
+
+
+func _add_alert(amount: float) -> void:
+	alert = maxf(0.0, alert + amount)
+	heat_cooldown = DefconDirector.COOLDOWN_DELAY
+	defcon = DefconDirector.tier_for(alert)
+
 
 func _build_ui() -> void:
 	ui_layer = CanvasLayer.new()
@@ -928,6 +993,11 @@ func _update_movement(delta: float) -> void:
 				var car_index := _car_for_collider(contact.get_collider())
 				if car_index >= 0:
 					_attack_car(car_index, sprint_active)
+				else:
+					var response_index := _response_for_collider(contact.get_collider())
+					if response_index >= 0 and strike_timer <= 0.0:
+						_damage_response(response_index, 60.0 * growth_scale)
+						strike_timer = .65
 			var slide := contact.get_remainder().slide(contact.get_normal())
 			if slide.length_squared() > 0.000001:
 				beast.move_and_collide(slide)
@@ -1092,6 +1162,16 @@ func _giant_proximity_contact() -> void:
 		_attack_car(car_index, sprint_active)
 	elif building_index >= 0:
 		_attack_building(building_index, sprint_active)
+	else:
+		for i in range(officers.size() - 1, -1, -1):
+			var foe: Dictionary = officers[i]
+			var at: Vector3 = foe["node"].global_position
+			var extra_radius := 3.0 if DefconDirector.is_vehicle(String(foe["kind"])) else .65
+			if Vector2(at.x - origin.x, at.z - origin.z).length() < radius + extra_radius:
+				if strike_timer <= 0:
+					_damage_response(i, 65.0 * growth_scale)
+					strike_timer = .65
+				break
 
 
 func _effective_demolition_strength() -> int:
@@ -1159,7 +1239,7 @@ func _damage_building(index: int, hits: float) -> void:
 		var root: Node3D = b["node"]
 		root.queue_free()
 		_make_debris(source, 12)
-		alert += 17.0
+		_add_alert(17.0)
 		# Everyone already inside, plus people who sheltered during the run,
 		# is released on collapse. Spawn outside the original footprint.
 		var half: Vector2 = b["half"]
@@ -1251,7 +1331,7 @@ func _capture_and_feed(prey: Node3D, amount: int) -> void:
 func _feed(amount: int) -> void:
 	biomass += amount
 	hp = minf(max_hp, hp + 15.0)
-	alert += 5.0
+	_add_alert(5.0)
 	bite_timer = bite_duration
 	Input.vibrate_handheld(28)
 
@@ -1301,56 +1381,99 @@ func _update_civilians(delta: float) -> void:
 		civilians[i] = c
 
 func _spawn_local_officer(offset: float, swat: bool) -> void:
+	_spawn_local_response(offset, "swat" if swat else "police")
+
+
+func _spawn_local_response(offset: float, kind: String) -> void:
+	# Local to the creature's current district, avoiding roofs and clipping
+	# at coastal world edges. Flying craft remain visible overhead.
+	var distance := maxf(32.0, growth_scale * 3.5 + 20.0)
 	var x := clampf(beast.global_position.x + offset, -PLAYABLE_HALF_LENGTH + 8.0, PLAYABLE_HALF_LENGTH - 8.0)
-	var z := clampf(beast.global_position.z - 30.0, NEIGHBOURHOOD_FAR_Z + 7.0, 16.0)
-	var point := Vector3(x, 0, z)
-	if _blocking_building(point) >= 0:
-		point.z = clampf(beast.global_position.z + 22.0, NEIGHBOURHOOD_FAR_Z + 8.0, 22.0)
-	_spawn_officer(point, swat)
+	var z := clampf(beast.global_position.z - distance, NEIGHBOURHOOD_FAR_Z + 8.0, 17.0)
+	var candidate := Vector3(x, 0, z)
+	if _blocking_building(candidate) >= 0:
+		candidate.z = clampf(beast.global_position.z + distance, NEIGHBOURHOOD_FAR_Z + 8.0, 21.0)
+	if _blocking_building(candidate) < 0 or kind == "helicopter":
+		_spawn_response_enemy(candidate, kind)
+
+
+func _deploy_defcon_wave() -> void:
+	var roster := DefconDirector.wave_for(defcon)
+	var remaining := mini(DefconDirector.cap_for(defcon), DefconDirector.MAX_RESPONDERS) - officers.size()
+	if remaining <= 0:
+		return
+	# Rotate lanes so reinforcements aren't stacked on the same street.
+	for i in range(mini(remaining, roster.size())):
+		var kind: String = roster[(i + response_wave) % roster.size()]
+		var offset := (-26.0 if i % 2 == 0 else 26.0) + float(int(i / 2)) * 15.0
+		_spawn_local_response(offset, kind)
+	response_wave += 1
 
 
 func _update_police(delta: float) -> void:
-	# Do not leave the entire police response stranded in an earlier district.
+	# Alert rises with violence, then gradually falls after a quiet period.
+	# DEFCON 5 is local response, DEFCON 1 is maximum military response.
+	heat_cooldown = maxf(0.0, heat_cooldown - delta)
+	if heat_cooldown <= 0.0:
+		alert = maxf(0.0, alert - DefconDirector.PASSIVE_DECAY * delta)
+	defcon = DefconDirector.tier_for(alert)
+	# Retire old units far behind the player; long beach cannot fill with
+	# permanently active combatants. Existing projectiles have their own cap.
 	for i in range(officers.size() - 1, -1, -1):
-		var officer: Node3D = officers[i]["node"]
-		if officer.global_position.distance_to(beast.global_position) > maxf(155.0, growth_scale * 95.0):
-			officer.queue_free()
+		var node: Node3D = officers[i]["node"]
+		if node.global_position.distance_to(beast.global_position) > maxf(175.0, growth_scale * 100.0):
+			node.queue_free()
 			officers.remove_at(i)
 	if alert > 0.0:
 		response_clock += delta
-	if response_clock > 18.0 and officers.is_empty():
-		_spawn_local_officer(-12.0, false)
-		_spawn_local_officer(12.0, false)
-		response_clock = -8.0
-	if alert > 65.0 and response_clock > 65.0 and officers.size() < 4:
-		_spawn_local_officer(-32.0, true)
-		_spawn_local_officer(32.0, true)
+		if response_clock >= DefconDirector.interval_for(defcon):
+			_deploy_defcon_wave()
+			response_clock = 0.0
+	else:
 		response_clock = 0.0
 	for i in range(officers.size()):
-		var cop: Dictionary = officers[i]
-		var unit: Node3D = cop["node"]
-		var delta_pos := beast.global_position - unit.global_position
-		var distance := delta_pos.length()
-		if distance > 12.0 and distance < 45.0:
-			var step := delta_pos.normalized() * delta * (3.8 if cop["swat"] else 3.0)
-			if _blocking_building(unit.global_position + step) < 0:
-				unit.global_position += step
+		var foe: Dictionary = officers[i]
+		var unit: Node3D = foe["node"]
+		var to_beast: Vector3 = beast.global_position - unit.global_position
+		var distance := to_beast.length()
+		var kind: String = foe["kind"]
+		var helicopter := kind == "helicopter"
+		var desired := 55.0 if helicopter else (30.0 if kind == "armoured" else 12.0)
+		if distance > desired and distance < 125.0:
+			var travel := to_beast.normalized() * delta * float(foe["speed"])
+			var destination := unit.global_position + travel
+			if helicopter or _blocking_building(destination) < 0:
+				unit.global_position = destination
 		if distance > 0.2:
-			unit.rotation.y = atan2(-delta_pos.x, -delta_pos.z)
-		if distance < 21.0:
-			cop["cooldown"] = float(cop["cooldown"]) - delta
-			if cop["cooldown"] <= 0.0:
-				# Every shot creates a real moving projectile. Aim error only
-				# changes its trajectory; damage happens on physical impact.
-				var origin := unit.global_position + Vector3(0, 1.55, 0)
+			unit.rotation.y = atan2(-to_beast.x, -to_beast.z)
+		if kind == "helicopter":
+			var rotor := unit.get_node_or_null("Rotor") as Node3D
+			if rotor != null:
+				rotor.rotation.y += delta * 15.0
+		if distance < float(foe["range"]):
+			foe["cooldown"] = float(foe["cooldown"]) - delta
+			if foe["cooldown"] <= 0.0:
+				var origin := unit.global_position + Vector3(0, 1.55 if not helicopter else .1, 0)
 				var aim := beast.global_position + Vector3(0, 1.75 * growth_scale, 0)
-				var move_aim := sprint_active or touch_vector.length_squared() > 0.05 or Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down").length_squared() > 0.05
-				var spread := 2.15 if sprint_active else (1.1 if move_aim else 0.24)
-				aim += Vector3(randf_range(-spread, spread), randf_range(-spread * 0.45, spread * 0.45), randf_range(-spread, spread))
-				_spawn_projectile(origin, (aim - origin).normalized(), bool(cop["swat"]))
-				cop["cooldown"] = 1.3 if cop["swat"] else 2.0
-		CoastalArt.animate_person(unit, creature_idle_clock * 9.0 + float(i), distance > 12.0 and distance < 45.0)
-		officers[i] = cop
+				var moving_player := sprint_active or touch_vector.length_squared() > .05
+				var spread := 2.2 if moving_player else .65
+				aim += Vector3(randf_range(-spread,spread),randf_range(-spread*.4,spread*.4),randf_range(-spread,spread))
+				# APC rounds originate beyond their own hull, and aircraft rounds
+				# stay alive long enough to actually reach the player at range.
+				var direction := (aim-origin).normalized()
+				if kind == "armoured":
+					origin += direction * 4.2
+				_spawn_projectile(origin, direction, kind != "police")
+				var shot_index := projectiles.size() - 1
+				var shot: Dictionary = projectiles[shot_index]
+				shot["damage"] = float(foe["damage"])
+				if kind in ["helicopter","armoured"]:
+					shot["lifetime"] = 3.0
+				projectiles[shot_index] = shot
+				foe["cooldown"] = float(foe["rate"])
+		if not DefconDirector.is_vehicle(kind):
+			CoastalArt.animate_person(unit, creature_idle_clock * 9.0 + float(i), distance > desired and distance < 45.0)
+		officers[i] = foe
 
 func _spawn_projectile(origin: Vector3, direction: Vector3, heavy: bool) -> void:
 	# A bright tracer is part of the actual projectile, not a cosmetic hitscan.
@@ -1683,6 +1806,7 @@ func _update_hud() -> void:
 	var food_source := DietProgression.diet_label(growth_scale)
 	if food_source != "PEOPLE":
 		district_name = "COASTAL DIET: " + food_source if beast.global_position.z > -82.0 else ("SHOPPING: " if beast.global_position.z < SHOPPING_DISTRICT_Z else "SUBURB: ") + food_source
+	coastal_hud.update_defcon(defcon, DefconDirector.name_for(defcon))
 	coastal_hud.update_state(hp, max_hp, stamina, max_stamina, biomass, _cost(), evolutions, status if evolving or game_over else district_name)
 	if is_instance_valid(debug_evolve_button):
 		debug_evolve_button.visible = OS.has_feature("debug") and not game_over
