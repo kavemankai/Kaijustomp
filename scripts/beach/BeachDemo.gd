@@ -1174,6 +1174,12 @@ func _update_movement(delta: float) -> void:
 	if direction.length_squared() > 1.0:
 		direction = direction.normalized()
 	var moving := direction.length_squared() > 0.003
+	if moving and genetics.enabled and genetics.trail.live and genetics.traversal.mode=="ground":
+		# Nokia-Snake handling: head leads; the body never slides sideways
+		# toward the stick vector or automatically becomes bipedal.
+		var turn_rate := 5.0 if genetics.morphology.primary=="snake" else 3.0
+		beast.rotation.y=lerp_angle(beast.rotation.y,atan2(-direction.x,-direction.z),minf(1.0,turn_rate*delta))
+		direction=-beast.global_transform.basis.z*minf(1.0,direction.length())
 	if sprint_locked and stamina >= max_stamina - 0.01:
 		sprint_locked = false
 	sprint_active = sprint_requested and not sprint_locked and moving and stamina > 0.0
@@ -1237,7 +1243,10 @@ func _update_movement(delta: float) -> void:
 		run_phase += travelled * TAU / (2.5 * maxf(1.0, growth_scale))
 	strike_timer = maxf(0.0, strike_timer - delta)
 	if not moving and not handled: beast.velocity=Vector3.ZERO
-	if genetics.enabled: genetics.trail.advance(beast.global_position)
+	if genetics.enabled:
+		genetics.trail.advance(beast.global_position)
+		if genetics.trail.live and is_instance_valid(world):
+			world.ensure_region(genetics.trail.point_at(genetics.trail.total_length*.9),maxf(30.0,genetics.trail.radius*5.0))
 	_update_creature_animation(delta, travelled > 0.0001)
 	bite_timer = maxf(0.0, bite_timer - delta)
 

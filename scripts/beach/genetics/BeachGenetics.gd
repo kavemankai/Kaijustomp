@@ -62,16 +62,18 @@ func restore(saved: Dictionary, events: Dictionary, test_mode: bool) -> void:
 		if saved.is_empty(): genome.draft_seed=int(scene.world.state.seed_value%2147483647)
 		life_id = archive.next_id
 	refresh()
-	if saved.has("genetics"): traversal.safe_restore(String(saved["genetics"].get("mode","ground")))
+	if saved.has("genetics"):
+		trail.restore(saved["genetics"].get("trail",{}))
+		traversal.safe_restore(String(saved["genetics"].get("mode","ground")))
 	if enabled and scene.hp <= 0: finalize_death()
 
 func record() -> Dictionary:
-	return {"version":1,"enabled":enabled,"life_id":life_id,"focus":focus,"genome":genome.record(),"effects":effects.record(),"breach_cooldown":breach_cooldown,"mode":traversal.mode}
+	return {"version":1,"enabled":enabled,"life_id":life_id,"focus":focus,"genome":genome.record(),"effects":effects.record(),"breach_cooldown":breach_cooldown,"mode":traversal.mode,"trail":trail.record()}
 static func valid(data: Variant) -> bool:
 	if not data is Dictionary: return false
 	var cooldown = data.get("breach_cooldown",0)
 	if not WorldState._number(cooldown) or float(cooldown)<0 or float(cooldown)>4: return false
-	return data.get("version")==1 and data.get("enabled") is bool and WorldState._number(data.get("life_id")) and int(data["life_id"])>=1 and data.get("focus","") in GeneRegistry.FORMS+[""] and GenomeState.from_record(data.get("genome")) != null and data.get("mode","ground") in ["ground","flight","glide","burrow","climb","landing"] and (not data.has("effects") or GeneEffects.valid(data["effects"]))
+	return data.get("version")==1 and data.get("enabled") is bool and WorldState._number(data.get("life_id")) and int(data["life_id"])>=1 and data.get("focus","") in GeneRegistry.FORMS+[""] and GenomeState.from_record(data.get("genome")) != null and data.get("mode","ground") in ["ground","flight","glide","burrow","climb","landing"] and (not data.has("trail") or AxialTrail.valid(data["trail"])) and (not data.has("effects") or GeneEffects.valid(data["effects"]))
 
 func refresh() -> void:
 	if not is_instance_valid(morphology): return
