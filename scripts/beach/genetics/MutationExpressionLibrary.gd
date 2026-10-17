@@ -1,108 +1,124 @@
 class_name MutationExpressionLibrary
 extends RefCounted
-## Render semantic organs at host sockets; the same stat upgrade must not
-## produce reptile paws or back plates on every biological body.
-const COLORS := [Color("eccd95"),Color("dc8151"),Color("7dbcb2"),Color("b76f86")]
-static func _oval(parent: Node3D, at: Vector3, axes: Vector3, tint: Color) -> void:
-	CoastalArt.oval(parent,at,axes,tint)
-static func _bone(parent: Node3D, a: Vector3,b: Vector3,thick: float,tint: Color) -> void:
-	var n := CoastalArt.oval(parent,(a+b)*.5,Vector3(thick,a.distance_to(b)*.5,thick),tint)
-	n.quaternion=Quaternion(Vector3.UP,(b-a).normalized())
-static func _rank(generic_ranks: Dictionary, k: String) -> int:
-	return mini(3,int(generic_ranks.get(k,0)))
+## Socket-local tissue expressions. Every tier develops one organ, not copies.
+const CREAM := Color("edd8b0")
+const TEAL := Color("76b8a2")
+const CORAL := Color("da865c")
+static func oval(p: Node3D, at: Vector3, size: Vector3, tint: Color) -> void:
+	CoastalArt.oval(p,at,size,tint)
+static func bone(p: Node3D,a: Vector3,b: Vector3,r: float,c: Color) -> void:
+	OrganicGeometry.tapered(p,a,b,r,r*.18,c)
+static func frame(root: Node3D, host: String, key: String, tier: int) -> Node3D:
+	var spec := AnatomyManifest.expression(host,key,tier)
+	var socket: AnatomyManifest.OrganSocket=AnatomyManifest.sockets(host)[spec["socket"]]
+	var n := Node3D.new()
+	n.name=spec["organ"]
+	n.transform=socket.pose
+	n.set_meta("expression",spec)
+	root.add_child(n)
+	return n
 static func render(root: Node3D, host: String, generic: Dictionary) -> void:
-	var template := AnatomyManifest.signature(host)
-	var anchors: Dictionary = template["anchors"]
-	var dorsal: Vector3 = anchors["dorsal"]
-	var head: Vector3 = anchors["head"]
-	var shoulder: Vector3 = anchors["shoulder"]
-	var flanks: Vector3 = anchors["flanks"]
-	var tail: Vector3 = anchors["tail"]
-	var limbs: Vector3 = anchors["forelimbs"]
-	var armour := _rank(generic,"armour")
-	var strength := _rank(generic,"strength")
-	var speed := _rank(generic,"speed")
-	var stamina := _rank(generic,"stamina")
-	var health := _rank(generic,"health")
-	var jaw := _rank(generic,"jaw")
-	var regen := _rank(generic,"regen")
-	var cocoon := _rank(generic,"cocoon")
-	var meta := _rank(generic,"metamorphosis")
-	if armour>0:
-		var root_pos: Vector3 = anchors["shell"] if host in ["crab","spider"] else dorsal
-		if host in ["snake","worm"]:
-			for i in range(1+armour*2):
-				_oval(root,root_pos+Vector3(0,.16,float(i)*.39),Vector3(.41+armour*.07,.14,.13),COLORS[1])
-		elif host=="bird":
-			for side in [-1,1]:
-				for i in range(armour+1):
-					_oval(root,root_pos+Vector3(side*(.35+i*.16),.08,.1+i*.17),Vector3(.20,.08,.31),COLORS[0])
-		elif host=="ape":
-			for side in [-1,1]:
-				_oval(root,shoulder+Vector3(side*.75,.14,0),Vector3(.37+armour*.11,.33+armour*.07,.39),COLORS[1])
-		else:
-			for i in range(2+armour):
-				_oval(root,root_pos+Vector3(0,.13,float(i)*.36),Vector3(.40+armour*.12,.13,.23),COLORS[1])
-	if strength>0:
-		if host in ["snake","worm"]:
-			for side in [-1,1]:
-				_oval(root,flanks+Vector3(side*.45,0,.20),Vector3(.22+strength*.11,.18+strength*.07,1.0),COLORS[3])
-		elif host=="crab":
-			for side in [-1,1]:
-				_oval(root,limbs+Vector3(side*1.42,.12,-.62),Vector3(.32+strength*.16,.26+strength*.10,.47+strength*.10),COLORS[1])
-		elif host=="bird":
-			for side in [-1,1]:
-				_bone(root,limbs+Vector3(side*.54,0,-.48),limbs+Vector3(side*.54,-.7,-.96),.12+strength*.07,COLORS[0])
-		else:
-			for side in [-1,1]:
-				_oval(root,limbs+Vector3(side*.65,-.1,0),Vector3(.20+strength*.13,.36+strength*.14,.42),COLORS[1])
-	if speed>0:
-		if host in ["snake","worm"]:
-			for i in range(speed*2):
-				_oval(root,tail+Vector3(0,.15,float(i)*.22),Vector3(.32,.09,.14),COLORS[2])
-		elif host in ["bird","spider","crab"]:
-			for side in [-1,1]:
-				_bone(root,limbs+Vector3(side*.55,.1,.5),limbs+Vector3(side*(.95+speed*.16),.1,.82),.07+speed*.025,COLORS[2])
-		else:
-			for side in [-1,1]:
-				_oval(root,limbs+Vector3(side*.68,-.35,0),Vector3(.15+speed*.04,.25,.40),COLORS[2])
-	if stamina>0:
-		for side in [-1,1]:
-			for i in range(stamina):
-				_oval(root,flanks+Vector3(side*.57,.14,float(i)*.25),Vector3(.11+stamina*.025,.23,.20),COLORS[2])
-	if health>0:
-		var target: Vector3 = anchors["abdomen"]
-		if host=="bird": target=anchors["shoulder"]
-		_oval(root,target,Vector3(.30+health*.18,.24+health*.09,.38+health*.15),COLORS[3])
-	if jaw>0:
-		_oval(root,head+Vector3(0,-.32,-.44),Vector3(.32+jaw*.07,.11,.28+jaw*.08),COLORS[0])
-	if regen>0:
-		for side in [-1,1]:
-			for i in range(regen):
-				_oval(root,flanks+Vector3(side*.52,.10+i*.19,.4),Vector3(.11,.12,.18),COLORS[2])
-	if cocoon>0:
-		for i in range(cocoon+2):
-			_oval(root,dorsal+Vector3(0,.28,float(i)*.35),Vector3(.33+cocoon*.07,.07,.13),COLORS[0])
-	if meta>0:
-		for side in [-1,1]:
-			for i in range(meta+1):
-				_bone(root,dorsal+Vector3(side*.16,0,float(i)*.31),dorsal+Vector3(side*.25,.30+meta*.09,float(i)*.31),.06,COLORS[2])
-static func trait_frame(root: Node3D, host: String, gene_id: int) -> Node3D:
-	var socket := AnatomyManifest.socket_for_gene(gene_id)
-	var manifest := AnatomyManifest.signature(host)
-	var anchors: Dictionary = manifest["anchors"]
-	# Historical trait meshes used these reptilian reference positions.
-	var reference: Dictionary = {
-		"head":Vector3(0,1.08,-1.25),"mouth":Vector3(0,.75,-1.55),
-		"dorsal":Vector3(0,1.3,.15),"flanks":Vector3(0,.90,.1),
-		"forelimbs":Vector3(0,.7,-.7),"tail":Vector3(0,.6,1.55),
-		"wing":Vector3(0,1.1,0),"abdomen":Vector3(0,.8,.5)}
-	var frame := Node3D.new()
-	frame.name="Trait_%03d" % gene_id
-	frame.position=anchors.get(socket,Vector3.ZERO)-reference.get(socket,Vector3.ZERO)
-	if host in ["snake","worm"]:
-		frame.scale=Vector3(.65,.78,.70)
-	if host=="bird" and socket=="wing":
-		frame.scale=Vector3(.76,.74,.78)
-	root.add_child(frame)
-	return frame
+	for key in GeneRegistry.LEGACY:
+		var rank := clampi(int(generic.get(key,0)),0,3)
+		if rank==0: continue
+		var p := frame(root,host,key,rank)
+		var t := float(rank)
+		var axial := host in ["snake","worm"]
+		var hard := host in ["crab","spider"]
+		var skin: Color=CreatureMorphology.COLORS[GeneRegistry.FORMS.find(host)]
+		match key:
+			"armour","cocoon":
+				var c: Color= CORAL if key=="armour" else CREAM
+				if host=="biomass": c=skin.lightened(.22)
+				for i in range(4):
+					var z := float(i)*.32-.55
+					# Embedded overlapping scutes follow the dorsal curvature.
+					var w := (.44+.065*t)*(1.0 if not hard else 1.6)
+					OrganicGeometry.loft(p,[Vector3(0,-.14,z-.2),Vector3(0,.06+t*.035,z),Vector3(0,-.05,z+.23)], [Vector2(w*.7,.05),Vector2(w,.07+t*.02),Vector2(w*.65,.04)],c)
+			"jaw":
+				if host=="worm":
+					for i in range(10):
+						var a := TAU*i/10.0
+						bone(p,Vector3(cos(a)*.54,sin(a)*.50,0),Vector3(cos(a)*(.38-.04*t),sin(a)*(.36-.03*t),-.12-.09*t),.065+.02*t,CREAM)
+				elif host=="bird":
+					OrganicGeometry.loft(p,[Vector3(0,0,.1),Vector3(0,0,-.3),Vector3(0,-.08,-.55-.09*t)],[Vector2(.23,.16),Vector2(.25+.025*t,.13),Vector2(.015,.03)],CREAM)
+				else:
+					OrganicGeometry.loft(p,[Vector3(0,0,.25),Vector3(0,-.05,-.10),Vector3(0,-.03,-.38-.06*t)],[Vector2(.34,.12),Vector2(.39+.025*t,.11+.02*t),Vector2(.20,.06)],CREAM)
+			"strength","speed":
+				if axial:
+					for s in [-1,1]:
+						OrganicGeometry.loft(p,[Vector3(s*.30,-.08,-.45),Vector3(s*.48,0,.15),Vector3(s*.27,-.05,.7)],[Vector2(.08,.10),Vector2(.12+.035*t,.18+.03*t),Vector2(.06,.07)],skin.lightened(.12) if key=="strength" else TEAL)
+				elif host in ["crab","spider"]:
+					# Joint sheaths integrated with the radial leg roots, no extra legs.
+					for s in [-1,1]:
+						for i in range(4):
+							oval(p,Vector3(s*.78,-.02,float(i)*.44-.2),Vector3(.23+.025*t,.13+.02*t,.18),skin.lightened(.20))
+				elif host=="bird":
+					for s in [-1,1]:
+						bone(p,Vector3(s*.38,.13,.8),Vector3(s*.42,-.34,.7),.12+.035*t,skin.lightened(.20))
+				else:
+					for s in [-1,1]:
+						oval(p,Vector3(s*.65,-.08,0),Vector3(.23+.055*t,.27+.04*t,.35),skin.lightened(.12))
+			"stamina","health","regen","metamorphosis":
+				var c: Color= skin.lightened(.12) if key=="health" else TEAL
+				if host=="biomass": c=Color("d989a0")
+				for s in [-1,1]:
+					# Broad flush tissue panels, air-sac rib feathers or shell seams.
+					for i in range(3):
+						var z := float(i)*.28-.2
+						var x := .70 if not axial else .44
+						var n := CoastalArt.oval(p,Vector3(s*x,-.03,z),Vector3(.055+.017*t,.14+.035*t,.22),c)
+						if host=="bird": n.rotation.x=-.4
+
+static func render_source(root: Node3D,host: String,id: int,rank: int) -> void:
+	# Seed organs are built by the host and hybrid composer.
+	if id in GeneRegistry.SEEDS: return
+	# Flight organs are attached to moving wing pivots, never baked twice.
+	if id in [29,121,122]: return
+	var p := frame(root,host,"gene_%03d"%id,rank)
+	var skin: Color=CreatureMorphology.COLORS[GeneRegistry.FORMS.find(host)]
+	match id:
+		1:
+			p.position=AnatomyManifest.signature(host)["anchors"]["mouth"]
+			for s in [-1,1]: bone(p,Vector3(0,0,0),Vector3(s*.13,-.08,-.57),.035,Color("a85975"))
+		2,20,81,90,99:
+			for s in [-1,1]:
+				for i in range(3):
+					var c: Color= {2:CREAM,20:Color("52775c"),81:TEAL,90:CORAL,99:Color("adc06d")}[id]
+					oval(p,Vector3(s*.60,-.13,i*.25-.35),Vector3(.09,.15,.26),c)
+		7,12,43:
+			p.position=AnatomyManifest.signature(host)["anchors"]["mouth"]
+			for s in [-1,1]:
+				if id==7: oval(p,Vector3(s*.27,.03,.03),Vector3(.13,.15,.20),Color("9bbd52"))
+				else: bone(p,Vector3(s*.27,.02,0),Vector3(s*.24,-.25,-.24),.10,CREAM)
+		9,72:
+			for i in range(4): bone(p,Vector3(0,-.12,i*.35-.45),Vector3(0,.34,i*.35-.32),.13,CREAM if id==9 else CORAL)
+		14,30,57,95:
+			for s in [-1,1]:
+				for i in range(2): oval(p,Vector3(s*(.28+i*.09),.08,-.31),Vector3(.065,.08,.04),Color("f3c76d") if id in [30,57] else TEAL)
+		19:
+			oval(p,Vector3(0,0,0),Vector3(.42,.25,.49),CORAL)
+		36:
+			for s in [-1,1]: bone(p,Vector3(s*.60,-.06,0),Vector3(s*.94,.02,-.25),.12,CREAM)
+		39,47,49,58:
+			for s in [-1,1]: oval(p,Vector3(s*.60,-.05,.1),Vector3(.12,.26,.38),skin.lightened(.20) if id!=47 else CORAL)
+		42:
+			for s in [-1,1]:
+				for i in range(5): bone(p,Vector3(s*.55,-.08,i*.23-.35),Vector3(s*.66,.18,i*.23-.2),.055,CREAM)
+		73:
+			for s in [-1,1]: oval(p,Vector3(s*.74,-.10,0),Vector3(.18,.14,.21),TEAL)
+		85:
+			OrganicGeometry.loft(p,[Vector3(0,-.12,-.5),Vector3(0,.28,0),Vector3(0,-.12,.7)],[Vector2(.5,.13),Vector2(.8,.35),Vector2(.35,.10)],Color("b69b76"))
+		88:
+			p.position=AnatomyManifest.signature(host)["anchors"]["neck"]
+			bone(p,Vector3(0,0,0),Vector3(0,.72,-.3),.055,TEAL)
+			oval(p,Vector3(0,.72,-.3),Vector3(.13,.14,.13),Color("eddb7c"))
+		441:
+			for s in [-1,1]: bone(p,Vector3(s*.38,.12,0),Vector3(s*.53,.20,-.2),.08,skin.darkened(.25))
+		52,119:
+			# Ventral digging keels; Mole's working fore-spades are articulated.
+			for s in [-1,1]:
+				OrganicGeometry.loft(p,[Vector3(s*.35,-.1,.15),Vector3(s*.55,-.17,-.25),Vector3(s*.50,-.28,-.65)],[Vector2(.18,.14),Vector2(.29,.12),Vector2(.25,.02)],CREAM)
+		180:
+			for s in [-1,1]:
+				for i in range(4): bone(p,Vector3(s*.78,-.18,i*.46-.2),Vector3(s*.91,-.38,i*.46-.30),.055,CREAM)

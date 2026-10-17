@@ -19,6 +19,7 @@ var qa_primary: OptionButton
 var qa_secondary: OptionButton
 var qa_size: SpinBox
 var movement_picker: OptionButton
+var qa_gene: OptionButton
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	theme = CoastalHUD.theme()
@@ -31,6 +32,7 @@ func _ready() -> void:
 	summary = Label.new()
 	summary.position = Vector2(18,430)
 	summary.add_theme_font_size_override("font_size",13)
+	summary.add_theme_color_override("font_color",Color("f4e7c7"))
 	summary.add_theme_color_override("font_shadow_color",Color.BLACK)
 	summary.add_theme_constant_override("shadow_offset_x",2)
 	summary.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -127,16 +129,26 @@ func refresh() -> void:
 	var ready: bool=model.enabled and not button.disabled and not dialog.visible and not model.scene.game_over
 	traverse_button.visible=ready and (model.traversal.can_use("flight") or model.traversal.can_use("glide") or model.traversal.can_use("burrow") or model.traversal.can_use("climb"))
 	traverse_button.disabled=model.traversal.mode=="roof"
-	traverse_button.text="WALK OFF ROOF" if model.traversal.mode=="roof" else ("LAND / EXIT" if model.traversal.mode!="ground" else "TRAVERSE")
+	var next_mode := ""
+	var choices := ["flight","glide","burrow","climb"]
+	if model.morphology.primary in ["mole","worm"]: choices=["burrow","climb","flight","glide"]
+	if model.morphology.primary=="spider": choices=["climb","burrow","flight","glide"]
+	for kind in choices:
+		if model.traversal.can_use(kind): next_mode=kind;break
+	traverse_button.text="WALK OFF ROOF" if model.traversal.mode=="roof" else ("LAND / EXIT" if model.traversal.mode!="ground" else next_mode.to_upper())
+	traverse_button.tooltip_text=model.traversal.last_error
 	ascend_button.visible=ready and model.traversal.mode in ["flight","climb"]
 	descend_button.visible=ascend_button.visible
 	if not ascend_button.visible: model.traversal.vertical_input=0
-	summary.text = "%s\nSize %.2fx | %s" % [model.genome.label(),model.scene.growth_scale,model.genome.growth_policy+" growth | "+model.traversal.mode] if model.enabled else ""
+	summary.text = "%s\n%s%s" % [model.genome.label(),model.traversal.mode.to_upper()," · "+model.traversal.last_error if not model.traversal.last_error.is_empty() else ""] if model.enabled else ""
+	summary.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+	summary.size.x=285
 	summary.visible = model.enabled and not dialog.visible and not model.scene.objective_hud.opened and not (model.scene.choice_open or model.scene.reveal_active or model.scene.evolving)
 
 func open() -> void:
 	if button.disabled or model.scene.choice_open or model.scene.reveal_active or model.scene.evolving or model.scene.objective_hud.opened: return
 	model.scene.touch_input.reset_input()
+	model.traversal.vertical_input=0
 	model.scene.touch_vector = Vector2.ZERO
 	model.scene.sprint_requested = false
 	model.scene.sprint_active = false
@@ -147,6 +159,8 @@ func open() -> void:
 
 func close() -> void:
 	dialog.hide()
+	model.traversal.vertical_input=0
+	model.scene.touch_input.reset_input()
 	get_tree().paused = false
 	if not model.scene.world.test_mode: model.scene.world.save_now()
 
@@ -216,6 +230,13 @@ func _build_qa_panel(column: VBoxContainer) -> void:
 	qa_size.min_value=0;qa_size.max_value=18;qa_size.step=1
 	qa_size.value=6
 	content.add_child(qa_size)
+	qa_gene=OptionButton.new()
+	qa_gene.add_item("No extra mutation")
+	for key in GeneRegistry.definitions():
+		if key=="physical_growth": continue
+		qa_gene.add_item(GeneRegistry.definitions()[key]["name"])
+		qa_gene.set_item_metadata(qa_gene.item_count-1,key)
+	content.add_child(qa_gene)
 	var instructions:=Label.new()
 	instructions.text="Bird: wings and FLIGHT | Mole/Worm: BURROW\nSpider: wall hooks | Snake/Worm: long body\nTap TRAVERSE to move, UP/DOWN for altitude or wall."
 	instructions.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
@@ -232,6 +253,7 @@ func _apply_qa_form() -> void:
 		var second: String=GeneRegistry.FORMS[qa_secondary.selected-1]
 		if second!=first: families.append(second)
 	model.enabled=true
+	model.qa_preview=true
 	model.genome=GenomeState.new()
 	model.effects.reset()
 	model.breach_cooldown=0.0
@@ -241,6 +263,7 @@ func _apply_qa_form() -> void:
 	for family in families:
 		for tier in range(3):
 			model.genome.select_gene(GeneRegistry.seed_key(family),"qa_seed_%s_%d"%[family,tier])
+	if families.size()>1: model.genome.select_gene(GeneRegistry.seed_key(first),"qa_primary")
 	for family in families:
 		match family:
 			"bird":
@@ -252,6 +275,10 @@ func _apply_qa_form() -> void:
 			"mole": model.genome.select_gene("gene_052","qa_burrow_mole")
 	for rank in range(int(qa_size.value)):
 		model.genome.select_gene("physical_growth","qa_size_%d"%rank)
+	if qa_gene.selected>0:
+		var key: String=qa_gene.get_item_metadata(qa_gene.selected)
+		for tier in range(3):
+			if model.genome.legal(key): model.genome.select_gene(key,"qa_extra_%d"%tier)
 	model.refresh()
 	model.scene.hp=model.scene.max_hp
 	model.scene._resolve_growth_clearance()

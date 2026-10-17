@@ -671,8 +671,11 @@ func _camera_offset() -> Vector3:
 	var viewport_size := get_viewport().get_visible_rect().size
 	# Scale only the distance, not the established portrait chase angle.
 	var zoom := maxf(1.0,growth_scale)
-	if is_instance_valid(genetics) and genetics.enabled and genetics.dimensions.get("axial",false):
-		zoom=maxf(zoom,float(genetics.dimensions["length"])/9.0)
+	if is_instance_valid(genetics) and genetics.enabled and genetics.morphology.visible:
+		var d: Dictionary=genetics.dimensions
+		zoom=maxf(.85,maxf(float(d.get("width",2))/3.8,float(d.get("height",2.3))/3.5))
+		if d.get("axial",false): zoom=maxf(1.0,float(d["length"])/25.0)
+		if genetics.traversal.mode in ["flight","glide","landing"]: zoom=maxf(zoom,float(d.get("wingspan",0))/10.0)
 	return CAMERA_OFFSET*(PORTRAIT_CAMERA_DISTANCE if viewport_size.y>viewport_size.x else 1.0)*zoom+Vector3(0,_camera_height(),0)
 
 func _camera_height() -> float:
@@ -683,7 +686,8 @@ func _camera_look_target() -> Vector3:
 	# angle and control mapping at hatchling size.
 	var lead := maxf(1.0,growth_scale)
 	if is_instance_valid(genetics) and genetics.enabled and genetics.dimensions.get("axial",false):
-		lead=maxf(lead,float(genetics.dimensions["length"])/7.5)
+		if genetics.trail.live:
+			return beast.global_position.lerp(genetics.trail.point_at(minf(20,genetics.trail.total_length*.30)),.42)+Vector3(0,.5,0)
 	return beast.global_position+Vector3(0,_camera_height(),-2.8*lead)
 
 
@@ -1189,7 +1193,7 @@ func _update_movement(delta: float) -> void:
 			sprint_active = false
 			sprint_requested = false
 			sprint_locked = true
-	else:
+	elif not (genetics.enabled and genetics.traversal.mode=="flight"):
 		stamina = minf(max_stamina, stamina + delta * SPRINT_RECHARGE_RATE)
 	if is_instance_valid(world):
 		world.ensure_region(beast.position, maxf(30,growth_scale*4.0+20))
@@ -1197,6 +1201,7 @@ func _update_movement(delta: float) -> void:
 	# rather than requiring tank-like rotation before moving.
 	var speed := (BASE_WALK + speed_bonus) * (SPRINT_MULTIPLIER if sprint_active else 1.0)
 	speed *= genetics.speed_multiplier(beast.position)
+	if genetics.enabled and genetics.trail.constrain_head_motion(): speed=0
 	if bite_timer > 0.0:
 		speed *= genetics.effects.feeding_slowdown()
 	var travelled := 0.0
@@ -1208,7 +1213,9 @@ func _update_movement(delta: float) -> void:
 		if moving and genetics.traversal.mode != "climb":
 			beast.rotation.y=lerp_angle(beast.rotation.y,atan2(-direction.x,-direction.z),minf(1.0,5.0*delta))
 	if moving and not handled:
-		beast.rotation.y = lerp_angle(beast.rotation.y, atan2(-direction.x, -direction.z), minf(1.0, TURN_RESPONSE * delta))
+		var heading := atan2(-direction.x,-direction.z)
+		if genetics.enabled and genetics.morphology.primary=="crab": heading+=PI*.5
+		beast.rotation.y = lerp_angle(beast.rotation.y, heading, minf(1.0, TURN_RESPONSE * delta))
 		var next_pos := beast.global_position + direction * speed * delta
 		next_pos.x = clampf(next_pos.x, -PLAYABLE_HALF_LENGTH, PLAYABLE_HALF_LENGTH)
 		next_pos.z = clampf(next_pos.z, NEIGHBOURHOOD_FAR_Z, WorldLayout.shore(next_pos.x))
@@ -1246,7 +1253,7 @@ func _update_movement(delta: float) -> void:
 	if genetics.enabled:
 		genetics.trail.advance(beast.global_position)
 		if genetics.trail.live and is_instance_valid(world):
-			world.ensure_region(genetics.trail.point_at(genetics.trail.total_length*.9),maxf(30.0,genetics.trail.radius*5.0))
+			for fraction in [.3,.6,.9]: world.ensure_region(genetics.trail.point_at(genetics.trail.total_length*fraction),maxf(30.0,genetics.trail.radius*5.0))
 	_update_creature_animation(delta, travelled > 0.0001)
 	bite_timer = maxf(0.0, bite_timer - delta)
 
@@ -1339,6 +1346,8 @@ func _update_creature_animation(delta: float, moving: bool) -> void:
 	if is_instance_valid(ground_shadow):
 		ground_shadow.visible=not (genetics.enabled and (genetics.trail.live or genetics.traversal.mode=="burrow"))
 		ground_shadow.scale=Vector3(growth_scale,1,growth_scale)
+		if genetics.enabled and genetics.traversal.mode in ["flight","glide","landing"]:
+			ground_shadow.global_position=Vector3(beast.position.x,.035,beast.position.z)
 
 func _grab_pose_strength() -> float:
 	if bite_timer <= 0.0:
@@ -1536,6 +1545,7 @@ func _update_debris(delta: float) -> void:
 		debris[i] = d
 
 func _update_biting(_delta: float) -> void:
+	if genetics.enabled and genetics.traversal.mode in ["burrow","emerging"] and beast.position.y<-1.0: return
 	# Once the hands dwarf a human-sized target, stop attempting the tiny
 	# lift-to-mouth animation. People still panic and flee in the world.
 	if bite_timer > 0.0 or not DietProgression.can_grab_people(growth_scale):
@@ -1799,11 +1809,11 @@ func _update_police(delta: float) -> void:
 			var rotor := unit.get_node_or_null("Rotor") as Node3D
 			if rotor != null:
 				rotor.rotation.y += delta * 15.0
-		if distance < float(foe["range"]):
+		if distance < float(foe["range"]) and not (genetics.enabled and genetics.traversal.mode=="burrow" and beast.position.y<-1.0):
 			foe["cooldown"] = float(foe["cooldown"]) - delta
 			if foe["cooldown"] <= 0.0:
 				var origin := unit.global_position + Vector3(0, 1.55 if not helicopter else .1, 0)
-				var aim := beast.global_position + Vector3(0, 1.75 * growth_scale, 0)
+				var aim := beast.global_position + Vector3(0, float(genetics.dimensions.get("height",1.75*growth_scale))*.6 if genetics.enabled and genetics.morphology.visible else 1.75*growth_scale, 0)
 				var moving_player := sprint_active or touch_vector.length_squared() > .05
 				var spread := 2.2 if moving_player else .65
 				if genetics.effects.concealed(): spread+=2.0
@@ -1926,6 +1936,8 @@ func _show_genetic_choices() -> void:
 		card.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		card.add_theme_font_size_override("font_size",14)
 		card.text = "%d · %s\n%s" % [i+1,lanes[i],genetics.preview(key)]
+		var forecast := GenomeState.from_record(genetics.genome.record())
+		if forecast.select_gene(key,"portrait_%d"%i): AnatomyPortrait.attach(card,forecast)
 		card.pressed.connect(_choose_mutation.bind(key))
 		choice_column.add_child(card)
 
@@ -2136,6 +2148,7 @@ func _apply_mutation_visual(id: String) -> void:
 
 func _update_camera(delta: float) -> void:
 	var goal := beast.global_position + _camera_offset()
+	if genetics.enabled and genetics.trail.live: goal+=(_camera_look_target()-beast.global_position)*.70
 	# Keep terrain/ocean and roof surfaces distinct at kilometre-scale views.
 	follow_camera.near = maxf(.1,growth_scale*.2-.1)
 	follow_camera.far = maxf(230.0, 230.0 * growth_scale)
