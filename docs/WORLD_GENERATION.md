@@ -1,6 +1,6 @@
 # Finite world generation
 
-Work branch: `feature/persistent-streamed-world`, based on integration `00eb61e` (APK217 gameplay source `317743c`). Implementation validation is in progress; see WORLD_TEST_RESULTS.md for measured results.
+Work branch: `feature/persistent-streamed-world`, based on integration `00eb61e` (APK217 gameplay source `317743c`). Delivered source `9c4d94e`, APK227; see WORLD_TEST_RESULTS.md for measured results. The full requested extent is enabled without constructing it all at launch. This finite size supports long coastal and deep inland travel while keeping coordinates small enough that origin rebasing was not justified by tests. Travel speed is unchanged; world units are not asserted to be metres.
 
 The world spans X=-10000..10000 and inland Z=-6000, with a continuous sampled shoreline near Z=26. Broad sinusoidal coves begin outside the original 800-unit coastal half-width; terminal headlands turn the shoreline inland in the final 800 units. Low-cost inland and side ridges frame the finite terrain. Coordinates remain Godot world units; no claim that a unit is a real metre or that travel speed has changed.
 

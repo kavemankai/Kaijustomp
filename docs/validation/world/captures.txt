@@ -1,0 +1,9 @@
+Godot Engine v4.5.stable.official.876b29033 - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 610.78 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 3050 Laptop GPU
+
+WORLD RENDER starting_beach E0 scale=1.000 chunks=4 nodes=1109 draw_calls=89 primitives=21986
+WORLD RENDER banksia E0 scale=1.000 chunks=6 nodes=1331 draw_calls=41 primitives=9998
+WORLD RENDER expanded_city E34 scale=3.741 chunks=8 nodes=1078 draw_calls=56 primitives=11230
+WORLD RENDER inland E55 scale=5.839 chunks=13 nodes=924 draw_calls=56 primitives=13592
+WORLD RENDER giant_world E120 scale=29.881 chunks=147 nodes=1692 draw_calls=312 primitives=60214
+WORLD RENDER giant_boundary E120 scale=29.881 chunks=30 nodes=1042 draw_calls=101 primitives=23442

@@ -1,6 +1,14 @@
-# 2026-10-17 — finite persistent world implementation
+# 2026-10-17 - persistent world delivery
 
-Verified the remote PR17 head00eb61e and APK217 source317743c; cloned into an empty workspace and created feature/persistent-streamed-world. Official Godot4.5 import/launch and all16 baseline suites pass. Preserved the authored114-structure layout in descriptors and a source-captured fixture. Added configurable20000x6000 extent,256-unit deterministic chunks, spatially coherent district anchors, connected roads, shared simple meshes, bounded art/collision lifetimes, reusable generated slots and camera-driven silhouettes. Added versioned delta saves with backup recovery/migration, player/evolution/DEFCON state, important cars and evacuation conservation. Streamed traffic and descriptor-only responder routing keep caps and offscreen arrivals. New regression scenarios exercise long real swept travel, memory ownership, persistence and warehouse approaches. Current branch is unmerged; final APK/evidence publication follows in the current handover.
+Published isolated World Preview APK227 from `9c4d94e`; draft PR18 targets integration/stable-baseline without merging. All 23 Windows and Linux regression suites, import/launch, smoke and Android workflows pass. Downloaded digest, CRC and native alignment match; CI validates package, launcher, ARM64 and v2/v3 signature. Exact artifact and evidence are in WORLD_TEST_RESULTS.md.
+
+Rendered review corrected terrain winding, giant-camera depth precision and block-like finite boundary art. Stable collision ownership fixes same-frame LOD cover; a 64-unit owner margin and 120-pixel camera prefetch cover chunk seams and evolution reveals. Natural hilly boundaries keep backdrop land visible at E120. Expanded aircraft clear towers and ground units use hull-aware descriptor routes. Corrupt nested save records are validated. Measured 10,000-object synchronous saves near 100 ms motivated immutable detached snapshots with a bounded worker; enqueue p95 measured 3.615 ms. Final desktop probes record spikes and RSS rather than asserting Android FPS. Phone touch/thermal/performance and natural progression acceptance remain outstanding. Approved builds and prior gameplay are preserved.
+
+---
+
+# 2026-10-17 â€” finite persistent world implementation
+
+Verified the remote PR17 head00eb61e and APK217 source317743c; cloned into an empty workspace and created feature/persistent-streamed-world. Official Godot4.5 import/launch and all16 baseline suites pass. Preserved the authored114-structure layout in descriptors and a source-captured fixture. Added configurable20000x6000 extent,256-unit deterministic chunks, spatially coherent district anchors, connected roads, shared simple meshes, bounded art/collision lifetimes, reusable generated slots and camera-driven silhouettes. Added versioned delta saves with backup recovery/migration, player/evolution/DEFCON state, important cars and evacuation conservation. Streamed traffic and descriptor-only responder routing keep caps and offscreen arrivals. New regression scenarios exercise long real swept travel, memory ownership, persistence and warehouse approaches. This implementation was subsequently delivered as APK227; see the current handover.
 
 ---
 

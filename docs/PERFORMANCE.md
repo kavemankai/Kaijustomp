@@ -1,3 +1,13 @@
+# Streamed world measurements - 17 October 2026
+
+Exact source `9c4d94e`, APK227. [WORLD_TEST_RESULTS.md](WORLD_TEST_RESULTS.md) records final probe scope and full measurements; [raw data](validation/world/README.md) preserves results. Windows headless startup 550.655 ms / 1,101 nodes / 36.44 MiB static; rendered startup 629.304 ms. Sampled process-tree peak RSS is 123.46 MiB headless and 239.81 MiB rendered. These differ from engine static allocation and exclude full GPU accounting.
+
+Rendered RTX3050 Laptop/OpenGL3.3 CPU update p95 ranges 7.532-9.195 ms across E0/34/55/80/120; maximum 15.625 ms. E120 retains 149 chunks, 1,554 nodes and 231 registry slots in that rendered route. Individual generation reaches 6.256 ms headless; the 2 ms cooperative queue budget is not a hard bound. Mobile 60/30 FPS targets remain unverified.
+
+Checkpoint stress at 10,000 modified records: synchronous disk p95 97.030 ms, delivered worker snapshot enqueue p95 3.615 ms, explicit pause/exit flush 156.743 ms. One worker plus one coalesced snapshot bounds concurrent ownership. Main-thread copying remains proportional to changed-object count. Profile phone storage and long saves before further optimisation. Below are historical integration measurements with a different idle workload, not a controlled comparison to streamed traversal.
+
+---
+
 # Performance and giant-scale review — 17 October 2026
 
 ## Measurement scope
