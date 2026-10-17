@@ -23,12 +23,12 @@ func _run() -> void:
 	root.add_child(demo)
 	demo.set_physics_process(false)
 	await physics_frame
-	if not _check(demo.buildings.size() == 80, "Missing 54 original buildings, 12 homes or 14 shops"): return
+	if not _check(demo.buildings.size() == 114, "Missing original 80 structures or 34 new outer targets"): return
 	for i in range(54):
 		if not _check(demo.buildings[i]["name"] != "Supermarket" and demo.buildings[i]["name"] != "Hardware Store", "Approved buildings reordered"): return
 	var houses := 0
 	var shopping := 0
-	for i in range(54, demo.buildings.size()):
+	for i in range(54, 80):
 		var b: Dictionary = demo.buildings[i]
 		if b["name"] == "Coastal home":
 			houses += 1
