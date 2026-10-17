@@ -70,14 +70,14 @@ func _run() -> void:
 	# Original commercial structures award once only after collapse. Bigger
 	# footprints yield more; failed/chip hits do not hand out resources.
 	var bakery: int = 66
-	var first_biomass: int = demo.biomass
+	var first_biomassass: int = demo.biomass
 	demo._damage_building(bakery, 0.1)
-	if not _check(demo.biomass == first_biom and not demo.buildings[bakery]["destroyed"], "Chip damage grants structure food early"): return
+	if not _check(demo.biomass == first_biomass and not demo.buildings[bakery]["destroyed"], "Chip damage grants structure food early"): return
 	demo._damage_building(bakery, 50.0)
-	var bakery_reward: int = demo.biomass - first_biom
+	var bakery_reward: int = demo.biomass - first_biomass
 	if not _check(bakery_reward > 50 and demo.buildings[bakery]["destroyed"], "E34 shop collapse lacks meaningful biomass"): return
 	demo._damage_building(bakery, 99.0)
-	if not _check(demo.biomass == first_biom + bakery_reward, "Already demolished structure paid twice"): return
+	if not _check(demo.biomass == first_biomass + bakery_reward, "Already demolished structure paid twice"): return
 	var store: int = 78
 	var shop_name: String = demo.buildings[store]["name"]
 	if not _check(shop_name == "Supermarket", "Store index changed"): return
