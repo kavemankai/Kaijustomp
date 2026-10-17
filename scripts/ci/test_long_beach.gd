@@ -19,7 +19,7 @@ func _run() -> void:
 	demo.set_physics_process(false)
 	await physics_frame
 	if not _check(demo.COAST_HALF_LENGTH >= 560.0 and demo.PLAYABLE_HALF_LENGTH >= 540.0, "Coast did not extend at least eightfold"): return
-	if not _check(demo.buildings.size() == 80, "Expected 36 beach, 30 suburban houses and 14 shops"): return
+	if not _check(demo.buildings.size() == 114, "Expected original 80, 10 beach wings, 12 outer homes and 12 factories"): return
 	if not _check(demo.buildings[0]["name"] == "Beach kiosk" and demo.buildings[1]["name"] == "Wooden shed" and demo.buildings[4]["name"] == "Apartments", "Original beach building order changed"): return
 	var far_left := 0
 	var far_right := 0
