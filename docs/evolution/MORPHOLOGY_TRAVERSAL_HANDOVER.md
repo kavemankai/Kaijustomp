@@ -2,6 +2,14 @@
 
 **Development branch:** `feature/morphology-traversal-autonomous`, based directly on unmerged PR #19 (`feature/nine-form-genetics-preview`). Preserve PR #18, PR #19, the approved Android releases, the original genus/save contracts and the existing stable Android package. This is an **isolated experimental implementation**, not a production art-approval claim.
 
+## Final verified candidate — 17 October 2026
+
+**Install [Morphology & Traversal APK #253](https://github.com/kavemankai/Kaijustomp/releases/download/morph-traversal-253-27cb2e1/Kaijustomp-253-27cb2e1-debug.apk)**. Exact gameplay/export SHA **`27cb2e1f298b154fed6bf577aa00263a16dd817d`**, [immutable release](https://github.com/kavemankai/Kaijustomp/releases/tag/morph-traversal-253-27cb2e1), [successful Android run #253](https://github.com/kavemankai/Kaijustomp/actions/runs/39040926932), [draft PR #20](https://github.com/kavemankai/Kaijustomp/pull/20). Only this and earlier explicitly named sources were exported; subsequent handover-only commits do not change game content.
+
+CI successfully imported Godot4.5, launched the beach scene, passed all **31 discovered regression suites**, and verified Android debug APK package, signature and native alignment before publishing the prerelease. Preview package `com.kavemankai.kaijustomp.morphtraversepreview`, Android ARM64, **28,300,878 bytes**. The preview installs alongside approved/Genetics/World packages, subject to signing compatibility for repeated updates of this experimental package. **No physical phone test, sustained frame-rate/temperature measurement or final art approval has been performed.**
+
+The final patch also adds separate selectable **Glide** mode, mixed-lineage traversal selection in LINEAGE, safe roof landing, and resetting held altitude input when Android focus is lost. The debug-only QA selector deliberately enables quick direct experiments; ordinary progression still acquires the mutations through legal drafts. All six traversal gene IDs are real in-game upgrades, not just visuals.
+
 ## Source progression
 
 - First independent package, **Morphology & Traversal Preview #249**: `2fe3c41ed344ecefd7e537ca2f39233ee40a8f75`, successful [Android run #249](https://github.com/kavemankai/Kaijustomp/actions/runs/39040110949) and [release](https://github.com/kavemankai/Kaijustomp/releases/tag/morph-traversal-249-2fe3c41). All 31 current test suites, Godot 4.5 import and main-scene launch, and APK signing/native packaging passed at that source.
