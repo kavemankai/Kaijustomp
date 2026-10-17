@@ -16,6 +16,9 @@ var last_marker_target := 0
 var poison_tick := false
 var error_message := ""
 var effects: GeneEffects
+var trail: AxialTrail
+var traversal: CreatureTraversal
+var dimensions: Dictionary = {}
 
 func setup(owner_scene: Node3D) -> void:
 	scene = owner_scene
@@ -31,6 +34,12 @@ func setup(owner_scene: Node3D) -> void:
 	var diamond := CoastalArt.box(sensor,Vector3.ZERO,Vector3(.28,.28,.28),Color("f5ca68"))
 	diamond.rotation.z = PI*.25
 	sensor.hide()
+	trail=AxialTrail.new()
+	scene.add_child(trail)
+	trail.setup(scene)
+	traversal=CreatureTraversal.new()
+	add_child(traversal)
+	traversal.setup(scene)
 	hud = GeneticsHUD.new()
 	hud.model = self
 	scene.ui_layer.add_child(hud)
@@ -53,37 +62,49 @@ func restore(saved: Dictionary, events: Dictionary, test_mode: bool) -> void:
 		if saved.is_empty(): genome.draft_seed=int(scene.world.state.seed_value%2147483647)
 		life_id = archive.next_id
 	refresh()
+	if saved.has("genetics"): traversal.safe_restore(String(saved["genetics"].get("mode","ground")))
 	if enabled and scene.hp <= 0: finalize_death()
 
 func record() -> Dictionary:
-	return {"version":1,"enabled":enabled,"life_id":life_id,"focus":focus,"genome":genome.record(),"effects":effects.record(),"breach_cooldown":breach_cooldown}
+	return {"version":1,"enabled":enabled,"life_id":life_id,"focus":focus,"genome":genome.record(),"effects":effects.record(),"breach_cooldown":breach_cooldown,"mode":traversal.mode}
 static func valid(data: Variant) -> bool:
 	if not data is Dictionary: return false
 	var cooldown = data.get("breach_cooldown",0)
 	if not WorldState._number(cooldown) or float(cooldown)<0 or float(cooldown)>4: return false
-	return data.get("version")==1 and data.get("enabled") is bool and WorldState._number(data.get("life_id")) and int(data["life_id"])>=1 and data.get("focus","") in GeneRegistry.FORMS+[""] and GenomeState.from_record(data.get("genome")) != null and (not data.has("effects") or GeneEffects.valid(data["effects"]))
+	return data.get("version")==1 and data.get("enabled") is bool and WorldState._number(data.get("life_id")) and int(data["life_id"])>=1 and data.get("focus","") in GeneRegistry.FORMS+[""] and GenomeState.from_record(data.get("genome")) != null and data.get("mode","ground") in ["ground","flight","glide","burrow","climb","landing"] and (not data.has("effects") or GeneEffects.valid(data["effects"]))
 
 func refresh() -> void:
 	if not is_instance_valid(morphology): return
 	if enabled:
-		morphology.configure(genome)
+		var inherited: Dictionary={}
+		for generic_id in GeneRegistry.LEGACY: inherited[generic_id]=int(genome.ranks.get(generic_id,0))
+		morphology.configure(genome,inherited)
 		archive.observe(genome)
 	else: morphology.hide()
 	var overridden := enabled and morphology.visible
 	scene.creature_rig["visual"].set_meta("genetic_body",overridden)
 	scene.creature_rig["visual"].update_pose(scene.upright_form)
 	if enabled and genome.growth_policy == "chosen":
-		scene.growth_scale = pow(1.2,int(genome.ranks.get("physical_growth",0)))
+		var host:=morphology.primary if not morphology.primary.is_empty() else "reptile"
+		dimensions=BodyDimensionsPolicy.measure(host,int(genome.ranks.get("physical_growth",0)))
+		scene.growth_scale=float(dimensions["scale_metric"])
 		scene.upright_form = false
 		scene.beast_visual.scale = Vector3.ONE*scene.growth_scale
 		scene.torso_pivot.rotation.x = 0
+		morphology.scale=BodyDimensionsPolicy.visual_axes(dimensions,scene.growth_scale)
+		scene.upright_form=false
 	scene._sync_beast_collision()
 	if overridden:
-		# Conservative shared ground envelope contains broad shells and grasp modules.
-		scene.beast_collision_shape.radius = 2.35*scene.growth_scale
-		scene.beast_collision_shape.height = 4.70*scene.growth_scale
-		scene.body_collision_node.position.y = 2.35*scene.growth_scale
-		scene.head_collision_node.position = Vector3(0,1.4,-1.0)*scene.growth_scale
+		if not dimensions.has("family"):
+			dimensions=BodyDimensionsPolicy.measure(morphology.primary,int(genome.ranks.get("physical_growth",0)))
+		var contact_radius:=maxf(1.0,BodyDimensionsPolicy.envelope(dimensions))
+		scene.beast_collision_shape.radius=contact_radius
+		scene.beast_collision_shape.height=maxf(contact_radius*2.0,float(dimensions["height"]))
+		scene.body_collision_node.position.y=contact_radius
+		scene.head_collision_node.position=Vector3(0,maxf(1.1,float(dimensions["height"])*.55),-minf(2.0,contact_radius))
+	trail.configure(dimensions) if overridden else trail.hide()
+	for axis in morphology.axes: axis.visible=not trail.live
+	if not overridden: trail.live=false
 	scene.retry_button.text = "NEW ORGANISM" if enabled else "RESTART"
 	if is_instance_valid(hud): hud.refresh()
 

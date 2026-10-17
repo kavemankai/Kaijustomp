@@ -28,7 +28,13 @@ const EARLY := {
 	90:["biomass","Toxin skin pulses 4 damage against responders within 3 units after a hit; 2s cooldown.","glands"],
 	95:["mole","Electroreception marks nearby vehicles/responders within 32 units, including behind cover.","pores"],
 	99:["biomass","Acid slime chips one nearby structure/car each second within 4 units; six pooled trail marks.","trail"],
-	441:["snake","After 3 seconds motionless, next responder contact gains 20 damage; rearm by waiting.","prowl"]
+	441:["snake","After 3 seconds motionless, next responder contact gains 20 damage; rearm by waiting.","prowl"],
+	29:["bird","Short controlled ground-launched glide; altitude decreases without powered lift.","wing_membrane"],
+	52:["mole","Foundation-aware underground travel using digging foreclaws.","dig_claws"],
+	119:["worm","Segmented underground earth-plowing path; foundation-free tiles.","shovel"],
+	121:["bird","Powered flight with altitude, air collision and landing.","flight_wing"],
+	122:["bird","Broad soaring wing surfaces and stronger airborne control.","soaring"],
+	180:["spider","Wall adherence and climb movement on solid vertical surfaces.","wall_hooks"]
 }
 var owner: BeachGenetics
 var clock := 0.0

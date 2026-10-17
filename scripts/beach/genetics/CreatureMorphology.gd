@@ -228,3 +228,16 @@ func _trait(body: Node3D, id: int) -> void:
 			for i in range(3): oval(body,Vector3(0,.25,1.0+i*.30),Vector3(.4,.12,.25),Color("a8bc66"))
 		441:
 			for s in [-1,1]: link(body,Vector3(s*.45,1.2,-.8),Vector3(s*.7,1.6,-.3),.09,Color("803c55"))
+		29,121,122:
+			for s in [-1,1]:
+				for i in range(4):
+					var length := 1.0 if id==29 else (1.85 if id==121 else 2.4)
+					link(body,Vector3(s*.48,1.35,.1+i*.15),Vector3(s*(.7+length),1.25,.3+i*.31),.12,Color("d7b575"))
+		52,119:
+			for s in [-1,1]:
+				for i in range(3):
+					link(body,Vector3(s*.65,.55,-.9),Vector3(s*(.85+i*.21),.15,-1.7),.11,CREAM)
+		180:
+			for s in [-1,1]:
+				for i in range(4):
+					link(body,Vector3(s*1.0,.32,float(i)*.42-.8),Vector3(s*1.3,.06,float(i)*.42-1.0),.075,CREAM)
