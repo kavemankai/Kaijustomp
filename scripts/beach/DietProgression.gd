@@ -34,7 +34,7 @@ static func structure_biomass(scale: float, name: String, footprint: Vector2) ->
 
 static func diet_label(scale: float) -> String:
 	if can_feed_on_structures(scale):
-		return "STRUCTURES"
+		return "BUILDINGS + CARS"
 	if can_feed_on_cars(scale):
 		return "PEOPLE + CARS"
 	return "PEOPLE"
