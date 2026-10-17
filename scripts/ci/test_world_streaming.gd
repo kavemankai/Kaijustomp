@@ -110,5 +110,18 @@ func run() -> void:
 			var at: Vector3 = demo._find_offscreen_response_spawn(kind,24)
 			check(not at.is_finite() or not demo._response_is_visible(at,kind),"Giant arrival appears onscreen")
 	check(demo.civilians.size()<=42 and demo.officers.size()<=9 and demo.projectiles.size()<=72,"Existing entity caps changed")
+	# Static streaming can finish during a paused reveal, without advancing actors/shots.
+	demo.beast.position=Vector3(-4096,0,-3072)
+	demo._update_camera(1)
+	demo.world.refresh()
+	var pending: int = demo.world.queue.size()
+	var saved_position: Vector3 = demo.beast.position
+	demo._spawn_projectile(saved_position+Vector3(0,200,0),Vector3.UP,false)
+	var shot: Node3D = demo.projectiles[-1]["node"]
+	var shot_position := shot.position
+	demo.reveal_active=true
+	for frame in range(20): demo._physics_process(.016)
+	check(demo.world.queue.size()<pending,"Paused reveal leaves the enlarged camera world unloaded")
+	check(demo.beast.position==saved_position and shot.position==shot_position,"Streaming bypasses gameplay pause")
 	if not failed: print("WORLD STREAMING TEST PASSED: 25km swept coastal travel, 5.5km inland, bounded chunks/records, damage/reward persistence, warehouse routes and giant collision/arrivals")
 	quit(1 if failed else 0)

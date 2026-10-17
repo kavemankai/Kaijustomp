@@ -1075,7 +1075,9 @@ func _physics_process(delta: float) -> void:
 	# The root runs during pause for UI, but no enemies, damage or movement do.
 	if reveal_active:
 		_update_camera(delta)
+		if is_instance_valid(world): world.advance(delta)
 		return
+	if choice_open and is_instance_valid(world): world.advance(delta)
 	if game_over or choice_open or reveal_active:
 		return
 	if is_instance_valid(world): world.advance(delta)

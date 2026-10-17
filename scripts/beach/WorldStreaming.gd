@@ -154,11 +154,14 @@ func _pin_region(at: Vector3, radius: float) -> void:
 
 func _visible(c: Vector2i) -> bool:
 	var camera: Camera3D = scene.follow_camera
+	var rect := Rect2(Vector2.ZERO,get_viewport().get_visible_rect().size).grow(120)
 	for dx in [0.0,128.0,256.0]:
 		for dz in [0.0,128.0,256.0]:
 			for h in [0.0,100.0]:
 				var point := Vector3(c.x*256+dx,h,c.y*256+dz)
 				if camera.is_position_in_frustum(point): return true
+				# Prefetch beyond screen edges before travel or a growth-camera transition.
+				if not camera.is_position_behind(point) and rect.has_point(camera.unproject_position(point)) and point.distance_to(camera.global_position)<camera.far+256: return true
 	return false
 
 func advance(delta: float) -> void:
