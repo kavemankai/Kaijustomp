@@ -99,3 +99,17 @@ Final stance correction:
 - Added explicit planted-support bounds checks for Bird/Ape. This is a small
   visual correction after the successful #259 candidate; a new immutable APK
   will be exported and verified from the corrected source. #259 remains intact.
+
+Verified final candidate:
+- Source 9fefce4162ce5508ffdd718a4cd37145e6d7142c; immutable release
+  morph-polish-261-9fefce4. APK 28,355,494 bytes, SHA256
+  9fd3085f95e06ec1ed3930b93b4c4f7cf1c4333ba58118f5abff7d544b0eea9d.
+- Local import/launch + all 34 suites pass. Export run #261, PR run #262 and
+  Godot smoke are green; Linux captured 565 frames and passed visible-tier gates.
+- Published APK downloaded and checked against checksum, GitHub digest/size,
+  ZIP contents and native 16KiB alignment; CI also verifies v2/v3, zipalign and
+  the exact isolated package, then compares its published bytes again.
+- Repeated the 45-second desktop probe after the stance correction. Stored final
+  raw metrics and source provenance. This does not establish phone performance.
+- PR #21 remains draft; no upstream merge. Physical Android installation,
+  rendering, touch/feel, sustained performance and final art approval remain open.

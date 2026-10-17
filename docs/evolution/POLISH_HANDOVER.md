@@ -7,14 +7,25 @@
 - Draft [PR #21](https://github.com/kavemankai/Kaijustomp/pull/21) targets that
   branch, retaining unmerged PR #20/#19 dependencies. **Do not merge or mark ready
   before owner phone acceptance.**
-- Runtime/collision baseline `b6b386c` is followed by visible-tier skin fixes.
-  The exact final export SHA will be recorded with its verified release below.
+- **Verified exported source: `9fefce4162ce5508ffdd718a4cd37145e6d7142c`.** Subsequent
+  evidence/handover-only commits are not re-exported and do not change gameplay.
 - Separate Android package: `com.kavemankai.kaijustomp.morphpolishpreview`, label
   **Kaijustomp Morph Polish**. Existing releases, package IDs and private saves
   remain intact.
-- Final export SHA, immutable prerelease/APK, byte size/hash and Actions result
-  will be recorded below after GitHub confirms publication. At this checkpoint
-  export/publication are pending; local test results are not an APK claim.
+- **[Install APK #261](https://github.com/kavemankai/Kaijustomp/releases/download/morph-polish-261-9fefce4/Kaijustomp-261-9fefce4-debug.apk)**, [immutable prerelease](https://github.com/kavemankai/Kaijustomp/releases/tag/morph-polish-261-9fefce4).
+  **28,355,494 bytes**, ARM64, version `0.1.261-debug`.
+- SHA256: `9fd3085f95e06ec1ed3930b93b4c4f7cf1c4333ba58118f5abff7d544b0eea9d`.
+  [Matching checksum asset](https://github.com/kavemankai/Kaijustomp/releases/download/morph-polish-261-9fefce4/Kaijustomp-261-9fefce4-debug.apk.sha256).
+- [Successful export/signature/publication run #261](https://github.com/kavemankai/Kaijustomp/actions/runs/39074555544)
+  and [successful draft-PR build #262](https://github.com/kavemankai/Kaijustomp/actions/runs/39074560057).
+  The additional Godot smoke check is green. The source PR remains draft.
+- GitHub confirms both assets uploaded; their size/digest match the locally
+  downloaded APK/checksum. ZIP integrity and native ELF 16KiB checks also pass
+  locally. CI checked signature v2/v3, package, ARM64, zipalign and byte-for-byte
+  re-download. [Machine-readable verification](polish_evidence/release-verification.json).
+- This run had **no stable debug-signing secret**. Future same-package updates
+  can require uninstalling only this preview; preserve its save first if needed.
+  The earlier #259 candidate remains untouched; use #261 for the final stance fix.
 
 ## Implemented
 
@@ -49,6 +60,11 @@ world contact. Head/neck collision owns movement; an obstructed body stops head
 travel and supported building contact can invoke existing demolition. This is
 not a rigidbody chain or a self-collision simulation. Snake/Worm migrations keep
 compatible path history. Body fractional samples persist through saves/growth.
+
+The axial Tail Club is physically addressed at 92% of body length, follows the
+sampled curve, enlarges its corresponding proxy and strikes from that real rear
+organ. Additional regression coverage confirms position and actual responder
+contact; the non-axial version retains its earlier damage/cooldown behaviour.
 
 `CreatureTraversal` retains one authoritative mode. Flight has finite stamina,
 controlled altitude, collision, glide exhaustion, bank/fold/flap pose, landing,
@@ -140,7 +156,20 @@ See `desktop-baseline.json` and `desktop-polish.json` for raw p50/p95/p99 frame
 intervals, process time, peak static memory/draws/nodes/proxies and sampled
 process-tree RSS. RSS includes the console/game process tree, sampled every
 200ms; this can miss short spikes and does not measure GPU/battery/thermals.
-The final numeric comparison is recorded with the verified export below.
+The matched input-script results (one run each; camera/visibility changes are
+included, so this is not an isolated mesh microbenchmark) are:
+
+| Desktop metric | Baseline 1555b33 | Final 9fefce4 |
+|---|---:|---:|
+| Frame p50 / p95 / p99, ms | 16.664 / 17.258 / 21.336 | 16.665 / 17.088 / 20.085 |
+| Process p50 / p95 / p99, ms | 1.985 / 15.303 / 23.648 | 1.743 / 14.544 / 18.638 |
+| Peak draw calls | 305 | 155 |
+| Peak process-tree RSS, MiB | 259.2 | 262.6 |
+| Peak axial proxies | 40 | 40 |
+
+CPU: 13th Gen Intel Core i5-13420H. Peak RSS rises slightly; draw-call reduction
+includes different framing/world visibility as well as batching. No Android,
+thermal, battery or full 15-minute acceptance result is inferred from this.
 Run the full-duration desktop harness with:
 
 ```text
@@ -151,8 +180,9 @@ python scripts/ci/profile_polish.py --godot <Godot4.5> --seconds 900 --output bu
 
 ## Residual issues
 
-**Blocker at this checkpoint:** final CI/export/publication pending. Replace this
-status with the verified immutable asset after the run completes.
+**Blocker:** no known automated build/installability blocker remains. Production
+merge and art acceptance still require the owner's physical Android test; do not
+merge or mark the draft ready based on CI alone.
 
 **Device validation:** installation/signing compatibility; touch multitouch,
 altitude holds and background/resume; all nine silhouettes and mutation fit at
@@ -166,13 +196,16 @@ interpolation and hand artistry; arbitrary non-convex climbing/overhangs; fully
 sculpted uncurated hybrids and multi-family structural recipes; self-colliding
 axial locomotion and more forgiving recovery from newly spawned indestructible
 body obstructions. Current tail contact is bounded proxy contact, not full
-rigid-body/terrain deformation. No permanent carved tunnels/collapse simulation,
+rigid-body/terrain deformation. Roof departure currently uses walk-off/fall before a new ground launch;
+unsupported saved wall/roof transition states recover to legal ground. Axial
+shed snapshots remain anterior-based rather than baking the full moving trail.
+No permanent carved tunnels/collapse simulation,
 unrestricted 6DoF aircraft simulation, 500 executable genes or 36 bespoke hybrid
 sculpts were implemented. Existing source art/GLBs remain preserved.
 
 ## Android install and owner test checklist
 
-1. Download the APK and matching SHA256 from the immutable release below. Allow
+1. Download the APK and matching SHA256 from the immutable release linked above. Allow
    installation from the browser/files app when Android prompts. Verify the
    checksum before installing. Keep earlier Kaijustomp apps installed.
 2. Launch **Kaijustomp Morph Polish**, package
@@ -201,8 +234,3 @@ sculpts were implemented. Existing source art/GLBs remain preserved.
     climbing, DEFCON fights, five sheds and hybrid swaps. Record phone/OS,
     median/p95/p99 frame times, RSS/draws/colliders, stutters, heat/battery and any
     reproduction steps. Final art and natural control feel need owner approval.
-
-The axial Tail Club is physically addressed at 92% of body length, follows the
-sampled curve, enlarges its corresponding proxy and strikes from that real rear
-organ. Additional regression coverage confirms position and actual responder
-contact; the non-axial version retains its earlier damage/cooldown behaviour.

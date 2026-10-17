@@ -7,7 +7,7 @@
     "p95": 17.258,
     "p99": 21.336
   },
-  "limitations": "Desktop wall-clock frames; not Android FPS. No RSS, battery or thermal measurements. Fixture changes are included. Spider phase is ground stress; wall climbing tested separately. RSS sampled every 200ms across Godot console/game processes; driver allocations and brief spikes may differ.",
+  "limitations": "Desktop wall-clock frames; not Android FPS. No battery or thermal measurements. Fixture changes are included. Spider phase is ground stress; wall climbing tested separately. RSS sampled every 200ms across Godot console/game processes; driver allocations and brief spikes may differ.",
   "peak_axial_colliders": 40,
   "peak_draw_calls": 305.0,
   "peak_nodes": 1672,
@@ -56,5 +56,7 @@
       "phase": 6
     }
   ],
-  "peak_process_tree_rss_bytes": 271831040
+  "peak_process_tree_rss_bytes": 271831040,
+  "source_sha": "1555b33",
+  "processor": "13th Gen Intel Core i5-13420H"
 }

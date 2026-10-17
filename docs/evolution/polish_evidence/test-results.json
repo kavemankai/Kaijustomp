@@ -6,7 +6,7 @@
       "name": "import",
       "passed": true,
       "exit_code": 0,
-      "seconds": 3.625
+      "seconds": 3.531
     },
     {
       "name": "launch",
@@ -18,31 +18,31 @@
       "name": "test_authored_world",
       "passed": true,
       "exit_code": 0,
-      "seconds": 1.016
+      "seconds": 1.031
     },
     {
       "name": "test_batch_debug_evolution",
       "passed": true,
       "exit_code": 0,
-      "seconds": 1.485
+      "seconds": 1.5
     },
     {
       "name": "test_beach_combat",
       "passed": true,
       "exit_code": 0,
-      "seconds": 1.484
+      "seconds": 1.485
     },
     {
       "name": "test_coastal_art",
       "passed": true,
       "exit_code": 0,
-      "seconds": 1.594
+      "seconds": 1.578
     },
     {
       "name": "test_defcon_response",
       "passed": true,
       "exit_code": 0,
-      "seconds": 1.5
+      "seconds": 1.578
     },
     {
       "name": "test_evolution",
@@ -60,43 +60,43 @@
       "name": "test_genetics_curated",
       "passed": true,
       "exit_code": 0,
-      "seconds": 1.39
+      "seconds": 1.391
     },
     {
       "name": "test_genetics_gameplay",
       "passed": true,
       "exit_code": 0,
-      "seconds": 1.219
+      "seconds": 1.39
     },
     {
       "name": "test_genetics_lives",
       "passed": true,
       "exit_code": 0,
-      "seconds": 1.391
+      "seconds": 1.5
     },
     {
       "name": "test_genetics_physics",
       "passed": true,
       "exit_code": 0,
-      "seconds": 1.953
+      "seconds": 2.047
     },
     {
       "name": "test_giant_demolition_feeding",
       "passed": true,
       "exit_code": 0,
-      "seconds": 1.5
+      "seconds": 1.609
     },
     {
       "name": "test_growth_gameplay",
       "passed": true,
       "exit_code": 0,
-      "seconds": 1.953
+      "seconds": 2.047
     },
     {
       "name": "test_growth_milestones",
       "passed": true,
       "exit_code": 0,
-      "seconds": 1.484
+      "seconds": 1.578
     },
     {
       "name": "test_integration_stability",
@@ -108,25 +108,25 @@
       "name": "test_long_beach",
       "passed": true,
       "exit_code": 0,
-      "seconds": 1.578
+      "seconds": 1.688
     },
     {
       "name": "test_morphology_traversal",
       "passed": true,
       "exit_code": 0,
-      "seconds": 1.313
+      "seconds": 1.297
     },
     {
       "name": "test_outer_world_offscreen",
       "passed": true,
       "exit_code": 0,
-      "seconds": 1.5
+      "seconds": 1.484
     },
     {
       "name": "test_polish_anatomy",
       "passed": true,
       "exit_code": 0,
-      "seconds": 22.515
+      "seconds": 23.437
     },
     {
       "name": "test_polish_lifecycle",
@@ -138,7 +138,7 @@
       "name": "test_polish_traversal",
       "passed": true,
       "exit_code": 0,
-      "seconds": 1.296
+      "seconds": 1.39
     },
     {
       "name": "test_representative_scales",
@@ -150,49 +150,49 @@
       "name": "test_scale_diet",
       "passed": true,
       "exit_code": 0,
-      "seconds": 1.484
+      "seconds": 1.593
     },
     {
       "name": "test_shopping_cars_debug",
       "passed": true,
       "exit_code": 0,
-      "seconds": 1.578
+      "seconds": 1.579
     },
     {
       "name": "test_stylized_creature",
       "passed": true,
       "exit_code": 0,
-      "seconds": 1.875
+      "seconds": 1.843
     },
     {
       "name": "test_suburb_evolution",
       "passed": true,
       "exit_code": 0,
-      "seconds": 1.594
+      "seconds": 1.672
     },
     {
       "name": "test_world_async_save",
       "passed": true,
       "exit_code": 0,
-      "seconds": 0.547
+      "seconds": 0.578
     },
     {
       "name": "test_world_generation",
       "passed": true,
       "exit_code": 0,
-      "seconds": 0.281
+      "seconds": 0.282
     },
     {
       "name": "test_world_objectives",
       "passed": true,
       "exit_code": 0,
-      "seconds": 1.11
+      "seconds": 1.218
     },
     {
       "name": "test_world_persistence",
       "passed": true,
       "exit_code": 0,
-      "seconds": 0.468
+      "seconds": 0.469
     },
     {
       "name": "test_world_response",
@@ -204,19 +204,19 @@
       "name": "test_world_resume",
       "passed": true,
       "exit_code": 0,
-      "seconds": 1.485
+      "seconds": 1.484
     },
     {
       "name": "test_world_streaming",
       "passed": true,
       "exit_code": 0,
-      "seconds": 24.546
+      "seconds": 24.641
     },
     {
       "name": "test_world_tracking",
       "passed": true,
       "exit_code": 0,
-      "seconds": 1.032
+      "seconds": 1.031
     }
   ]
 }

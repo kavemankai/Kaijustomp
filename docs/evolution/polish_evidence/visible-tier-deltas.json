@@ -339,73 +339,73 @@
     "host": "bird",
     "gene": "strength",
     "transition": "1-2",
-    "changed_pixels": 886
+    "changed_pixels": 1092
   },
   {
     "host": "bird",
     "gene": "strength",
     "transition": "2-3",
-    "changed_pixels": 856
+    "changed_pixels": 1104
   },
   {
     "host": "bird",
     "gene": "speed",
     "transition": "1-2",
-    "changed_pixels": 424
+    "changed_pixels": 407
   },
   {
     "host": "bird",
     "gene": "speed",
     "transition": "2-3",
-    "changed_pixels": 422
+    "changed_pixels": 399
   },
   {
     "host": "bird",
     "gene": "stamina",
     "transition": "1-2",
-    "changed_pixels": 189
+    "changed_pixels": 181
   },
   {
     "host": "bird",
     "gene": "stamina",
     "transition": "2-3",
-    "changed_pixels": 267
+    "changed_pixels": 251
   },
   {
     "host": "bird",
     "gene": "health",
     "transition": "1-2",
-    "changed_pixels": 189
+    "changed_pixels": 181
   },
   {
     "host": "bird",
     "gene": "health",
     "transition": "2-3",
-    "changed_pixels": 268
+    "changed_pixels": 252
   },
   {
     "host": "bird",
     "gene": "jaw",
     "transition": "1-2",
-    "changed_pixels": 2292
+    "changed_pixels": 2295
   },
   {
     "host": "bird",
     "gene": "jaw",
     "transition": "2-3",
-    "changed_pixels": 2469
+    "changed_pixels": 2472
   },
   {
     "host": "bird",
     "gene": "regen",
     "transition": "1-2",
-    "changed_pixels": 189
+    "changed_pixels": 181
   },
   {
     "host": "bird",
     "gene": "regen",
     "transition": "2-3",
-    "changed_pixels": 267
+    "changed_pixels": 251
   },
   {
     "host": "bird",
@@ -663,49 +663,49 @@
     "host": "ape",
     "gene": "strength",
     "transition": "1-2",
-    "changed_pixels": 1888
+    "changed_pixels": 2350
   },
   {
     "host": "ape",
     "gene": "strength",
     "transition": "2-3",
-    "changed_pixels": 1863
+    "changed_pixels": 2283
   },
   {
     "host": "ape",
     "gene": "speed",
     "transition": "1-2",
-    "changed_pixels": 600
+    "changed_pixels": 793
   },
   {
     "host": "ape",
     "gene": "speed",
     "transition": "2-3",
-    "changed_pixels": 1438
+    "changed_pixels": 1472
   },
   {
     "host": "ape",
     "gene": "stamina",
     "transition": "1-2",
-    "changed_pixels": 64
+    "changed_pixels": 27
   },
   {
     "host": "ape",
     "gene": "stamina",
     "transition": "2-3",
-    "changed_pixels": 97
+    "changed_pixels": 61
   },
   {
     "host": "ape",
     "gene": "health",
     "transition": "1-2",
-    "changed_pixels": 64
+    "changed_pixels": 27
   },
   {
     "host": "ape",
     "gene": "health",
     "transition": "2-3",
-    "changed_pixels": 98
+    "changed_pixels": 62
   },
   {
     "host": "ape",
@@ -723,13 +723,13 @@
     "host": "ape",
     "gene": "regen",
     "transition": "1-2",
-    "changed_pixels": 63
+    "changed_pixels": 26
   },
   {
     "host": "ape",
     "gene": "regen",
     "transition": "2-3",
-    "changed_pixels": 97
+    "changed_pixels": 61
   },
   {
     "host": "ape",
