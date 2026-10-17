@@ -106,5 +106,5 @@ func run() -> void:
 	await process_frame
 	for suffix in ["",".bak",".tmp"]:
 		DirAccess.remove_absolute(ProjectSettings.globalize_path("user://morphology-traversal-ci.json"+suffix))
-	if not failed: print("MORPHOLOGY TRAVERSAL PASSED: 9 hosts, evolving anatomy, axial world trail, powered flight/landing, underground travel, wall adhesion")
+	if not failed: print("MORPHOLOGY TRAVERSAL TEST PASSED: 9 hosts, evolving anatomy, axial world trail, powered flight/landing, underground travel, wall adhesion")
 	quit(1 if failed else 0)
