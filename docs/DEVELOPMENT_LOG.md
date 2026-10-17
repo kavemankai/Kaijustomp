@@ -1,5 +1,10 @@
 # Development log
 
+## 2026-10-17 — world enlargement and hidden DEFCON wave staging
+
+Player confirmed DEFCON success, requested expanding the world and spawning DEFCON reinforcements well beyond the player camera POV. Draft `feature/outer-district-offscreen-defcon` extends the original coastline to 1,560 units, builds 12 connected outer-suburban homes and 12 giant-scale industrial facilities beyond Banksia Heights, adding ten coast-side buildings. Original 80 indices remain stable and total rises to 114 physical structures; inland boundary moves to -1520. A true camera-projected off-screen DEFCON staging search rejects visible spots (with 55px margin), roofs, other responders and map bounds; waves may wait at extreme E120 zoom rather than pop into shot. Allow distant forces to close on the player, improve large-structure food rewards and preserve all prior DEFCON caps/evolution/controls. Add a fourteenth regression and isolated Android APK workflow. See [OUTER_WORLD_OFFSCREEN.md](OUTER_WORLD_OFFSCREEN.md). Phone performance, environment pacing and no-pop-in acceptance are still pending.
+
+
 ## 2026-10-17 — player request: DEFCON response and more enemies
 
 Before phone testing the new scale-based diet preview, player asked to begin a full DEFCON system with additional enemy types. Candidate `feature/defcon-response-escalation` stacks on the unmerged diet branch; no merge or change to approved installs. Adds a five-stage alert-driven escalation (DEFCON 5 peaceful/local patrol to DEFCON 1 military air support), cooldown/de-escalation, local mixed response waves, mobile cap of nine active responders and 72 tracers. Retains police/SWAT and adds distinguishable National Guard infantry, destructible armoured vehicles and animated airborne helicopters using authored low-poly mobile art. Keeps projectile collision and building cover, and reports active DEFCON on compact portrait HUD. New `test_defcon_response.gd` is the thirteenth Godot regression, with isolated Android apk/test release. Phone balancing/visual acceptance remains pending. See [DEFCON_RESPONSE.md](DEFCON_RESPONSE.md).

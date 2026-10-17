@@ -19,7 +19,7 @@ func _run() -> void:
 	demo.set_physics_process(false)
 	await physics_frame
 	if not _check(demo.COAST_HALF_LENGTH >= 560.0 and demo.PLAYABLE_HALF_LENGTH >= 540.0, "Coast did not extend at least eightfold"): return
-	if not _check(demo.buildings.size() == 80, "Expected 36 beach, 30 suburban houses and 14 shops"): return
+	if not _check(demo.buildings.size() == 114, "Expected original 80, 10 beach wings, 12 outer homes and 12 factories"): return
 	if not _check(demo.buildings[0]["name"] == "Beach kiosk" and demo.buildings[1]["name"] == "Wooden shed" and demo.buildings[4]["name"] == "Apartments", "Original beach building order changed"): return
 	var far_left := 0
 	var far_right := 0
@@ -64,11 +64,13 @@ func _run() -> void:
 	# Continuous local police response, not officers stranded at the old centre.
 	demo.alert = 25.0
 	demo.response_clock = 19.0
+	demo._update_camera(1.0)
 	demo._update_police(0.016)
 	if not _check(demo.officers.size() == 2, "Police did not respond in new district"): return
 	for officer in demo.officers:
 		var unit: Node3D = officer["node"]
-		if not _check(unit.global_position.distance_to(demo.beast.global_position) < 75.0, "Police spawned back at the starting beach"): return
+		if not _check(unit.global_position.distance_to(demo.beast.global_position) > 80.0, "Police still teleport beside creature"): return
+		if not _check(not demo._response_is_visible(unit.global_position, String(officer["kind"])), "Police spawned visibly inside the player's camera"): return
 	# A depleted coast near the far boundary also needs to refill from inward.
 	for npc in demo.civilians:
 		var actor: Node3D = npc["node"]

@@ -233,6 +233,14 @@ jobs:
           grep -q 'DEFCON RESPONSE TEST PASSED' "$RUNNER_TEMP/defcon-response.log"
           if grep -E 'SCRIPT ERROR|Parse Error|TEST FAILED|Invalid call|Invalid access' "$RUNNER_TEMP/defcon-response.log"; then exit 1; fi
 
+      - name: Verify industrial expansion and hidden DEFCON reinforcement spawns
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --path . --script res://scripts/ci/test_outer_world_offscreen.gd 2>&1 | tee "$RUNNER_TEMP/outer-world.log"
+          grep -q 'OUTER WORLD TEST PASSED' "$RUNNER_TEMP/outer-world.log"
+          if grep -E 'SCRIPT ERROR|Parse Error|TEST FAILED|Invalid call|Invalid access' "$RUNNER_TEMP/outer-world.log"; then exit 1; fi
+
       - name: Export portrait Android debug APK
         shell: bash
         run: |
@@ -275,6 +283,10 @@ jobs:
           if [ "$BUILD_BRANCH" = 'feature/defcon-response-escalation' ]; then
             sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.defconpreview"@' export_presets.cfg
             sed -i 's@^package/name=.*@package/name="Kaijustomp DEFCON Preview"@' export_presets.cfg
+          fi
+          if [ "$BUILD_BRANCH" = 'feature/outer-district-offscreen-defcon' ]; then
+            sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.outerworldpreview"@' export_presets.cfg
+            sed -i 's@^package/name=.*@package/name="Kaijustomp Outer World Preview"@' export_presets.cfg
           fi
           APK="Kaijustomp-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:7}-debug.apk"
           echo "APK_NAME=$APK" >> "$GITHUB_ENV"
@@ -333,6 +345,9 @@ jobs:
           fi
           if [ "$BUILD_BRANCH" = 'feature/defcon-response-escalation' ]; then
             EXPECTED_PACKAGE='com.kavemankai.kaijustomp.defconpreview'
+          fi
+          if [ "$BUILD_BRANCH" = 'feature/outer-district-offscreen-defcon' ]; then
+            EXPECTED_PACKAGE='com.kavemankai.kaijustomp.outerworldpreview'
           fi
           grep -q "name='$EXPECTED_PACKAGE'" "$RUNNER_TEMP/apk-badging.txt"
           grep -q '^launchable-activity:' "$RUNNER_TEMP/apk-badging.txt"
@@ -451,6 +466,23 @@ jobs:
           ASSET_SIZE=$(gh release view "$TAG" --json assets --jq '.assets[] | select(.name == "Kaijustomp-growth-preview.apk") | .size')
           test "$LOCAL_SIZE" = "$ASSET_SIZE"
           echo "Preview APK: https://github.com/${GH_REPO}/releases/download/${TAG}/Kaijustomp-growth-preview.apk" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish immutable expanded world and hidden DEFCON preview
+        if: github.ref == 'refs/heads/feature/outer-district-offscreen-defcon' && github.event_name != 'pull_request'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG="outer-world-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:7}"
+          cat > "$RUNNER_TEMP/outer-notes.md" <<EOF
+          Kaijustomp extended world preview from ${GITHUB_SHA}. Coasts widened and ten extra beach buildings; connected northern outer suburbs (12 new homes) and giant-scale industrial sector (12 factories, depots, plants, container yards), 114 destructible buildings total and traversable inward to -1520. More biomass from huge factory demolition. DEFCON waves sample actual portrait camera visibility, spawning out of frame and beyond a margin; no visible pop-in, even if some E120 views require delaying a wave. Reinforcements advance from distant positions rather than standing idle. Existing camera controls, batch DEBUG EVO, food transition and DEFCON types intact. Separately installed as com.kavemankai.kaijustomp.outerworldpreview. Automated tests and Android packaging passed; visual/performance phone acceptance pending.
+          EOF
+          gh release create "$TAG" "build/android/$APK_NAME" "build/android/$APK_NAME.sha256" --target "$GITHUB_SHA" --title "Kaijustomp outer world ${GITHUB_RUN_NUMBER}" --notes-file "$RUNNER_TEMP/outer-notes.md" --prerelease
+          LOCAL_SIZE=$(stat -c "%s" "build/android/$APK_NAME")
+          ASSET_SIZE=$(gh release view "$TAG" --json assets --jq ".assets[] | select(.name == \"$APK_NAME\") | .size")
+          test "$LOCAL_SIZE" = "$ASSET_SIZE"
 
       - name: Publish immutable DEFCON response preview
         if: github.ref == 'refs/heads/feature/defcon-response-escalation' && github.event_name != 'pull_request'

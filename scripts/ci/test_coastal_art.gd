@@ -15,7 +15,7 @@ func run() -> void:
 	root.add_child(demo)
 	demo.set_physics_process(false)
 	await process_frame
-	if not check(demo.buildings.size() == 80,"Coastal beach, residential and shopping structures are missing"): return
+	if not check(demo.buildings.size() == 114,"Coastal, suburb, shopping and industrial structures are missing"): return
 	for building in demo.buildings:
 		var node: Node3D = building["node"]
 		if not check(node.get_node_or_null("Architecture") != null,"Building missing combined artwork"): return

@@ -18,7 +18,7 @@ func _run() -> void:
 	root.add_child(demo)
 	demo.set_physics_process(false)
 	await physics_frame
-	if not _check(demo.buildings.size() == 80, "Expected old 54 and 26 new houses/shops"): return
+	if not _check(demo.buildings.size() == 114, "Expected original 80 buildings plus 34 outer-region targets"): return
 	for i in range(36):
 		if not _check(demo.buildings[i]["name"] != "Coastal home", "Existing beach building order changed"): return
 	for i in range(36, 54):

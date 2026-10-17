@@ -30,7 +30,9 @@ static func structure_biomass(scale: float, name: String, footprint: Vector2) ->
 	var value := maxi(25, roundi(floor_area * .85))
 	if name in ["Supermarket", "Hardware Store", "Hotel", "Apartments"]:
 		value = roundi(float(value) * 1.45)
-	return mini(value, 900)
+	if name in ["Factory", "Power Station", "Water Works", "Distribution Depot", "Warehouse", "Container Yard"]:
+		value = roundi(float(value) * 1.65)
+	return mini(value, 1800)
 
 static func diet_label(scale: float) -> String:
 	if can_feed_on_structures(scale):

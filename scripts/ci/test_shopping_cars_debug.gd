@@ -23,12 +23,12 @@ func _run() -> void:
 	root.add_child(demo)
 	demo.set_physics_process(false)
 	await physics_frame
-	if not _check(demo.buildings.size() == 80, "Missing 54 original buildings, 12 homes or 14 shops"): return
+	if not _check(demo.buildings.size() == 114, "Missing original 80 structures or 34 new outer targets"): return
 	for i in range(54):
 		if not _check(demo.buildings[i]["name"] != "Supermarket" and demo.buildings[i]["name"] != "Hardware Store", "Approved buildings reordered"): return
 	var houses := 0
 	var shopping := 0
-	for i in range(54, demo.buildings.size()):
+	for i in range(54, 80):
 		var b: Dictionary = demo.buildings[i]
 		if b["name"] == "Coastal home":
 			houses += 1
@@ -91,10 +91,13 @@ func _run() -> void:
 		if not _check(pos.distance_to(demo.beast.global_position) < 155 and demo._blocking_building(pos) < 0, "Shop crowd outside area or inside wall"): return
 	demo.alert = 25.0
 	demo.response_clock = 19.0
+	demo._update_camera(1.0)
 	demo._update_police(0.016)
 	if not _check(demo.officers.size() == 2, "Police did not respond beyond the first suburb"): return
 	for cop in demo.officers:
-		if not _check(cop["node"].global_position.distance_to(demo.beast.global_position) < 75.0, "Police dispatched back to beach"): return
+		var at: Vector3 = cop["node"].global_position
+		if not _check(at.distance_to(demo.beast.global_position) > 80.0, "DEFCON responded directly on top of giant"): return
+		if not _check(not demo._response_is_visible(Vector3(at.x,0,at.z), String(cop["kind"])), "Shop district DEFCON spawn was visible on camera"): return
 	# The former debug one-level shortcut now selects a batch count.
 	if not _check(demo._cost() == 55 and demo.evolutions == 0, "Pre-debug progression changed"): return
 	if OS.has_feature("debug"):
