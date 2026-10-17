@@ -36,20 +36,37 @@ func _run() -> void:
 	demo.strength = 0
 	demo.sprint_active = true
 	demo.beast.global_position = shop["position"] + Vector3(0, 11, 0)
+	var before_shop_food: int = demo.biomass
 	demo._giant_proximity_contact()
 	if not _check(demo.buildings[shop_index]["destroyed"] and demo.debris.size() > 0, "E34 giant standing over shop could not crush it"): return
+	if not _check(demo.biomass > before_shop_food, "E34 structure destruction does not provide food"): return
 	# Car on the other side of the world should remain intact.
 	var car_index := 4
 	var car: Dictionary = demo.cars[car_index]
 	if not _check(not car["destroyed"], "Cars already broken"): return
 	demo.beast.global_position = car["node"].global_position + Vector3(0, 8.0, 0)
+	var before_car_food: int = demo.biomass
 	demo._giant_proximity_contact()
 	if not _check(demo.cars[car_index]["destroyed"], "E34 giant on top of parked car did not squash it"): return
+	if not _check(demo.biomass > before_car_food, "E34 car destruction gives no biomass"): return
 	if not _check(demo._car_for_collider(car["collider"]) < 0, "Smashed car still active in collision mapping"): return
-	# The two arms raise prey; the head stays relatively still and doesn't
-	# dive toward the road when upright.
+	# E34 is past the body-size cutoff: don't try to pinch a tiny human.
 	demo.sprint_active = false
 	demo.beast.global_position = Vector3(0, 0, 18)
+	demo.beast.rotation = Vector3.ZERO
+	demo._spawn_civilian(Vector3(0,0,13))
+	var uneaten_person: Node3D = demo.civilians[-1]["node"]
+	var before_people_food: int = demo.biomass
+	demo.bite_timer = 0.0
+	demo._update_biting(0.0)
+	if not _check(is_instance_valid(uneaten_person) and demo.biomass == before_people_food, "E34 still swallows tiny people"): return
+	# Test the actual arm and tongue animations just before they become
+	# implausible, at E28 (upright but still small enough to grab people).
+	demo.civilians.pop_back()
+	uneaten_person.queue_free()
+	demo._apply_growth_milestone(28)
+	# The two arms raise prey; the head stays relatively still and doesn't
+	# dive toward the road when upright.
 	demo.bite_timer = 0.0
 	demo._update_creature_animation(.3,false)
 	var head_before: float = demo.head_pivot.global_position.y
@@ -81,5 +98,5 @@ func _run() -> void:
 	demo.bite_timer = 0.0
 	demo._update_biting(0.0)
 	if not _check(not demo.tongue_active and is_instance_valid(demo.prey_in_mouth), "Close prey incorrectly uses tongue instead of hands"): return
-	print("GIANT FEEDING TEST PASSED: E34 shop/car contact crush, physical mass, upright arms and tongue reach/pull/reset, hatchling contract")
+	print("GIANT FEEDING TEST PASSED: E34 shop/car crush and demolition nutrition, size-gated E28 arms/tongue pull, hatchling contract")
 	quit(0)
