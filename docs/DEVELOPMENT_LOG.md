@@ -1,3 +1,9 @@
+# 2026-10-17 - genetics preview baseline
+
+Created a separate local genetics branch from the exact current-world handoff base, verified PR #18 head, reproduced official Godot 4.5 import/launch and 25/25 suites, and independently checked APK231 bytes, ZIP and native alignment. Recorded raw results and missing specification inputs in GENETICS_PREVIEW_STATUS.md. No genetics implementation, CI export, installation or release change has occurred.
+
+---
+
 # 2026-10-17 - three relevant missions per sector
 
 Expanded the HUD to three simultaneous unfinished goals, with sector heading, progress/guidance per row and manual-pin indicators. Automatic suggestions rank nearby destinations, geography, existing progression and current threat; up to three ordered pins override suggestions. Completed pins are released, empty slots refill, and all-complete state is explicit. Optional validated pin arrays migrate old primary selection while retaining save format1. Added a dedicated regression covering relevance, limits, unique suggestions, disk migration and UI state. Delivered as APK231 from3734363. All25 Windows/Linux suites and Android packaging checks pass; artifact, checksum, screenshots and device limitations are recorded in the current handover.

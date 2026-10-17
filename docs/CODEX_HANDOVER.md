@@ -1,3 +1,9 @@
+# Genetics preview preparation - 17 October 2026
+
+Local `feature/nine-form-genetics-preview` starts at `35dc25b`, retaining unmerged PR #18. Official Godot 4.5 import, launch and all 25 baseline suites pass. APK231 independently matches its published size/hash and passes ZIP/native alignment checks. Genetics implementation awaits the handoff's missing GDD, implementation specification, mutation catalogue and integration plan. No new gameplay or Genetics Preview APK is delivered. See [GENETICS_PREVIEW_STATUS.md](GENETICS_PREVIEW_STATUS.md) for evidence and required inputs. Existing World Preview delivery below remains the current playable candidate.
+
+---
+
 # Three-mission sector tracker delivered - 17 October 2026
 
 [Download World Preview APK #231](https://github.com/kavemankai/Kaijustomp/releases/download/persistent-world-231-3734363/Kaijustomp-231-3734363-debug.apk) | [release](https://github.com/kavemankai/Kaijustomp/releases/tag/persistent-world-231-3734363) | [draft PR #18](https://github.com/kavemankai/Kaijustomp/pull/18). Exact gameplay/build source `373436337c013e46da6c15b78c4723aed948ba4f`; later documentation commits record evidence only. No merge or approved-build replacement.
