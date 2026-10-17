@@ -32,6 +32,10 @@ var upright_form := false
 var torso_pivot: Node3D
 var body_art_anchor: Node3D
 var prey_in_mouth: Node3D
+var prey_origin := Vector3.ZERO
+var tongue_root: Node3D
+var tongue_length_mesh: MeshInstance3D
+var tongue_active := false
 var growth_scale := 1.0
 var evolution_visual_clock := 0.0
 var mutation_visual_counts: Dictionary = {}
@@ -276,10 +280,11 @@ func _attack_car(index: int, sprinting: bool) -> void:
 	var car: Dictionary = cars[index]
 	if car["destroyed"]:
 		return
-	if sprinting and strength >= 2:
+	var impact_strength := _effective_demolition_strength()
+	if sprinting and (impact_strength >= 2 or growth_scale >= 2.5):
 		_damage_car(index, float(car["hits"]))
 	elif strike_timer <= 0.0:
-		_damage_car(index, 1.0 + float(strength) * 1.2)
+		_damage_car(index, 1.0 + float(impact_strength) * 1.2 + maxf(0.0, growth_scale - 2.0))
 		strike_timer = 0.55
 
 
@@ -449,7 +454,30 @@ func _build_creature() -> void:
 	leg_pivots[0].reparent(body_art_anchor, true)
 	leg_pivots[2].reparent(body_art_anchor, true)
 	creature_rig["visual"].update_pose(false)
+	_build_tongue()
 	ground_shadow = CoastalArt.shadow(beast, Vector2(3.1, 6.7), Vector3(0,0,.35))
+
+func _build_tongue() -> void:
+	# Reuse one small stylised tongue mesh. Visible only during a distant
+	# upright capture, so regular four-legged feeding/art remain unchanged.
+	tongue_root = Node3D.new()
+	tongue_root.name = "TongueLash"
+	add_child(tongue_root)
+	tongue_length_mesh = MeshInstance3D.new()
+	var cylinder := CylinderMesh.new()
+	cylinder.height = 1.0
+	cylinder.top_radius = .10
+	cylinder.bottom_radius = .16
+	cylinder.radial_segments = 8
+	tongue_length_mesh.mesh = cylinder
+	var tongue_colour := StandardMaterial3D.new()
+	tongue_colour.albedo_color = Color("e66b83")
+	tongue_colour.roughness = .75
+	tongue_length_mesh.material_override = tongue_colour
+	tongue_length_mesh.rotation.x = PI * .5
+	tongue_root.add_child(tongue_length_mesh)
+	tongue_root.visible = false
+
 
 func _sync_beast_collision() -> void:
 	# Keep world-space collision sized to major growth milestones.
@@ -775,6 +803,10 @@ func _update_movement(delta: float) -> void:
 			var slide := contact.get_remainder().slide(contact.get_normal())
 			if slide.length_squared() > 0.000001:
 				beast.move_and_collide(slide)
+		# At later growth milestones the creature's upper body and feet can
+		# be above an ordinary roof/car collider. An X/Z footprint contact
+		# resolves stomp/ram attacks without requiring a direct wall hit.
+		_giant_proximity_contact()
 		run_phase += beast.global_position.distance_to(previous_position) * TAU / (2.5 * maxf(1.0, growth_scale))
 	strike_timer = maxf(0.0, strike_timer - delta)
 	_update_creature_animation(delta, moving)
@@ -796,13 +828,16 @@ func _update_creature_animation(delta: float, moving: bool) -> void:
 		# Independent shoulder compensation keeps arms hanging forward rather
 		# than rotating them up with the chest. Hind knees support the new mass.
 		var stance := -torso_pivot.rotation.x - 0.25 if upright_form and is_front else (0.20 if upright_form else 0.0)
+		# Upright form uses BOTH forelimbs to reach, clasp, then bring prey
+		# toward the mouth rather than pushing the head into the ground.
+		var grab := _grab_pose_strength() if upright_form and is_front else 0.0
 		limb.rotation.x = lerpf(limb.rotation.x,
-			animation_swing + stance,
+			animation_swing + stance + 1.05 * grab,
 			minf(1.0, 15.0 * delta))
 		var knee: Node3D = creature_rig["lower_limbs"][i]
 		var paw: Node3D = creature_rig["paws"][i]
-		knee.rotation.x = -0.20 + maxf(0.0, -sin(phase)) * gait_amplitude * 0.65 if upright_form and not is_front else 0.0
-		paw.rotation.x = -limb.rotation.x - knee.rotation.x if upright_form and not is_front else 0.0
+		knee.rotation.x = -0.82 * grab if upright_form and is_front else (-0.20 + maxf(0.0, -sin(phase)) * gait_amplitude * 0.65 if upright_form and not is_front else 0.0)
+		paw.rotation.x = 0.48 * grab if upright_form and is_front else (-limb.rotation.x - knee.rotation.x if upright_form and not is_front else 0.0)
 		# A tiny plant/recovery sway adds weight without changing locomotion.
 		limb.rotation.z = lerpf(limb.rotation.z,
 			0.035 * sin(phase + 0.4) if moving else 0.0, minf(1.0, 9.0 * delta))
@@ -823,10 +858,8 @@ func _update_creature_animation(delta: float, moving: bool) -> void:
 	var progress := 1.0 - clampf(bite_timer / maxf(0.05, bite_duration), 0.0, 1.0)
 	var snap := sin(progress * PI) if bite_timer > 0.0 else 0.0
 	if upright_form:
-		# Reach down toward ground prey; convert the intended vertical reach
-		# into the tilted torso space. Collision is sampled from this final pose.
-		var reach := Basis(Vector3.RIGHT, -torso_pivot.rotation.x) * Vector3(0, -.95 * snap, -.67 * snap)
-		head_pivot.position = Vector3(0, 1.13, -1.22) + reach
+		# Head stays upright while arms grab and feed; no neck dive into sand.
+		head_pivot.position = Vector3(0, 1.13, -1.22) + Vector3(0, -.10 * snap, -.10 * snap)
 	else:
 		head_pivot.position = Vector3(0, 1.13, -1.22 - .67 * snap)
 	# Neck counter-rotation keeps eyes and jaws facing prey in the upright form.
@@ -839,11 +872,22 @@ func _update_creature_animation(delta: float, moving: bool) -> void:
 	else:
 		head_collision_node.position = Vector3(0, 0.94, -2.20 - 0.67 * snap) * growth_scale
 	if is_instance_valid(prey_in_mouth):
-		prey_in_mouth.position = prey_in_mouth.position.lerp(Vector3(0, -0.43, -1.16), minf(1.0, 18.0 * delta))
+		var mouth := head_pivot.to_global(Vector3(0, -.43, -1.16))
+		if upright_form:
+			# Follow the hand scoop briefly, then interpolate the held prey up to
+			# the mouth. Works for a direct grab and a tongue-pulled target.
+			var hand: Node3D = creature_rig["paws"][0]
+			var hand_point := hand.to_global(Vector3(0, -.14, -.25))
+			var hand_weight := 1.0 - smoothstep(.25, .80, progress)
+			var target := hand_point.lerp(mouth, 1.0 - hand_weight)
+			prey_in_mouth.global_position = prey_in_mouth.global_position.lerp(target, minf(1.0, 15.0 * delta))
+		else:
+			prey_in_mouth.position = prey_in_mouth.position.lerp(Vector3(0, -.43, -1.16), minf(1.0, 18.0 * delta))
 		prey_in_mouth.scale = Vector3.ONE * maxf(0.02, 1.0 - progress * 1.2)
 		if bite_timer <= delta:
 			prey_in_mouth.queue_free()
 			prey_in_mouth = null
+	_update_tongue_lash()
 
 	creature_rig["visual"].update_pose(upright_form, moving, run_phase)
 	var step := int(run_phase / PI)
@@ -852,6 +896,81 @@ func _update_creature_animation(delta: float, moving: bool) -> void:
 		coastal_effects.burst(beast.global_position + Vector3(0, .12, 0), 2, growth_scale)
 	if is_instance_valid(ground_shadow):
 		ground_shadow.scale = Vector3(growth_scale, 1, growth_scale)
+
+func _grab_pose_strength() -> float:
+	if bite_timer <= 0.0:
+		return 0.0
+	var phase := 1.0 - clampf(bite_timer / maxf(.05, bite_duration), 0.0, 1.0)
+	return sin(phase * PI)
+
+
+func _update_tongue_lash() -> void:
+	if not is_instance_valid(tongue_root):
+		return
+	if not tongue_active or not is_instance_valid(prey_in_mouth) or bite_timer <= 0.0:
+		tongue_root.visible = false
+		if bite_timer <= 0.0:
+			tongue_active = false
+		return
+	var source := head_pivot.to_global(Vector3(0, -.26, -1.34))
+	var target: Vector3 = prey_in_mouth.global_position
+	var distance := source.distance_to(target)
+	if distance < .10:
+		tongue_root.visible = false
+		return
+	tongue_root.visible = true
+	tongue_root.global_position = source
+	tongue_root.look_at(target, Vector3.UP)
+	tongue_length_mesh.position.z = -distance * .5
+	tongue_length_mesh.scale = Vector3.ONE
+	tongue_length_mesh.scale.y = distance
+
+
+func _giant_proximity_contact() -> void:
+	if growth_stage < 3:
+		return
+	# A giant walking over a roof/car must still physically attack. Choose
+	# only the closest intersecting footprint to avoid mass chain demolition.
+	var origin: Vector3 = beast.global_position
+	var radius := maxf(1.9, growth_scale * 1.45)
+	var nearest := INF
+	var building_index := -1
+	var car_index := -1
+	for i in range(buildings.size()):
+		var b: Dictionary = buildings[i]
+		if b["destroyed"]:
+			continue
+		var center: Vector3 = b["position"]
+		var half: Vector2 = b["half"]
+		var dx := maxf(0.0, absf(origin.x - center.x) - half.x)
+		var dz := maxf(0.0, absf(origin.z - center.z) - half.y)
+		var distance := Vector2(dx, dz).length()
+		if distance <= radius and distance < nearest:
+			nearest = distance
+			building_index = i
+			car_index = -1
+	for i in range(cars.size()):
+		var car: Dictionary = cars[i]
+		if car["destroyed"]:
+			continue
+		var pos: Vector3 = car["node"].global_position
+		var distance := Vector2(maxf(0.0, absf(origin.x - pos.x) - 1.15),
+			maxf(0.0, absf(origin.z - pos.z) - 2.35)).length()
+		if distance <= radius and distance < nearest:
+			nearest = distance
+			car_index = i
+			building_index = -1
+	if car_index >= 0:
+		_attack_car(car_index, sprint_active)
+	elif building_index >= 0:
+		_attack_building(building_index, sprint_active)
+
+
+func _effective_demolition_strength() -> int:
+	# Mass from sparse growth stages contributes independently of the
+	# player's selected Strength mutations. A level-34 giant can smash shops.
+	return maxi(strength, maxi(0, growth_stage - 2))
+
 
 func _building_for_collider(collider: Object) -> int:
 	for i in range(buildings.size()):
@@ -877,11 +996,13 @@ func _attack_building(index: int, running: bool) -> void:
 		return
 	# Weak forms always chip away at even heavy buildings. High tier buildings
 	# take many minutes at baseline strength, but the first hit shows a crack.
-	if running and strength >= int(b["breakthrough_strength"]):
+	var impact_strength := _effective_demolition_strength()
+	if running and (impact_strength >= int(b["breakthrough_strength"]) or
+		(growth_scale >= 3.5 and impact_strength >= int(b["required_strength"]))):
 		_damage_building(index, float(b["hits"]))
 	elif strike_timer <= 0.0:
-		var strength_gap := int(b["required_strength"]) - strength
-		var damage := 0.015 / pow(2.0, float(strength_gap - 1)) if strength_gap > 0 else float(1 + (-strength_gap) * 2)
+		var strength_gap := int(b["required_strength"]) - impact_strength
+		var damage := 0.015 / pow(2.0, float(strength_gap - 1)) if strength_gap > 0 else float(1 + (-strength_gap) * 2) + maxf(0.0, growth_scale - 2.0) * 2.0
 		_damage_building(index, damage)
 		strike_timer = 0.70
 
@@ -974,15 +1095,23 @@ func _update_biting(_delta: float) -> void:
 			_capture_and_feed(cop, 16)
 			return
 
+func _normal_grab_reach() -> float:
+	return maxf(BITE_RANGE * growth_scale, -head_collision_node.position.z + head_collision_shape.radius * .8) if upright_form else BITE_RANGE * growth_scale
+
+
 func _bite_reach() -> float:
-	# Preserve hatchling reach/cone. Raised jaws must still collect ground prey.
-	return maxf(BITE_RANGE * growth_scale, -head_collision_node.position.z + head_collision_shape.radius * 0.8) if upright_form else BITE_RANGE * growth_scale
+	# Only the upright form gains an extra 45% reach through a retractable
+	# tongue; hatchling balance and the existing input cone remain unchanged.
+	return _normal_grab_reach() * (1.45 if upright_form else 1.0)
+
 
 func _capture_and_feed(prey: Node3D, amount: int) -> void:
-	# Remove the target from AI updates immediately, but keep its mesh for
-	# the brief jaw-grab/swallow visual instead of making it vanish at contact.
+	# The grabbed actor stays rendered while a pair of arms pulls it toward
+	# the face. Beyond ordinary arm reach an animated tongue begins the pull.
 	if is_instance_valid(prey_in_mouth):
 		prey_in_mouth.queue_free()
+	prey_origin = prey.global_position
+	tongue_active = upright_form and prey_origin.distance_to(beast.global_position) > _normal_grab_reach()
 	prey_in_mouth = prey
 	prey.reparent(head_pivot, true)
 	_feed(amount)
