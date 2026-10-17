@@ -208,8 +208,9 @@ func _build_supports(active: Array,generic: Dictionary) -> void:
 		if "bird" in active and primary!="bird" and not radial and front: continue
 		var joint := Node3D.new();joint.name="Support_%d"%i
 		joint.position=Vector3(s*(.55 if not radial else .60),.65,lerpf(-.65,.85,float(row)/maxf(1,count/2.0-1)))
-		if primary=="bird" and not radial: joint.position=Vector3(s*.36,.82,.25)
+		if primary=="bird" and not radial: joint.position=Vector3(s*.36,.62,.25)
 		if primary=="ape" and front: joint.position=Vector3(s*.70,1.30,-.35)
+		if primary in ["snake","worm"] and "ape" in active and front: joint.position.y=.95
 		add_child(joint)
 		var c: Color=COLORS[GeneRegistry.FORMS.find(primary)]
 		var muscle := .17+.022*mini(3,int(generic.get("strength",0)))
@@ -222,7 +223,8 @@ func _build_supports(active: Array,generic: Dictionary) -> void:
 				OrganicGeometry.loft(joint,[toe,toe+Vector3(s*.09,-.06,-.11),toe+Vector3(0,-.08,-.22)],[Vector2(.085,.07),Vector2(.06,.045),Vector2(.018,.02)],CREAM)
 		else:
 			var end := Vector3(s*.18,-.53,-.12-(grasp_tier*.11 if front else 0.0))
-			if (primary=="ape" or (primary in ["snake","worm"] and "ape" in active)) and front: end=Vector3(s*.56,-.70,-.66)
+			if primary=="ape" and front: end=Vector3(s*.56,-.94,-.66)
+			elif primary in ["snake","worm"] and "ape" in active and front: end=Vector3(s*.56,-.70,-.66)
 			link(joint,Vector3.ZERO,end,muscle*(1.65 if primary=="ape" and front else 1.0),c)
 			if front and forelimb_kind=="pincer":
 				oval(joint,end,Vector3(.33,.25,.39),COLORS[4])
@@ -234,7 +236,7 @@ func _build_supports(active: Array,generic: Dictionary) -> void:
 			elif primary=="bird":
 				link(joint,end+Vector3(0,.23,.06),end,.09,CREAM)
 				for k in [-1,0,1]: OrganicGeometry.tapered(joint,end, end+Vector3(k*.12,-.04,-.40-grasp_tier*.10),.06+grasp_tier*.01,.018,INK)
-			else: oval(joint,end,Vector3(.27 if primary!="ape" else .36,.15 if primary!="ape" else .27,.33),c.lightened(.13))
+			else: oval(joint,end,Vector3(.36 if primary=="ape" and front else .27,.27 if primary=="ape" and front else .15,.33),c.lightened(.13))
 		CoastalArt.merge(joint,"WorkingSupport")
 		joints.append(joint)
 func _build_tendrils() -> void:

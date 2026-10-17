@@ -91,3 +91,11 @@ Slice 4 — fractional rear organ contact:
   non-axial source-19 behaviour and cooldown/damage values stay unchanged.
 - Corrected lure/prowl socket semantics to neck/head. All source geometry,
   curated mechanics and extended traversal tests pass after this integration.
+
+Final stance correction:
+- Static bounds inspection found avian toes and ape knuckles above their intended
+  contact plane. Lowered avian support roots, restored ape knuckle reach, kept
+  hind feet distinct from fists and seated matrix-supported axial grasp arms.
+- Added explicit planted-support bounds checks for Bird/Ape. This is a small
+  visual correction after the successful #259 candidate; a new immutable APK
+  will be exported and verified from the corrected source. #259 remains intact.

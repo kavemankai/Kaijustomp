@@ -30,6 +30,12 @@ func run() -> void:
 	var generic_count := 0
 	for host in GeneRegistry.FORMS:
 		var sockets := AnatomyManifest.sockets(host)
+		morphology.configure(make_genome(host,3))
+		if host in ["bird","ape"]:
+			for joint in morphology.joints:
+				var mesh: MeshInstance3D=joint.get_child(0)
+				var bounds: AABB=joint.transform*mesh.get_aabb()
+				check(bounds.position.y>=-.08 and bounds.position.y<=.15,"planted avian feet / ape knuckles "+host)
 		for key in GeneRegistry.LEGACY:
 			var g := make_genome(host,3)
 			morphology.configure(g)
