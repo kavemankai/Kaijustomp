@@ -1,0 +1,23 @@
+{
+  "source_sha": "7b217d919dee562a4d4f47a65b18b9261766b365",
+  "url": "https://github.com/kavemankai/Kaijustomp/releases/download/genetics-233-7b217d9/Kaijustomp-233-7b217d9-debug.apk",
+  "bytes": 28262824,
+  "sha256": "80493fdf6c6ddd2d7d206b996028ea69b476548e5140784216f0b467047b42f3",
+  "zip_crc": "pass",
+  "bundled_source_catalogue": "exact immutable bytes, all 500 IDs",
+  "arm64_elf_16k": "pass",
+  "native_zip_storage": {
+    "lib/arm64-v8a/libc++_shared.so": {
+      "storage": "compressed",
+      "zip_alignment": "not applicable to compressed entry",
+      "elf_alignment": "verified after decompression"
+    },
+    "lib/arm64-v8a/libgodot_android.so": {
+      "storage": "compressed",
+      "zip_alignment": "not applicable to compressed entry",
+      "elf_alignment": "verified after decompression"
+    }
+  },
+  "signature_package_verification": "CI job117399874566 verified v2/v3, geneticpreview, label, launcher, ARM64 and zipalign -P16; downloaded bytes match the exact signed asset digest",
+  "physical_device": "unavailable; not installed or device-performance-tested"
+}

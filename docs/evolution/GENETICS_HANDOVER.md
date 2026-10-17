@@ -2,7 +2,13 @@
 
 Implemented on `feature/nine-form-genetics-preview`, based on `feature/persistent-streamed-world` at `35dc25b95d05322459e70e39ea046dc6a3f9085d`. PR #18 remains draft and unmerged. The current-repository handoff overrides the old auto-shooter assumptions in the supplied [specification](source/IMPLEMENTATION_SPEC.md), [GDD](NINE_FORM_DESIGN.md) and [integration plan](source/INTEGRATION_PLAN.md).
 
-Android publication status: awaiting this branch's verified CI export. No Genetics Preview download is claimed until signature/package/ZIP/ARM64 checks and publication complete. Default local export now uses **com.kavemankai.kaijustomp.geneticpreview**, **Kaijustomp Genetics Preview**; existing named branch mappings are preserved.
+Delivered **[Genetics Preview APK #233](https://github.com/kavemankai/Kaijustomp/releases/download/genetics-233-7b217d9/Kaijustomp-233-7b217d9-debug.apk)**, [immutable prerelease](https://github.com/kavemankai/Kaijustomp/releases/tag/genetics-233-7b217d9), [draft PR #19](https://github.com/kavemankai/Kaijustomp/pull/19) targeting PR18's branch. Exact build source **`7b217d919dee562a4d4f47a65b18b9261766b365`**. Later documentation-only commits record evidence; they do not change this APK's source.
+
+Package **com.kavemankai.kaijustomp.geneticpreview**, label **Kaijustomp Genetics Preview**, version `0.1.233-debug`, ARM64, **28,262,824 bytes**. SHA-256 **`80493fdf6c6ddd2d7d206b996028ea69b476548e5140784216f0b467047b42f3`**. Existing package mappings and approved releases remain preserved; nothing was merged or installed.
+
+Windows and Linux Godot 4.5 import/launch and **30/30 suites** pass. Android [push #233](https://github.com/kavemankai/Kaijustomp/actions/runs/39033941284), [PR #234](https://github.com/kavemankai/Kaijustomp/actions/runs/39033951686), and [PR smoke](https://github.com/kavemankai/Kaijustomp/actions/runs/39033951623) pass. CI confirms APK v2/v3 signatures, package/label/launcher, ARM64, ZIP CRC and `zipalign -P 16`; ELF load segments pass 16 KiB checks. Downloaded release bytes independently match the asset digest, checksum and byte count, pass CRC/ELF checks, and contain the exact immutable 500-source catalogue. Native entries are compressed; direct ZIP offsets are not asserted as 16 KiB-aligned. See [verification record](../validation/genetics/apk-verification.json), [CI output](../validation/genetics/android-ci.txt) and [job results](../validation/genetics/android-ci-run.json).
+
+The local APK and checksum are under ignored `build/genetics-apk/`. No physical Android device was available; installation, touch and sustained performance acceptance remain unverified.
 
 ## Implemented runtime
 
@@ -44,7 +50,7 @@ The additional Worm/Ape crossover is illegal without #100's visible support matr
 
 ## Evidence
 
-Baseline source above passes Godot `4.5.stable.official.876b29033` import, 60-frame launch and all **25 original suites**. The implementation adds five discovered suites: core, curated, gameplay, lives and physics. The latest complete local run passes **30/30**, import and launch; final CI re-verifies the committed source on Linux. [Windows results](../validation/genetics/windows-regressions.json) and [baseline](../validation/genetics-baseline/windows-regressions.json).
+Baseline source above passes Godot `4.5.stable.official.876b29033` import, 60-frame launch and all **25 original suites**. The implementation adds five discovered suites: core, curated, gameplay, lives and physics. The final local and CI runs pass **30/30**, import and launch. [Windows results](../validation/genetics/windows-regressions.json), [Linux results](../validation/genetics/linux-regressions.json) and [baseline](../validation/genetics-baseline/windows-regressions.json).
 
 - Core: exact source IDs, nine neutral tracks, seeded legal drafts, nine pure paths, candidate versus expression, three hybrids, support legality, idempotent selection, behaviour caps/replay and genome validation.
 - Curated: every source prototype equips, round-trips and creates geometry; concrete effects, categories, cooldowns, tradeoffs and caps.
@@ -52,7 +58,7 @@ Baseline source above passes Godot `4.5.stable.official.876b29033` import, 60-fr
 - Lives: frozen draft checkpoint, death/archive idempotence, neutral new life, retained world/objective/vehicle/evacuation/seed, old-save migration, future protection and backup recovery.
 - Physics: nine forms/three hybrids swept into a warehouse at 1x and six chosen growths; complete body remains outside wall within 1cm per scale contact tolerance. Radical support crossover, maximum chosen growth clearance without demolition and E120 debug/reload/caps.
 
-[Nine-form capture sheet](../validation/genetics/nine-forms.png), [three hybrids](../validation/genetics/three-hybrids.png), [35 source trait sheet](../validation/genetics/35-source-traits.png), [portrait draft](../validation/genetics/draft.png), [lineage/index](../validation/genetics/lineage.png). These are actual Windows Godot 4.5 Compatibility viewport crops from the same angle/light/scale, inspected visually; no promotional images substituted. Full portrait hybrid captures are alongside the sheets. RTX3050 Laptop/OpenGL3.3 sample captures reported 93–99 draw calls and roughly 52 MiB Godot static allocations; this is neither process RSS nor sustained Android performance.
+[Nine-form capture sheet](../validation/genetics/nine-forms.png), [three hybrids](../validation/genetics/three-hybrids.png), [35 source trait sheet](../validation/genetics/35-source-traits.png), [portrait draft](../validation/genetics/draft.png), [lineage/index](../validation/genetics/lineage.png). These are actual Windows Godot 4.5 Compatibility viewport crops from the same angle/light/scale, inspected visually; no promotional images substituted. Full portrait hybrid captures are alongside the sheets. RTX3050 Laptop/OpenGL3.3 final sample captures reported 109–115 draw calls and roughly 52 MiB Godot static allocations; this is neither process RSS nor sustained Android performance. [Raw capture counters](../validation/genetics/render-capture.log).
 
 Reproduce:
 
@@ -63,7 +69,7 @@ python scripts/ci/compose_genetics_captures.py
 godot --headless --path . --script res://scripts/ci/generate_gene_coverage.gd
 ```
 
-The compositor needs Pillow. Capture scripts isolate their save under build; tests explicitly choose isolated paths or remain in memory. The first capture revision wrote an empty E0/frozen-draft desktop fixture into the default desktop save path; its primary/backup were retained for recovery, and this path is now guarded in the checkpoint owner. No Android installation was accessed.
+The compositor needs Pillow. Capture scripts isolate their save under build; tests explicitly choose isolated paths or remain in memory. The first capture revision wrote an empty E0/frozen-draft desktop fixture into the default desktop save path. Both files were positively identified by their exact fixture draft/E0/empty-world contents and moved to ignored `build/recovered-capture-fixture/`, releasing the default path. The checkpoint owner now guards that path in test mode. No Android installation was accessed.
 
 ## Known limits and next three priorities
 

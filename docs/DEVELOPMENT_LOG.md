@@ -1,5 +1,7 @@
 # 2026-10-17 - nine-form ground genetics implementation
 
+Delivered Genetics Preview APK233 from `7b217d919dee562a4d4f47a65b18b9261766b365` with draft PR19 over PR18. Windows/Linux import/launch and 30/30 suites pass. Android push233/PR234 and PR smoke pass. Independent package/signatures/ZIP/native checks and downloaded bytes are recorded in validation/genetics. SHA-256 `80493fdf6c6ddd2d7d206b996028ea69b476548e5140784216f0b467047b42f3`, 28,262,824 bytes. No phone installation or performance acceptance; no merge or approved-release replacement.
+
 Received the four source documents and retained the immutable 500-source catalogue. Added a 35-source prototype registry, neutral nine-track genome, seeded legal lanes/frozen choices, explicit anatomy support and pincer replacement, bounded procedural body cache and five new regression suites. Connected actual sensing, venom/corrosion, movement/armour costs, feeding, ground breach, stance, lure and bounded trail hooks to BeachDemo. Chosen growth is independent of identity; old saves retain legacy milestones. Extended the existing save owner with active genetics/effect state and archive; final death records once and NEW ORGANISM retains world/objective/vehicle/evacuation/seed data. Full reset is separate, confirmed and backed up. All 30 suites pass locally with import/launch. Real same-camera form/hybrid/trait sheets and portrait UI were rendered and inspected. Genetics-specific package and immutable CI publishing are prepared; export and phone acceptance are pending. See evolution/GENETICS_HANDOVER.md.
 
 ---
