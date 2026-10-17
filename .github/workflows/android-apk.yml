@@ -144,6 +144,10 @@ jobs:
             sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.geneticpreview"@' export_presets.cfg
             sed -i 's@^package/name=.*@package/name="Kaijustomp Genetics Preview"@' export_presets.cfg
           fi
+          if [ "$BUILD_BRANCH" = 'feature/morphology-traversal-autonomous' ]; then
+            sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.morphtraversepreview"@' export_presets.cfg
+            sed -i 's@^package/name=.*@package/name="Kaijustomp Morph Traversal"@' export_presets.cfg
+          fi
           if [ "$BUILD_BRANCH" = 'integration/stable-baseline' ]; then
             sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.integrationpreview"@' export_presets.cfg
             sed -i 's@^package/name=.*@package/name="Kaijustomp Integration Preview"@' export_presets.cfg
@@ -226,6 +230,9 @@ jobs:
           "$ANDROID_SDK_ROOT/build-tools/35.0.0/aapt" dump badging "$APK" > "$RUNNER_TEMP/apk-badging.txt"
           grep -E '^(package:|application-label:|launchable-activity:|native-code:)' "$RUNNER_TEMP/apk-badging.txt"
           EXPECTED_PACKAGE='com.kavemankai.kaijustomp.geneticpreview'
+          if [ "$BUILD_BRANCH" = 'feature/morphology-traversal-autonomous' ]; then
+            EXPECTED_PACKAGE='com.kavemankai.kaijustomp.morphtraversepreview'
+          fi
           if [ "$BUILD_BRANCH" = 'feature/persistent-streamed-world' ]; then
             EXPECTED_PACKAGE='com.kavemankai.kaijustomp.worldpreview'
           fi
@@ -597,4 +604,24 @@ jobs:
           See docs/WORLD_TEST_RESULTS.md and docs/CODEX_HANDOVER.md for evidence and limitations.
           EOF
           gh release create "$TAG" "build/android/$APK_NAME" "build/android/$APK_NAME.sha256" --target "$GITHUB_SHA" --title "Kaijustomp persistent world ${GITHUB_RUN_NUMBER}" --notes-file "$RUNNER_TEMP/world-notes.md" --prerelease
+          test "$(stat -c '%s' "build/android/$APK_NAME")" = "$(gh release view "$TAG" --json assets --jq ".assets[] | select(.name == \"$APK_NAME\") | .size")"
+
+      - name: Publish immutable morphology traversal APK
+        if: github.ref == 'refs/heads/feature/morphology-traversal-autonomous' && github.event_name == 'push'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG="morph-traversal-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:7}"
+          sha256sum "build/android/$APK_NAME" > "build/android/$APK_NAME.sha256"
+          cat > "$RUNNER_TEMP/morph-traversal-notes.md" <<EOF
+          Experimental nine-form anatomy, length-based axial creatures, body-fitted mutations, and gated flight/burrow/wall traversal from ${GITHUB_SHA}.
+          Existing approved builds and world-save data remain isolated; this is a debug APK under package com.kavemankai.kaijustomp.morphtraversepreview.
+          Only source mutations that have actual controller support are unlocked; advanced physics, art and Android handling require device acceptance.
+          Every discovered Godot regression and ZIP/signature/package/ARM64/16k check gated publication.
+          Build: https://github.com/${GH_REPO}/actions/runs/${GITHUB_RUN_ID}
+          EOF
+          gh release create "$TAG" "build/android/$APK_NAME" "build/android/$APK_NAME.sha256" --target "$GITHUB_SHA" --title "Kaijustomp Morphology and Traversal ${GITHUB_RUN_NUMBER}" --notes-file "$RUNNER_TEMP/morph-traversal-notes.md" --prerelease
           test "$(stat -c '%s' "build/android/$APK_NAME")" = "$(gh release view "$TAG" --json assets --jq ".assets[] | select(.name == \"$APK_NAME\") | .size")"
