@@ -380,6 +380,7 @@ static func response_vehicle(root: Node3D, kind: String) -> void:
 	var air := kind == "helicopter"
 	var paint := Color("697c60") if not air else Color("4a6871")
 	var hull := Node3D.new()
+	hull.name = "VisualHull"
 	root.add_child(hull)
 	if air:
 		oval(hull,Vector3(0,0,0),Vector3(1.45,1.0,3.45),paint)
