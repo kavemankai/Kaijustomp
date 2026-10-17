@@ -29,7 +29,7 @@ static func render(root: Node3D, host: String, generic: Dictionary) -> void:
 	var cocoon := _rank(generic,"cocoon")
 	var meta := _rank(generic,"metamorphosis")
 	if armour>0:
-		var root_pos := anchors["shell"] if host in ["crab","spider"] else dorsal
+		var root_pos: Vector3 = anchors["shell"] if host in ["crab","spider"] else dorsal
 		if host in ["snake","worm"]:
 			for i in range(1+armour*2):
 				_oval(root,root_pos+Vector3(0,.16,float(i)*.39),Vector3(.41+armour*.07,.14,.13),COLORS[1])

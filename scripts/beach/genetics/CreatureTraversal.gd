@@ -27,8 +27,8 @@ func _safe_surface(p: Vector3) -> bool:
 	scene.world.ensure_region(Vector3(p.x,0,p.z),maxf(28,scene.growth_scale*5.0))
 	return scene._blocking_building(Vector3(p.x,0,p.z),maxf(1.5,scene.beast_collision_shape.radius))<0
 func _wall_probe() -> Dictionary:
-	var ahead := -scene.beast.global_transform.basis.z
-	var origin := scene.beast.global_position+Vector3(0,1.2,0)
+	var ahead: Vector3 = -scene.beast.global_transform.basis.z
+	var origin: Vector3 = scene.beast.global_position+Vector3(0,1.2,0)
 	var ray:=PhysicsRayQueryParameters3D.create(origin,origin+ahead*maxf(4.5,scene.beast_collision_shape.radius+1.5))
 	ray.collision_mask=1
 	ray.exclude=[scene.beast.get_rid()]
