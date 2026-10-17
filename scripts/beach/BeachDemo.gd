@@ -265,7 +265,7 @@ func _build_beach() -> void:
 		"Container Yard", "Warehouse", "Water Works", "Factory"]
 	for row in range(3):
 		for column in range(4):
-			var x := [-286.0, -103.0, 103.0, 286.0][column]
+			var x: float = [-286.0, -103.0, 103.0, 286.0][column]
 			var z := -830.0 - float(row) * 265.0
 			var title: String = sites[row * 4 + column]
 			var big := title in ["Power Station", "Factory", "Water Works"]
