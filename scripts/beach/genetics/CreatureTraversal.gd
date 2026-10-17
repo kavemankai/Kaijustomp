@@ -119,9 +119,9 @@ func cycle() -> void:
 		activate("ground")
 		return
 	var primary: String=scene.genetics.genome.ordered_families()[0]
-	var preferences:=["flight","burrow","climb"]
-	if primary in ["mole","worm"]: preferences=["burrow","climb","flight"]
-	if primary=="spider": preferences=["climb","burrow","flight"]
+	var preferences:=["flight","glide","burrow","climb"]
+	if primary in ["mole","worm"]: preferences=["burrow","climb","flight","glide"]
+	if primary=="spider": preferences=["climb","burrow","flight","glide"]
 	for kind in preferences:
 		if can_use(kind) and activate(kind): return
 func direction_input(move: Vector3, vertical: float, speed: float, delta: float) -> bool:
@@ -153,6 +153,8 @@ func direction_input(move: Vector3, vertical: float, speed: float, delta: float)
 		if is_instance_valid(scene.world): scene.world.ensure_region(beast.position+planned,maxf(35,scene.growth_scale*5.0))
 		var hit:=beast.move_and_collide(planned)
 		if hit!=null:
+			if mode=="landing" and hit.get_normal().y>.75 and beast.position.y>1.0:
+				mode="roof"
 			var slide:=hit.get_remainder().slide(hit.get_normal())
 			if slide.length_squared()>.001: beast.move_and_collide(slide)
 		beast.velocity=planned/maxf(delta,.001)

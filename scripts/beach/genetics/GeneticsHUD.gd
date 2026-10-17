@@ -18,6 +18,7 @@ var qa_dialog: AcceptDialog
 var qa_primary: OptionButton
 var qa_secondary: OptionButton
 var qa_size: SpinBox
+var movement_picker: OptionButton
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	theme = CoastalHUD.theme()
@@ -85,6 +86,13 @@ func _ready() -> void:
 	for f in GeneRegistry.FORMS: focus_picker.add_item(String(f).capitalize())
 	focus_picker.item_selected.connect(func(index: int): model.focus = GeneRegistry.FORMS[index-1] if index>0 else "")
 	column.add_child(focus_picker)
+	var movement_label:=Label.new()
+	movement_label.text="Available traversal / hybrid movement"
+	column.add_child(movement_label)
+	movement_picker=OptionButton.new()
+	for title in ["Ground","Flight","Glide","Burrow","Climb"]: movement_picker.add_item(title)
+	movement_picker.item_selected.connect(_choose_movement)
+	column.add_child(movement_picker)
 	enable_button = Button.new()
 	enable_button.text = "ENABLE GENETICS (KEEP LEGACY GROWTH)"
 	enable_button.pressed.connect(func(): model.enabled=true; model.refresh(); refresh_details())
@@ -118,7 +126,8 @@ func refresh() -> void:
 	stance_button.text = ("STANCE ON" if model.effects.stance else "REST / GUARD")+("\nMOVE TO CANCEL" if model.effects.has(58) else "\nSPRINT TO CANCEL")
 	var ready: bool=model.enabled and not button.disabled and not dialog.visible and not model.scene.game_over
 	traverse_button.visible=ready and (model.traversal.can_use("flight") or model.traversal.can_use("glide") or model.traversal.can_use("burrow") or model.traversal.can_use("climb"))
-	traverse_button.text="LAND / EXIT" if model.traversal.mode!="ground" else "TRAVERSE"
+	traverse_button.disabled=model.traversal.mode=="roof"
+	traverse_button.text="WALK OFF ROOF" if model.traversal.mode=="roof" else ("LAND / EXIT" if model.traversal.mode!="ground" else "TRAVERSE")
 	ascend_button.visible=ready and model.traversal.mode in ["flight","climb"]
 	descend_button.visible=ascend_button.visible
 	if not ascend_button.visible: model.traversal.vertical_input=0
@@ -144,6 +153,10 @@ func close() -> void:
 func refresh_details() -> void:
 	enable_button.visible = not model.enabled
 	focus_picker.select(GeneRegistry.FORMS.find(model.focus)+1)
+	for i in range(5):
+		var kind: String=["ground","flight","glide","burrow","climb"][i]
+		movement_picker.set_item_disabled(i,not model.traversal.can_use(kind))
+	movement_picker.select(["ground","flight","glide","burrow","climb"].find(model.traversal.mode) if model.traversal.mode in ["ground","flight","glide","burrow","climb"] else 0)
 	var text := "%s\nOrganism %d | %d archived lives\nGrowth: %s | Ground compatibility controller\n" % [model.genome.label(),model.life_id,model.archive.lives.size(),model.genome.growth_policy]
 	var shares := model.genome.percentages()
 	for f in GeneRegistry.FORMS: text += "%s: %d (%.0f%%) | mastery %d\n" % [String(f).capitalize(),model.genome.raw[f],shares[f],model.archive.mastery[f]]
@@ -163,6 +176,12 @@ func populate() -> void:
 		var key := "gene_%03d" % id
 		var detail: String = GeneRegistry.definitions()[key]["detail"] if GeneRegistry.definitions().has(key) else source["source_effect"]
 		entries.set_item_tooltip(entries.item_count-1,detail+"\n"+status)
+
+func _choose_movement(index: int) -> void:
+	var desired: String=["ground","flight","glide","burrow","climb"][index]
+	if not model.traversal.activate(desired):
+		model.error_message=model.traversal.last_error
+	refresh_details()
 
 func _build_qa_panel(column: VBoxContainer) -> void:
 	var launch:=Button.new()

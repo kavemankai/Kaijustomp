@@ -53,6 +53,13 @@ func run() -> void:
 	var g: GenomeState=demo.genetics.genome
 	check(not g.legal("gene_121"),"powered wings require proto wing")
 	check(g.select_gene("gene_029","glide"),"glide gene")
+	demo.genetics.refresh()
+	check(demo.genetics.traversal.can_use("glide"),"primitive wing enables actual glide")
+	demo.beast.global_position=open_ground(demo)
+	demo.genetics.traversal.cycle()
+	check(demo.genetics.traversal.mode=="glide","glide available before powered flight")
+	for i in range(50): demo.genetics.traversal.direction_input(Vector3(0,0,-1),0,6.0,.1)
+	check(demo.genetics.traversal.mode=="ground","glide eventually lands")
 	check(g.select_gene("gene_121","flight"),"powered wing gene")
 	demo.genetics.refresh()
 	check(demo.genetics.traversal.can_use("flight"),"flight motor unlocked")

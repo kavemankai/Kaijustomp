@@ -2217,6 +2217,7 @@ func _notification(what: int) -> void:
 		sprint_active = false
 		if is_instance_valid(touch_input):
 			touch_input.reset_input()
+		if is_instance_valid(genetics): genetics.traversal.vertical_input=0.0
 		if is_instance_valid(world) and not world.test_mode: world.save_now(true)
 
 func _index_for_world_id(id: String) -> int:
