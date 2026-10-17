@@ -1,0 +1,33 @@
+Source: 317743c00894de06150c0e7eef65db298206d8a2
+Run: https://github.com/kavemankai/Kaijustomp/actions/runs/38997344851
+PASS import (4.72s)
+PASS launch (2.008s)
+PASS test_batch_debug_evolution (0.987s)
+PASS test_beach_combat (0.987s)
+PASS test_coastal_art (1.08s)
+PASS test_defcon_response (1.092s)
+PASS test_evolution (1.08s)
+PASS test_giant_demolition_feeding (1.078s)
+PASS test_growth_gameplay (1.832s)
+PASS test_growth_milestones (0.985s)
+PASS test_integration_stability (1.082s)
+PASS test_long_beach (1.175s)
+PASS test_outer_world_offscreen (1.08s)
+PASS test_representative_scales (1.174s)
+PASS test_scale_diet (1.081s)
+PASS test_shopping_cars_debug (1.083s)
+PASS test_stylized_creature (1.731s)
+PASS test_suburb_evolution (1.083s)
+PASS: lib/arm64-v8a/libc++_shared.so (4 load segments, 16 KiB compatible)
+PASS: lib/arm64-v8a/libgodot_android.so (4 load segments, 16 KiB compatible)
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): true
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Number of signers: 1
+package: name='com.kavemankai.kaijustomp.integrationpreview' versionCode='217' versionName='0.1.217-debug' platformBuildVersionName='15' platformBuildVersionCode='35' compileSdkVersion='35' compileSdkVersionCodename='15'
+application-label:'Kaijustomp Integration Preview'
+launchable-activity: name='com.godot.game.GodotApp'  label='Kaijustomp Integration Preview' icon=''
+native-code: 'arm64-v8a'

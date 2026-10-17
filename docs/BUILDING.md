@@ -15,9 +15,9 @@ On Linux substitute the Godot Linux executable path. Run from a clean checkout f
 
 ## Android debug export
 
-The existing `.github/workflows/android-apk.yml` provisions JDK17, Android platform/build-tools35, official Godot4.5 and matching4.5 Android templates. It imports, launches, runs every suite, prepares debug signing, exports ARM64 and verifies:
+The existing `.github/workflows/android-apk.yml` provisions JDK 17, Android platform/build-tools 35, official Godot 4.5 and matching 4.5 Android templates. It imports, launches, runs every suite, prepares debug signing, exports ARM64 and verifies:
 
-- APK exists, is at least12MB and passes ZIP CRC checks;
+- APK exists, is at least 12 MB and passes ZIP CRC checks;
 - manifest/DEX/ARM64 engine entries exist;
 - every ARM64 library passes `python3 scripts/ci/verify_android_16k.py <apk>`;
 - `apksigner verify --verbose` succeeds;
@@ -26,7 +26,7 @@ The existing `.github/workflows/android-apk.yml` provisions JDK17, Android platf
 
 Push the integration branch to trigger CI. Integration pushes publish an immutable `integration-<run>-<short-sha>` **prerelease**, after verification, without replacing stable or earlier preview assets. Pull requests build artifacts but do not publish this release. The checked-in export preset defaults to **`com.kavemankai.kaijustomp.integrationpreview`**, label **Kaijustomp Integration Preview**, so local exports also install beside the approved app. CI still selects separate existing IDs for named feature previews. Approved stable branches explicitly select the original ID.
 
-For a local export, configure Godot's Android SDK and Java paths, install matching4.5 templates and a debug keystore in editor settings, then run:
+For a local export, configure Godot's Android SDK and Java paths, install matching 4.5 templates and a debug keystore in editor settings, then run:
 
 ```powershell
 New-Item -ItemType Directory -Force build/android
@@ -34,7 +34,7 @@ New-Item -ItemType Directory -Force build/android
 python scripts/ci/verify_android_16k.py build/android/Kaijustomp-integration-debug.apk
 ```
 
-Use Android build-tools35 `apksigner` and `aapt` checks as CI does; a file existing is not proof of a usable export. Never commit a keystore or use a production signing key for these tests. Without the optional stable test signing secret, a different preview certificate may require reinstalling **only the integration preview**. Exact release/build links and remaining device checks are in [CODEX_HANDOVER.md](CODEX_HANDOVER.md).
+Use Android build-tools 35 `apksigner` and `aapt` checks as CI does; a file existing is not proof of a usable export. Never commit a keystore or use a production signing key for these tests. Without the optional stable test signing secret, a different preview certificate may require reinstalling **only the integration preview**. Exact release/build links and remaining device checks are in [CODEX_HANDOVER.md](CODEX_HANDOVER.md).
 
 ## Investigation commands
 

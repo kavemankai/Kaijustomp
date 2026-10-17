@@ -4,7 +4,7 @@ Current branch: integration/stable-baseline, based on unmerged PR #16. Start wit
 
 # Kaijustomp
 
-Current playable game: **Godot 4.5 Compatibility, Android portrait beach/evolution prototype**. Begin with [takeover status](docs/CODEX_HANDOVER.md), [growth contract](docs/EVOLUTION_PROGRESSION.md), [development log](docs/DEVELOPMENT_LOG.md) and [beach controls](docs/BEACH_DEMO.md). Run `project.godot` / `scenes/BeachDemo.tscn`. WASD/arrows or left touch joystick move; Shift/right SPRINT toggles sprint; E/EVOLVE starts a vulnerable evolution when enough biomass is available. Feeding and structure attacks are automatic. Mutation selection and the shedding reveal pause gameplay.
+Current playable game: **Godot 4.5 Compatibility, Android portrait beach/evolution prototype**. Begin with [takeover status](docs/CODEX_HANDOVER.md), [growth contract](docs/EVOLUTION_PROGRESSION.md), [development log](docs/DEVELOPMENT_LOG.md) and [beach controls](docs/BEACH_DEMO.md). Run `project.godot` / `scenes/BeachDemo.tscn`. Arrow keys or left touch joystick move; Shift/right SPRINT toggles sprint; E/EVOLVE starts a vulnerable evolution when enough biomass is available. Feeding and structure attacks are automatic. Mutation selection and the shedding reveal pause gameplay.
 
 The original auto-shooter below is preserved in `MainGame.tscn`; it is a historical system, not the current beach design.
 

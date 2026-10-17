@@ -1,0 +1,98 @@
+{
+  "source": "317743c00894de06150c0e7eef65db298206d8a2",
+  "run_id": 38997344851,
+  "godot": "4.5.stable",
+  "suites": 16,
+  "results": [
+    {
+      "name": "import",
+      "passed": true,
+      "seconds": 4.72
+    },
+    {
+      "name": "launch",
+      "passed": true,
+      "seconds": 2.008
+    },
+    {
+      "name": "test_batch_debug_evolution",
+      "passed": true,
+      "seconds": 0.987
+    },
+    {
+      "name": "test_beach_combat",
+      "passed": true,
+      "seconds": 0.987
+    },
+    {
+      "name": "test_coastal_art",
+      "passed": true,
+      "seconds": 1.08
+    },
+    {
+      "name": "test_defcon_response",
+      "passed": true,
+      "seconds": 1.092
+    },
+    {
+      "name": "test_evolution",
+      "passed": true,
+      "seconds": 1.08
+    },
+    {
+      "name": "test_giant_demolition_feeding",
+      "passed": true,
+      "seconds": 1.078
+    },
+    {
+      "name": "test_growth_gameplay",
+      "passed": true,
+      "seconds": 1.832
+    },
+    {
+      "name": "test_growth_milestones",
+      "passed": true,
+      "seconds": 0.985
+    },
+    {
+      "name": "test_integration_stability",
+      "passed": true,
+      "seconds": 1.082
+    },
+    {
+      "name": "test_long_beach",
+      "passed": true,
+      "seconds": 1.175
+    },
+    {
+      "name": "test_outer_world_offscreen",
+      "passed": true,
+      "seconds": 1.08
+    },
+    {
+      "name": "test_representative_scales",
+      "passed": true,
+      "seconds": 1.174
+    },
+    {
+      "name": "test_scale_diet",
+      "passed": true,
+      "seconds": 1.081
+    },
+    {
+      "name": "test_shopping_cars_debug",
+      "passed": true,
+      "seconds": 1.083
+    },
+    {
+      "name": "test_stylized_creature",
+      "passed": true,
+      "seconds": 1.731
+    },
+    {
+      "name": "test_suburb_evolution",
+      "passed": true,
+      "seconds": 1.083
+    }
+  ]
+}
