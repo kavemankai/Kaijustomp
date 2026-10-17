@@ -209,6 +209,14 @@ jobs:
           grep -q 'GIANT FEEDING TEST PASSED' "$RUNNER_TEMP/giant-feeding.log"
           if grep -E 'SCRIPT ERROR|Parse Error|TEST FAILED|Invalid call|Invalid access' "$RUNNER_TEMP/giant-feeding.log"; then exit 1; fi
 
+      - name: Verify selectable batch debug evolution and all growth milestones
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --path . --script res://scripts/ci/test_batch_debug_evolution.gd 2>&1 | tee "$RUNNER_TEMP/batch-evolution.log"
+          grep -q 'BATCH DEBUG TEST PASSED' "$RUNNER_TEMP/batch-evolution.log"
+          if grep -E 'SCRIPT ERROR|Parse Error|TEST FAILED|Invalid call|Invalid access' "$RUNNER_TEMP/batch-evolution.log"; then exit 1; fi
+
       - name: Export portrait Android debug APK
         shell: bash
         run: |
@@ -239,6 +247,10 @@ jobs:
           if [ "$BUILD_BRANCH" = 'feature/giant-demolition-upright-feeding' ]; then
             sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.giantpreview"@' export_presets.cfg
             sed -i 's@^package/name=.*@package/name="Kaijustomp Giant Preview"@' export_presets.cfg
+          fi
+          if [ "$BUILD_BRANCH" = 'feature/debug-batch-evolution' ]; then
+            sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.batchpreview"@' export_presets.cfg
+            sed -i 's@^package/name=.*@package/name="Kaijustomp Batch Preview"@' export_presets.cfg
           fi
           APK="Kaijustomp-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:7}-debug.apk"
           echo "APK_NAME=$APK" >> "$GITHUB_ENV"
@@ -288,6 +300,9 @@ jobs:
           fi
           if [ "$BUILD_BRANCH" = 'feature/giant-demolition-upright-feeding' ]; then
             EXPECTED_PACKAGE='com.kavemankai.kaijustomp.giantpreview'
+          fi
+          if [ "$BUILD_BRANCH" = 'feature/debug-batch-evolution' ]; then
+            EXPECTED_PACKAGE='com.kavemankai.kaijustomp.batchpreview'
           fi
           grep -q "name='$EXPECTED_PACKAGE'" "$RUNNER_TEMP/apk-badging.txt"
           grep -q '^launchable-activity:' "$RUNNER_TEMP/apk-badging.txt"
@@ -406,6 +421,23 @@ jobs:
           ASSET_SIZE=$(gh release view "$TAG" --json assets --jq '.assets[] | select(.name == "Kaijustomp-growth-preview.apk") | .size')
           test "$LOCAL_SIZE" = "$ASSET_SIZE"
           echo "Preview APK: https://github.com/${GH_REPO}/releases/download/${TAG}/Kaijustomp-growth-preview.apk" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish immutable batch evolution preview
+        if: github.ref == 'refs/heads/feature/debug-batch-evolution' && github.event_name != 'pull_request'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG="batch-evo-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:7}"
+          cat > "$RUNNER_TEMP/batch-notes.md" <<EOF
+          Kaijustomp Android batch DEBUG EVO preview from ${GITHUB_SHA}. Select +1, +5, +10, +20, +34 or +50, or edit the level count (1–60) and confirm. All selected evolutions apply instantly in one operation without feeding or multiple mutation menus; automatically balanced mutations and ordered history are retained, growth still occurs only at 5/10/16/22/28/34 and every six thereafter. Debug cumulative level cap E120 for safe size testing. All prior coastal/suburb/shopping/giant combat controls and feeding preserved. Isolated install com.kavemankai.kaijustomp.batchpreview. Automated test and Android export completed; device UI/fps require confirmation.
+          EOF
+          gh release create "$TAG" "build/android/$APK_NAME" "build/android/$APK_NAME.sha256" --target "$GITHUB_SHA" --title "Kaijustomp batch debug ${GITHUB_RUN_NUMBER}" --notes-file "$RUNNER_TEMP/batch-notes.md" --prerelease
+          LOCAL_SIZE=$(stat -c "%s" "build/android/$APK_NAME")
+          ASSET_SIZE=$(gh release view "$TAG" --json assets --jq ".assets[] | select(.name == \"$APK_NAME\") | .size")
+          test "$LOCAL_SIZE" = "$ASSET_SIZE"
 
       - name: Publish immutable giant demolition preview
         if: github.ref == 'refs/heads/feature/giant-demolition-upright-feeding' && github.event_name != 'pull_request'
