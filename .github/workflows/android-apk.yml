@@ -107,7 +107,10 @@ jobs:
           EOF
 
       - name: Import, launch and run every gameplay regression
-        run: python3 scripts/ci/run_regressions.py --godot "$GODOT_BIN"
+        run: |
+          mkdir -p build
+          touch build/.gdignore
+          python3 scripts/ci/run_regressions.py --godot "$GODOT_BIN"
 
       - name: Retain regression evidence
         if: always()
@@ -129,6 +132,30 @@ jobs:
           path: build/world-profile/
           retention-days: 30
 
+      - name: Capture deterministic polish gameplay and anatomy
+        if: env.BUILD_BRANCH == 'feature/morphology-traversal-polish'
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y xvfb libgl1-mesa-dri
+          python3 -m pip install pillow==11.3.0
+          timeout 480 xvfb-run -a "$GODOT_BIN" --path . --audio-driver Dummy --rendering-method gl_compatibility --script res://scripts/ci/capture_polish.gd 2>&1 | tee build/polish-captures.log
+          if grep -E 'SCRIPT ERROR|Parse Error|^ERROR:' build/polish-captures.log; then exit 1; fi
+          python3 scripts/ci/compose_polish_captures.py --output build/polish-evidence
+
+      - name: Retain polish visual and coverage evidence
+        if: always() && env.BUILD_BRANCH == 'feature/morphology-traversal-polish'
+        uses: actions/upload-artifact@v4
+        with:
+          name: polish-evidence-${{ github.run_number }}-${{ github.event_name }}
+          path: |
+            build/polish-evidence/
+            build/polish-captures/
+            build/polish-captures.log
+          retention-days: 30
+          if-no-files-found: error
+
       - name: Export portrait Android debug APK
         shell: bash
         run: |
@@ -147,6 +174,10 @@ jobs:
           if [ "$BUILD_BRANCH" = 'feature/morphology-traversal-autonomous' ]; then
             sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.morphtraversepreview"@' export_presets.cfg
             sed -i 's@^package/name=.*@package/name="Kaijustomp Morph Traversal"@' export_presets.cfg
+          fi
+          if [ "$BUILD_BRANCH" = 'feature/morphology-traversal-polish' ]; then
+            sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.morphpolishpreview"@' export_presets.cfg
+            sed -i 's@^package/name=.*@package/name="Kaijustomp Morph Polish"@' export_presets.cfg
           fi
           if [ "$BUILD_BRANCH" = 'integration/stable-baseline' ]; then
             sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.integrationpreview"@' export_presets.cfg
@@ -230,6 +261,9 @@ jobs:
           "$ANDROID_SDK_ROOT/build-tools/35.0.0/aapt" dump badging "$APK" > "$RUNNER_TEMP/apk-badging.txt"
           grep -E '^(package:|application-label:|launchable-activity:|native-code:)' "$RUNNER_TEMP/apk-badging.txt"
           EXPECTED_PACKAGE='com.kavemankai.kaijustomp.geneticpreview'
+          if [ "$BUILD_BRANCH" = 'feature/morphology-traversal-polish' ]; then
+            EXPECTED_PACKAGE='com.kavemankai.kaijustomp.morphpolishpreview'
+          fi
           if [ "$BUILD_BRANCH" = 'feature/morphology-traversal-autonomous' ]; then
             EXPECTED_PACKAGE='com.kavemankai.kaijustomp.morphtraversepreview'
           fi
@@ -625,3 +659,28 @@ jobs:
           EOF
           gh release create "$TAG" "build/android/$APK_NAME" "build/android/$APK_NAME.sha256" --target "$GITHUB_SHA" --title "Kaijustomp Morphology and Traversal ${GITHUB_RUN_NUMBER}" --notes-file "$RUNNER_TEMP/morph-traversal-notes.md" --prerelease
           test "$(stat -c '%s' "build/android/$APK_NAME")" = "$(gh release view "$TAG" --json assets --jq ".assets[] | select(.name == \"$APK_NAME\") | .size")"
+
+      - name: Publish immutable morphology polish APK
+        if: github.ref == 'refs/heads/feature/morphology-traversal-polish' && github.event_name == 'push'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG="morph-polish-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:7}"
+          (cd build/android && sha256sum "$APK_NAME" > "$APK_NAME.sha256")
+          cat > "$RUNNER_TEMP/polish-notes.md" <<EOF
+          Nine-form anatomy and traversal polish candidate from ${GITHUB_SHA}.
+          Connected low-poly hosts, typed mutation sockets and ranked tissue expressions, articulated exclusive forelimbs and wings, continuous axial skin and bounded distance history, gradual burrow/emergence, finite powered lift and safer roof/fall handling.
+          Package com.kavemankai.kaijustomp.morphpolishpreview installs separately from all previous previews. Debug signing can require uninstalling this preview for a future differently signed update; earlier apps and saves stay isolated.
+          All discovered Godot 4.5 regression suites, deterministic actual-engine captures, APK ZIP/ARM64/package/signature-v2-v3/zipalign/native-16KiB checks gated this release.
+          Procedural art and selective-organ hybrids remain review candidates. No permanent carved tunnels, full tail rigidbody simulation, 500 executable genes or 36 bespoke hybrid sculpts are claimed.
+          Physical Android installation, multitouch feel, 15-minute frame-time/RSS/thermal/battery measurements and final art acceptance remain unverified.
+          Workflow and screenshot artifact: https://github.com/${GH_REPO}/actions/runs/${GITHUB_RUN_ID}
+          Handover: docs/evolution/POLISH_HANDOVER.md. Do not merge before phone acceptance.
+          EOF
+          gh release create "$TAG" "build/android/$APK_NAME" "build/android/$APK_NAME.sha256" --target "$GITHUB_SHA" --title "Kaijustomp Morphology Polish ${GITHUB_RUN_NUMBER}" --notes-file "$RUNNER_TEMP/polish-notes.md" --prerelease
+          test "$(stat -c '%s' "build/android/$APK_NAME")" = "$(gh release view "$TAG" --json assets --jq ".assets[] | select(.name == \"$APK_NAME\") | .size")"
+          gh release download "$TAG" --pattern "$APK_NAME" --dir "$RUNNER_TEMP/polish-download"
+          cmp "build/android/$APK_NAME" "$RUNNER_TEMP/polish-download/$APK_NAME"

@@ -11,7 +11,7 @@ static func measure(family: String, rank: int) -> Dictionary:
 		"snake":
 			p["length"] = 5.0 + .9*n + .18*n*n
 			p["radius"] = .54 + .045*n
-			p["height"] = 1.25 + .045*n
+			p["height"] = float(p["radius"])*2.25+.30
 			p["width"] = 2.0*float(p["radius"])
 			p["segments"] = mini(48, maxi(8, ceili(float(p["length"])/1.8)))
 		"worm":
@@ -54,4 +54,9 @@ static func envelope(p: Dictionary) -> float:
 	return maxf(float(p["width"])*.5,float(p["radius"]) if p["axial"] else 0.0)+.35
 static func visual_axes(p: Dictionary, scale_metric: float) -> Vector3:
 	var s := maxf(.01,scale_metric)
-	return Vector3(float(p["width"])/2.0, float(p["height"])/2.3, minf(3.0,float(p["length"])/4.0))/s
+	if p["axial"]:
+		# Head/neck growth follows girth. Only the world trail grows in length.
+		return Vector3(float(p["radius"])*1.9,float(p["height"])/1.7,float(p["radius"])*1.8)/s
+	var canonical_width: float={"crab":4.2,"spider":4.2,"ape":3.3,"mole":2.3}.get(p["family"],2.0)
+	var canonical_height: float={"crab":1.6,"spider":1.5,"bird":2.5,"mole":1.5}.get(p["family"],2.3)
+	return Vector3(float(p["width"])/canonical_width, float(p["height"])/canonical_height, minf(3.0,float(p["length"])/4.0))/s

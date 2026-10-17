@@ -87,6 +87,8 @@ func run() -> void:
 	demo.genetics.traversal.direction_input(Vector3(0,0,-1),0,8.0,.5)
 	check(demo.beast.global_position.z<start.z,"underground contiguous movement")
 	check(demo.genetics.traversal.activate("ground"),"safe controlled emergence")
+	check(demo.genetics.traversal.mode=="emerging" and demo.beast.position.y<0,"emergence is gradual")
+	for i in range(30): demo.genetics.traversal.direction_input(Vector3.ZERO,0,0,.1)
 	check(demo.beast.global_position.y==0 and demo.beast.collision_mask==1,"surface collision restored")
 	# Spider adhesion probes a physical wall; horizontal movement is not flight.
 	demo.genetics.fixture(["spider"])

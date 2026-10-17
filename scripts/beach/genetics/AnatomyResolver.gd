@@ -32,6 +32,12 @@ static func resolve(ranks: Dictionary, affinities: Dictionary = {}) -> Dictionar
 	elif primary=="crab": plan = "lateral_ground"
 	elif primary=="bird": plan = "light_ground"
 	elif primary=="ape": plan = "knuckle_ground"
-	return {"legal":legal,"families":families,"slots":slots,"body_plan":plan,
+	var hybrid_status := "pure"
+	if families.size()>1:
+		hybrid_status="prototype: selective secondary organs"
+	var socket_family := primary if not primary.is_empty() else "reptile"
+	slots["forelimb_owner"]="crab_pincer" if "crab" in families else ("bird_wing" if "bird" in families else ("mole_spade" if "mole" in families else socket_family))
+	if "bird" in families: slots["wing_support"]="dorsal_secondary_frame" if primary in ["crab","spider"] or "spider" in families else "forelimb_replacement"
+	return {"legal":legal,"primary":primary,"families":families,"slots":slots,"body_plan":plan,"sockets":AnatomyManifest.sockets(socket_family),"hybrid_status":hybrid_status,
 		"bridge":bridge,"cohesion":100 if legal else 88,
-		"reason":"Heavy arms on an axial trunk require Chimeric Flesh Matrix." if not legal else "Ground controller; flight, wall climb and underground travel locked."}
+		"reason":"Heavy arms on an axial trunk require Chimeric Flesh Matrix." if not legal else "Traversal needs equipped organs; heavy flight also needs soaring wings. Other pairs use prototype secondary organs."}

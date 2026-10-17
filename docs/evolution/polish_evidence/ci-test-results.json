@@ -1,0 +1,222 @@
+{
+  "godot": "4.5.stable.official.876b29033",
+  "suites": 34,
+  "results": [
+    {
+      "name": "import",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 4.839
+    },
+    {
+      "name": "launch",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.823
+    },
+    {
+      "name": "test_authored_world",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.801
+    },
+    {
+      "name": "test_batch_debug_evolution",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.36
+    },
+    {
+      "name": "test_beach_combat",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.388
+    },
+    {
+      "name": "test_coastal_art",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.427
+    },
+    {
+      "name": "test_defcon_response",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.418
+    },
+    {
+      "name": "test_evolution",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.539
+    },
+    {
+      "name": "test_genetics_core",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.336
+    },
+    {
+      "name": "test_genetics_curated",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.176
+    },
+    {
+      "name": "test_genetics_gameplay",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.081
+    },
+    {
+      "name": "test_genetics_lives",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.267
+    },
+    {
+      "name": "test_genetics_physics",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.637
+    },
+    {
+      "name": "test_giant_demolition_feeding",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.265
+    },
+    {
+      "name": "test_growth_gameplay",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.731
+    },
+    {
+      "name": "test_growth_milestones",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.268
+    },
+    {
+      "name": "test_integration_stability",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.359
+    },
+    {
+      "name": "test_long_beach",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.359
+    },
+    {
+      "name": "test_morphology_traversal",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.081
+    },
+    {
+      "name": "test_outer_world_offscreen",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.272
+    },
+    {
+      "name": "test_polish_anatomy",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 14.562
+    },
+    {
+      "name": "test_polish_lifecycle",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.638
+    },
+    {
+      "name": "test_polish_traversal",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.173
+    },
+    {
+      "name": "test_representative_scales",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.456
+    },
+    {
+      "name": "test_scale_diet",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.36
+    },
+    {
+      "name": "test_shopping_cars_debug",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.361
+    },
+    {
+      "name": "test_stylized_creature",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.64
+    },
+    {
+      "name": "test_suburb_evolution",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.36
+    },
+    {
+      "name": "test_world_async_save",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.335
+    },
+    {
+      "name": "test_world_generation",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.241
+    },
+    {
+      "name": "test_world_objectives",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.988
+    },
+    {
+      "name": "test_world_persistence",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.336
+    },
+    {
+      "name": "test_world_response",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.732
+    },
+    {
+      "name": "test_world_resume",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.269
+    },
+    {
+      "name": "test_world_streaming",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 24.416
+    },
+    {
+      "name": "test_world_tracking",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.8
+    }
+  ]
+}

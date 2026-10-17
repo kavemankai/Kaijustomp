@@ -62,7 +62,7 @@ static func definitions() -> Dictionary:
 			"part":authored[2],"operation":"add","effect":"source_%d" % id,"detail":authored[1],"readiness":"playable","weight":1.0}
 	_entries["physical_growth"] = {"key":"physical_growth","source_id":0,"name":"Chosen physical growth","family":"",
 		"affinity":{},"cap":18,"lane":"adapt","socket":"core","part":"growth","operation":"modify",
-		"effect":"physical_growth","detail":"Size x1.20; +5% sprint cost per rank, cap 18. Changes diet, clearance and camera.","readiness":"playable","weight":0.8}
+		"effect":"physical_growth","detail":"Grow host dimensions; axial forms gain length and girth. +5% sprint cost per rank, cap 18; diet and clearance change.","readiness":"playable","weight":0.8}
 	return _entries
 
 static func validate() -> Array[String]:

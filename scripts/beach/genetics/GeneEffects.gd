@@ -32,7 +32,7 @@ const EARLY := {
 	29:["bird","Short controlled ground-launched glide; altitude decreases without powered lift.","wing_membrane"],
 	52:["mole","Foundation-aware underground travel using digging foreclaws.","dig_claws"],
 	119:["worm","Segmented underground earth-plowing path; foundation-free tiles.","shovel"],
-	121:["bird","Powered flight with altitude, air collision and landing.","flight_wing"],
+	121:["bird","Powered flight drains stamina; heavy bodies need Soaring. Axial bodies over 24 units may only glide.","flight_wing"],
 	122:["bird","Broad soaring wing surfaces and stronger airborne control.","soaring"],
 	180:["spider","Wall adherence and climb movement on solid vertical surfaces.","wall_hooks"]
 }
@@ -181,9 +181,14 @@ func advance(delta: float) -> void:
 	_corrosion_tick(delta)
 	for foe in owner.scene.officers: foe["gene_slow"]=maxf(0,float(foe.get("gene_slow",0))-delta)
 	if has(19) and tail_cooldown<=0:
+		var origin: Vector3=owner.scene.beast.position
+		var reach: float=4.0*owner.scene.growth_scale
+		if owner.trail.live:
+			origin=owner.trail.point_at(owner.trail.total_length*.92)+Vector3.UP*owner.trail.radius*.70
+			reach=maxf(1.2,owner.trail.radius*1.5)
 		for i in range(owner.scene.officers.size()-1,-1,-1):
-			var toward: Vector3 = owner.scene.officers[i]["node"].position-owner.scene.beast.position
-			if toward.length()<4.0*owner.scene.growth_scale and toward.dot(owner.scene.beast.basis.z)>0:
+			var toward: Vector3 = owner.scene.officers[i]["node"].position-origin
+			if toward.length()<reach and (owner.trail.live or toward.dot(owner.scene.beast.basis.z)>0):
 				tail_cooldown=4.0
 				owner.scene.officers[i]["gene_slow"]=2.0
 				owner.poison_tick=true; owner.scene._damage_response(i,10.0); owner.poison_tick=false

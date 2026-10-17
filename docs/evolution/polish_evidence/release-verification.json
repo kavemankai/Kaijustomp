@@ -1,0 +1,31 @@
+{
+  "source_sha": "9fefce4162ce5508ffdd718a4cd37145e6d7142c",
+  "branch": "feature/morphology-traversal-polish",
+  "pull_request": "https://github.com/kavemankai/Kaijustomp/pull/21",
+  "release": "https://github.com/kavemankai/Kaijustomp/releases/tag/morph-polish-261-9fefce4",
+  "apk_url": "https://github.com/kavemankai/Kaijustomp/releases/download/morph-polish-261-9fefce4/Kaijustomp-261-9fefce4-debug.apk",
+  "apk_name": "Kaijustomp-261-9fefce4-debug.apk",
+  "bytes": 28355494,
+  "sha256": "9fd3085f95e06ec1ed3930b93b4c4f7cf1c4333ba58118f5abff7d544b0eea9d",
+  "github_digest": "sha256:9fd3085f95e06ec1ed3930b93b4c4f7cf1c4333ba58118f5abff7d544b0eea9d",
+  "package": "com.kavemankai.kaijustomp.morphpolishpreview",
+  "version": "0.1.261-debug",
+  "architecture": "arm64-v8a",
+  "engine": "4.5.stable.official.876b29033",
+  "workflow": "https://github.com/kavemankai/Kaijustomp/actions/runs/39074555544",
+  "pr_workflow": "https://github.com/kavemankai/Kaijustomp/actions/runs/39074560057",
+  "regression_suites": 34,
+  "engine_frames": 565,
+  "checks": [
+    "All Godot 4.5 suites/import/launch",
+    "565 completed render captures and 162 visible-tier transitions",
+    "APK ZIP/ARM64/manifest/package",
+    "apksigner v2/v3 (CI)",
+    "zipalign -c -P 16 4 (CI)",
+    "native ELF 16KiB (CI and locally downloaded file)",
+    "published byte-for-byte comparison (CI)",
+    "local SHA256 and size match release asset digest and checksum file"
+  ],
+  "stable_debug_signing_secret": false,
+  "physical_android_tested": false
+}
