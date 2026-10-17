@@ -1,0 +1,156 @@
+{
+  "godot": "4.5.stable.official.876b29033",
+  "suites": 23,
+  "results": [
+    {
+      "name": "import",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 4.469
+    },
+    {
+      "name": "launch",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.875
+    },
+    {
+      "name": "test_authored_world",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.828
+    },
+    {
+      "name": "test_batch_debug_evolution",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.328
+    },
+    {
+      "name": "test_beach_combat",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.328
+    },
+    {
+      "name": "test_coastal_art",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.313
+    },
+    {
+      "name": "test_defcon_response",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.296
+    },
+    {
+      "name": "test_evolution",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.313
+    },
+    {
+      "name": "test_giant_demolition_feeding",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.297
+    },
+    {
+      "name": "test_growth_gameplay",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.687
+    },
+    {
+      "name": "test_growth_milestones",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.297
+    },
+    {
+      "name": "test_integration_stability",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.391
+    },
+    {
+      "name": "test_long_beach",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.39
+    },
+    {
+      "name": "test_outer_world_offscreen",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.329
+    },
+    {
+      "name": "test_representative_scales",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.5
+    },
+    {
+      "name": "test_scale_diet",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.296
+    },
+    {
+      "name": "test_shopping_cars_debug",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.313
+    },
+    {
+      "name": "test_stylized_creature",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.672
+    },
+    {
+      "name": "test_suburb_evolution",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.39
+    },
+    {
+      "name": "test_world_async_save",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.391
+    },
+    {
+      "name": "test_world_generation",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.281
+    },
+    {
+      "name": "test_world_persistence",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 0.36
+    },
+    {
+      "name": "test_world_response",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.687
+    },
+    {
+      "name": "test_world_resume",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 1.203
+    },
+    {
+      "name": "test_world_streaming",
+      "passed": true,
+      "exit_code": 0,
+      "seconds": 24.453
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="WorldConfiguration" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/beach/WorldConfiguration.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+half_width = 10000.0
+inland_depth = 6000.0
+world_seed = 79123

@@ -30,17 +30,19 @@ func _validate_spawn(demo: Node, kind: String, offset: float, need_spawn: bool) 
 func _run() -> void:
 	var demo = load("res://scenes/BeachDemo.tscn").instantiate()
 	root.add_child(demo)
+	# This scenario exercises authored assets after explicitly requesting their chunks.
+	for authored_index in range(demo.world.authored_count): demo._prepare_authored(authored_index)
 	demo.set_physics_process(false)
 	await physics_frame
-	if not _check(demo.buildings.size() == 114, "Expected 80 original, 10 coast, 12 outer homes and 12 industrial"): return
+	if not _check(demo.world.authored_count == 114, "Expected 80 original, 10 coast, 12 outer homes and 12 industrial"): return
 	if not _check(demo.PLAYABLE_HALF_LENGTH > 760.0 and demo.NEIGHBOURHOOD_FAR_Z <= -1500.0, "Coast or outer district still restricted to old dimensions"): return
 	if not _check(demo.get_node_or_null("OuterDistrict/OuterRoads") != null, "Connected outer ring roads not generated"): return
-	if not _check(demo.follow_camera.far >= 1600.0, "Giant camera clips distant district"): return
+	if not _check(demo.follow_camera.far >= demo._camera_offset().length()*2, "Camera clips its current scale's world coverage"): return
 	for i in range(80):
 		if not _check(demo.buildings[i]["name"] not in ["Factory", "Water Works", "Power Station"], "Legacy shopping/world building order changed"): return
 	var industry := 0
 	var wings := 0
-	for i in range(80, demo.buildings.size()):
+	for i in range(80, demo.world.authored_count):
 		var b: Dictionary = demo.buildings[i]
 		if absf(b["position"].x) > 540.0 and b["position"].z > -85.0:
 			wings += 1

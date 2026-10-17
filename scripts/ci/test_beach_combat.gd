@@ -18,11 +18,13 @@ func _run_test() -> void:
 		return
 	var demo: Variant = packed.instantiate()
 	root.add_child(demo)
+	# This scenario exercises authored assets after explicitly requesting their chunks.
+	for authored_index in range(demo.world.authored_count): demo._prepare_authored(authored_index)
 	await physics_frame
 	if demo.buildings.size() < 6:
 		_fail("Beach kiosk, shed and original buildings must all exist")
 		return
-	for b in demo.buildings:
+	for b in demo.buildings.slice(0, demo.world.authored_count):
 		if int(b["base_occupants"]) < 1 or int(b["hidden"]) < 1:
 			_fail("Every building must begin with civilians inside")
 			return

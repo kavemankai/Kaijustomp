@@ -1,3 +1,29 @@
+# Persistent world architecture — current candidate
+
+Godot4.5 Compatibility, ARM64 Android portrait540x960. The same BeachDemo scene and touch controls remain the active runtime. World expansion does not load a replacement gameplay scene.
+
+| Owner | Responsibility |
+| --- | --- |
+| WorldConfiguration / config/world.tres | Finite width, inland depth and default seed; saves retain their own seed. |
+| WorldLayout | Pure district/parcel/road descriptions from generator version, seed and world coordinates. |
+| WorldStreaming | Chunk queues, frustum/safety relevance, collision preparation, silhouette batches, generated slot reuse and save orchestration. Gameplay respects pause gates; static camera prefetch also runs during evolution pauses. |
+| WorldState | Compact object/event/player deltas, validated versioned JSON, previous-good backup and migration/recovery. |
+| WorldSaveWriter | Detached immutable snapshots, one worker and one coalesced pending job; disk I/O off gameplay, explicit pause/exit/reset flush. |
+| WorldObjectives / ObjectiveHUD | Concurrent persistent goals/one-time Renown and portrait tracking/selection; objective view pauses gameplay while static streaming continues. |
+| WorldLandmarks | Additive identity metadata/art on existing stable parcels; deterministic seed-based destinations. |
+| WorldRouting | Hull-aware local grid routes calculated from static descriptions; no full simulation along distant approaches. |
+| BeachDemo | Creature/evolution/input/HUD, damage/reward transactions and bounded local actor orchestration. Active building nodes have explicit construction/destruction helpers. |
+
+The114 authored metadata records retain their indices for compatibility, even while their nodes are inactive. Generated slots are recycled after unloading. Every structure has a stable ID; civilian shelter IDs resolve at use rather than retaining recycled generated indices. Node/collider references may be null on inactive objects and must be checked before use. Destruction marks a tombstone and reward claim; unload saves meaningful deltas before releasing nodes. Persistent state never owns scene nodes.
+
+Near collision regions account for physical creature dimensions, movement sweeps, growth queries, projectiles, responders and a64-unit structure-owner margin. Middle/far visuals use the same deterministic footprints and heights. Background land/ocean/ridges remain a handful of static surfaces; no distant actors or colliders are retained for that backdrop. Camera near clipping scales at giant sizes to preserve depth precision; orientation and control mapping remain unchanged.
+
+Pause/evolution contracts and ProjectileSystem/CivilianEvacuations ownership remain as described below. Explicit collision preparation runs before physics queries; normal simulation remains gated during choice/reveal. Autosaving defers incomplete evolution transactions. RESTART starts a fresh run; application relaunch restores a valid save.
+
+The prior architecture record below remains useful for unchanged creature, projectile, evacuation and input systems; its permanently resident world statements are superseded by this section.
+
+---
+
 # Kaijustomp development architecture
 
 ## Active runtime

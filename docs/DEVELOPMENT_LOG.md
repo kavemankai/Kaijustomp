@@ -1,3 +1,29 @@
+# 2026-10-17 - three relevant missions per sector
+
+Expanded the HUD to three simultaneous unfinished goals, with sector heading, progress/guidance per row and manual-pin indicators. Automatic suggestions rank nearby destinations, geography, existing progression and current threat; up to three ordered pins override suggestions. Completed pins are released, empty slots refill, and all-complete state is explicit. Optional validated pin arrays migrate old primary selection while retaining save format1. Added a dedicated regression covering relevance, limits, unique suggestions, disk migration and UI state. Delivered as APK231 from3734363. All25 Windows/Linux suites and Android packaging checks pass; artifact, checksum, screenshots and device limitations are recorded in the current handover.
+
+---
+
+# 2026-10-17 - missions and landmark implementation
+
+Added concurrent exploration, discovery, demolition, existing evolution milestones, responder victories and alive DEFCON escape objectives. Five generated landmark identities decorate stable existing parcels; Banksia remains unchanged. A compact portrait tracker and scrollable selection panel clear touch state and pause gameplay while open. Completions award one-time Renown badges rather than biomass. Optional validated objective records migrate old world saves, preserve future formats, and use existing bounded async checkpoints. New regression and rendered capture helpers cover objectives/persistence/UI/identity; Delivered as APK229 from c9776a3; all 24 Windows/Linux suites and Android packaging checks pass. Artifact, digest and remaining device acceptance are in the current handover.
+
+---
+
+# 2026-10-17 - persistent world delivery
+
+Published isolated World Preview APK227 from `9c4d94e`; draft PR18 targets integration/stable-baseline without merging. All 23 Windows and Linux regression suites, import/launch, smoke and Android workflows pass. Downloaded digest, CRC and native alignment match; CI validates package, launcher, ARM64 and v2/v3 signature. Exact artifact and evidence are in WORLD_TEST_RESULTS.md.
+
+Rendered review corrected terrain winding, giant-camera depth precision and block-like finite boundary art. Stable collision ownership fixes same-frame LOD cover; a 64-unit owner margin and 120-pixel camera prefetch cover chunk seams and evolution reveals. Natural hilly boundaries keep backdrop land visible at E120. Expanded aircraft clear towers and ground units use hull-aware descriptor routes. Corrupt nested save records are validated. Measured 10,000-object synchronous saves near 100 ms motivated immutable detached snapshots with a bounded worker; enqueue p95 measured 3.615 ms. Final desktop probes record spikes and RSS rather than asserting Android FPS. Phone touch/thermal/performance and natural progression acceptance remain outstanding. Approved builds and prior gameplay are preserved.
+
+---
+
+# 2026-10-17 — finite persistent world implementation
+
+Verified the remote PR17 head00eb61e and APK217 source317743c; cloned into an empty workspace and created feature/persistent-streamed-world. Official Godot4.5 import/launch and all16 baseline suites pass. Preserved the authored114-structure layout in descriptors and a source-captured fixture. Added configurable20000x6000 extent,256-unit deterministic chunks, spatially coherent district anchors, connected roads, shared simple meshes, bounded art/collision lifetimes, reusable generated slots and camera-driven silhouettes. Added versioned delta saves with backup recovery/migration, player/evolution/DEFCON state, important cars and evacuation conservation. Streamed traffic and descriptor-only responder routing keep caps and offscreen arrivals. New regression scenarios exercise long real swept travel, memory ownership, persistence and warehouse approaches. This implementation was subsequently delivered as APK227; see the current handover.
+
+---
+
 # Development log
 
 ## 2026-10-17 — autonomous consolidation candidate

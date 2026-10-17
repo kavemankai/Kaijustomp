@@ -1,6 +1,7 @@
 .godot/
 *.translation
 .import/
+__pycache__/
 
 # Generated Android builds and credentials (commit export_presets.cfg, not secrets)
 build/

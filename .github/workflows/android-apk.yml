@@ -117,6 +117,18 @@ jobs:
           path: build/regressions/
           retention-days: 30
 
+      - name: Profile bounded world traversal
+        if: env.BUILD_BRANCH == 'feature/persistent-streamed-world'
+        run: python3 scripts/ci/profile_runtime.py --godot "$GODOT_BIN"
+
+      - name: Retain world performance evidence
+        if: always() && env.BUILD_BRANCH == 'feature/persistent-streamed-world'
+        uses: actions/upload-artifact@v4
+        with:
+          name: world-performance-${{ github.run_number }}-${{ github.event_name }}
+          path: build/world-profile/
+          retention-days: 30
+
       - name: Export portrait Android debug APK
         shell: bash
         run: |
@@ -124,6 +136,10 @@ jobs:
           mkdir -p build/android
           sed -i -E "s@^version/code=.*@version/code=${GITHUB_RUN_NUMBER}@" export_presets.cfg
           sed -i -E "s@^version/name=.*@version/name=\"0.1.${GITHUB_RUN_NUMBER}-debug\"@" export_presets.cfg
+          if [ "$BUILD_BRANCH" = 'integration/stable-baseline' ]; then
+            sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.integrationpreview"@' export_presets.cfg
+            sed -i 's@^package/name=.*@package/name="Kaijustomp Integration Preview"@' export_presets.cfg
+          fi
           if [ "$BUILD_BRANCH" = 'feature/creature-growth-takeover' ]; then
             sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.creaturepreview"@' export_presets.cfg
             sed -i 's@^package/name=.*@package/name="Kaijustomp Creature Preview"@' export_presets.cfg
@@ -198,7 +214,10 @@ jobs:
           "$ANDROID_SDK_ROOT/build-tools/35.0.0/apksigner" verify --verbose "$APK"
           "$ANDROID_SDK_ROOT/build-tools/35.0.0/aapt" dump badging "$APK" > "$RUNNER_TEMP/apk-badging.txt"
           grep -E '^(package:|application-label:|launchable-activity:|native-code:)' "$RUNNER_TEMP/apk-badging.txt"
-          EXPECTED_PACKAGE='com.kavemankai.kaijustomp.integrationpreview'
+          EXPECTED_PACKAGE='com.kavemankai.kaijustomp.worldpreview'
+          if [ "$BUILD_BRANCH" = 'integration/stable-baseline' ]; then
+            EXPECTED_PACKAGE='com.kavemankai.kaijustomp.integrationpreview'
+          fi
           if [[ "$BUILD_BRANCH" = feature/beach-demo-elevated-camera || "$BUILD_BRANCH" = main || "$BUILD_BRANCH" = master ]]; then
             EXPECTED_PACKAGE='com.kavemankai.kaijustomp'
           fi
@@ -520,4 +539,26 @@ jobs:
           Workflow: https://github.com/${GH_REPO}/actions/runs/${GITHUB_RUN_ID}
           EOF
           gh release create "$TAG" "build/android/$APK_NAME" "build/android/$APK_NAME.sha256" --target "$GITHUB_SHA" --title "Kaijustomp integration ${GITHUB_RUN_NUMBER}" --notes-file "$RUNNER_TEMP/integration-notes.md" --prerelease
+          test "$(stat -c '%s' "build/android/$APK_NAME")" = "$(gh release view "$TAG" --json assets --jq ".assets[] | select(.name == \"$APK_NAME\") | .size")"
+
+      - name: Publish immutable persistent world preview
+        if: github.ref == 'refs/heads/feature/persistent-streamed-world' && github.event_name == 'push'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG="persistent-world-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:7}"
+          cat > "$RUNNER_TEMP/world-notes.md" <<EOF
+          Continuous finite Kaijustomp world preview from ${GITHUB_SHA}. Godot 4.5 Compatibility, portrait, ARM64.
+          20,000-unit coast and 6,000 units inland; deterministic 256-unit chunks, authored starting region, generated districts, destructible structures, persistent rewards/player state, local traffic and offscreen DEFCON arrivals.
+          Includes 13 persistent optional objectives, six landmark destinations, one-time Renown badges and portrait tracking/selection with three sector-relevant missions and persistent pins. Existing world-preview saves gain objectives without resetting their world.
+          Package com.kavemankai.kaijustomp.worldpreview installs alongside approved and integration builds.
+          Every discovered regression, import, launch, signature, package, ZIP and native 16 KiB alignment check passed before publication.
+          Desktop/CI performance evidence is available with this workflow. Physical phone installation, touch/thermal acceptance and sustained Android frame pacing remain to be verified.
+          Workflow: https://github.com/${GH_REPO}/actions/runs/${GITHUB_RUN_ID}
+          See docs/WORLD_TEST_RESULTS.md and docs/CODEX_HANDOVER.md for evidence and limitations.
+          EOF
+          gh release create "$TAG" "build/android/$APK_NAME" "build/android/$APK_NAME.sha256" --target "$GITHUB_SHA" --title "Kaijustomp persistent world ${GITHUB_RUN_NUMBER}" --notes-file "$RUNNER_TEMP/world-notes.md" --prerelease
           test "$(stat -c '%s' "build/android/$APK_NAME")" = "$(gh release view "$TAG" --json assets --jq ".assets[] | select(.name == \"$APK_NAME\") | .size")"

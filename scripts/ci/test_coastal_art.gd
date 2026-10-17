@@ -13,10 +13,12 @@ func check(ok: bool, message: String) -> bool:
 func run() -> void:
 	var demo = load("res://scenes/BeachDemo.tscn").instantiate()
 	root.add_child(demo)
+	# This scenario exercises authored assets after explicitly requesting their chunks.
+	for authored_index in range(demo.world.authored_count): demo._prepare_authored(authored_index)
 	demo.set_physics_process(false)
 	await process_frame
-	if not check(demo.buildings.size() == 114,"Coastal, suburb, shopping and industrial structures are missing"): return
-	for building in demo.buildings:
+	if not check(demo.world.authored_count == 114,"Coastal, suburb, shopping and industrial structures are missing"): return
+	for building in demo.buildings.slice(0, demo.world.authored_count):
 		var node: Node3D = building["node"]
 		if not check(node.get_node_or_null("Architecture") != null,"Building missing combined artwork"): return
 		if not check(is_instance_valid(building["collider"]),"Building art lost physical cover"): return

@@ -1,3 +1,53 @@
+# Three-mission sector tracker delivered - 17 October 2026
+
+[Download World Preview APK #231](https://github.com/kavemankai/Kaijustomp/releases/download/persistent-world-231-3734363/Kaijustomp-231-3734363-debug.apk) | [release](https://github.com/kavemankai/Kaijustomp/releases/tag/persistent-world-231-3734363) | [draft PR #18](https://github.com/kavemankai/Kaijustomp/pull/18). Exact gameplay/build source `373436337c013e46da6c15b78c4723aed948ba4f`; later documentation commits record evidence only. No merge or approved-build replacement.
+
+The in-game sector tracker now shows up to **three relevant unfinished missions at once**. Unpinned slots prioritise nearby landmarks/chunk, coastal/inland position, evolution and active DEFCON threat. Up to three manually pinned goals retain their order; an asterisk marks pins. Completed missions free their slots and suggestions refill them. The picker disables a fourth pin until another is removed. Compact guidance fits the portrait tracker; fewer remaining missions and all-complete display are handled.
+
+Optional ordered `pins` within objective format1 preserve existing world/mission data. A saved non-default single selection migrates to the first pin; duplicate, unknown or over-cap saved arrays are rejected. Existing mission reward, progression and run/restart contracts remain. See WORLD_OBJECTIVES.md and the new test_world_tracking suite.
+
+All **25 suites**, import and launch pass on Windows and Linux CI for this source. Push/PR smoke and Android checks pass. CI verifies package/launcher, ARM64, APK v2/v3 signatures, CRC and native 16 KiB alignment. Independent downloaded-byte verification is recorded in WORLD_TEST_RESULTS.md. Package `com.kavemankai.kaijustomp.worldpreview`, version `0.1.231-debug`, 28,112,447 bytes. SHA-256 `8e12410ecbd0d2a9ef3878428b5390c64dde69c636277b2417c20081731b22cc`.
+
+Raw checks and 540x960 captures: [validation/three-missions](validation/three-missions/README.md). Physical Android touch/scrolling, sustained performance and natural relevance/pacing remain unverified. Earlier desktop performance measurements below apply to their stated source commits; this tracker makes no new Android FPS claim.
+
+The previous mission/world milestones below are retained as history.
+---
+
+# Missions and landmarks delivered - 17 October 2026
+
+[Download World Preview APK #229](https://github.com/kavemankai/Kaijustomp/releases/download/persistent-world-229-c9776a3/Kaijustomp-229-c9776a3-debug.apk) | [immutable release](https://github.com/kavemankai/Kaijustomp/releases/tag/persistent-world-229-c9776a3) | [draft PR #18](https://github.com/kavemankai/Kaijustomp/pull/18). Gameplay/build source `c9776a3b7370ce04986a8916d2a90a9e811be20d`; later documentation commits only record evidence. Branch `feature/persistent-streamed-world` still targets integration/stable-baseline; no merge or approved-build replacement.
+
+Adds **13 optional persistent objectives**, **six landmark destinations** (five distinctive generated structures plus unchanged Banksia Heights), a portrait tracker/scrollable selection panel, target direction/distance and one-time **10 Renown** badges. Exploration, demolition, evolution milestones and DEFCON combat/escape goals are concurrently active. Renown is a displayed achievement score, not biomass/currency; evolution, diet and escalation remain unchanged. Opening the objective list pauses gameplay and clears touch input. Old world-preview saves gain optional validated progress without resetting the world; destroyed structures and evolution receive reconstructable credit. RESTART still clears the run.
+
+Import/launch and **all 24 suites pass on Windows and Linux CI**, including the original 16. Push/PR smoke and Android runs are green for this source. CI verifies package/launcher, ARM64, v2/v3 signatures, ZIP CRC and native 16 KiB alignment. Downloaded bytes independently match the digest/size; local CRC and native alignment pass. Verification is recorded in WORLD_TEST_RESULTS.md. Package `com.kavemankai.kaijustomp.worldpreview`, version `0.1.229-debug`, 28,104,076 bytes; updates APK227's world-preview package and remains separate from approved/integration packages.
+
+SHA-256: `2532a6bd9e970e79540a3183fef685cb45485889750069944499ab5991acec93`.
+
+Read [WORLD_OBJECTIVES.md](WORLD_OBJECTIVES.md) for objective/landmark IDs, persistence and UI ownership. Raw tests, rendered probe, selected CI evidence and portrait captures are in [validation/objectives](validation/objectives/README.md). Final desktop rendered CPU update p95 ranges 7.855-9.007 ms, peak process-tree RSS 240.78 MiB. These are single-run desktop observations, not Android FPS/thermal acceptance. Phone installation/touch, long natural progression and mission pacing remain unverified. This mission set has no narrative quest chain or spendable Renown shop.
+
+The prior world milestone below records APK227 and its distinct measurements; it is retained for history.
+---
+
+# Persistent streamed world handover - 17 October 2026
+
+Delivered [World Preview APK #227](https://github.com/kavemankai/Kaijustomp/releases/download/persistent-world-227-9c4d94e/Kaijustomp-227-9c4d94e-debug.apk), source `9c4d94e328a1fcde517441aef2a73751fd0c42e9`. [Draft PR #18](https://github.com/kavemankai/Kaijustomp/pull/18), branch `feature/persistent-streamed-world`, targets `integration/stable-baseline`. Integration APK217 and approved releases remain preserved; do not merge automatically. Later documentation-only commits retain this exact APK source.
+
+World extent is 20,000 x 6,000 world units, configured with seed 79123 in `config/world.tres`, using 256-unit chunks. Original 114 structures retain source-captured positions and gameplay properties; starting art/roads remain authored. Generated city/commercial/residential rings, coastal ports, industrial areas, farms/forest and military facilities use deterministic descriptions and reusable kits. No scene transition or exploration evolution lock was added; controls, progression and caps remain.
+
+`WorldLayout` owns seed/coordinate geography. `WorldStreaming` owns bounded activation, skyline/terrain batches, collision readiness, generated registry-slot reuse and checkpoints. `WorldRouting` uses descriptions without activating distant approach corridors. BeachDemo retains input/evolution/rewards and local actors. Keep permanent IDs rather than recycled generated indices. Stable physics bodies are independent of visual LOD; movement, growth and projectiles prepare collision before queries.
+
+Version-1 delta saves preserve damage/destruction/rewards, important vehicles, player/evolution/history/position, DEFCON and pending evacuations. Immutable object records permit detached snapshots; `WorldSaveWriter` owns at most one worker and one coalesced successor. Pause/exit/reset flush before clearing state. Atomic writes keep a previous-good backup; validation/migration/recovery preserves unsupported or irrecoverably corrupt files. RESTART starts a fresh run; application relaunch resumes the saved run. The Android preview has its own package/data.
+
+Official Godot4.5 import/launch and all **23 suites pass on Windows and Linux CI**, including the original 16. Push/PR smoke and Android checks are green. Downloaded APK hash, ZIP CRC, ARM64 libraries and native 16 KiB alignment pass; CI confirms package/launcher and v2/v3 signatures. See [WORLD_TEST_RESULTS.md](WORLD_TEST_RESULTS.md) for exact build/checksum, scenarios and raw evidence.
+
+Desktop rendered CPU update p95 ranges 7.532-9.195 ms; sampled peak process-tree RSS 239.81 MiB. Individual generation exceeds the nominal 2 ms cooperative budget. Saves at 10,000 modified objects enqueue in p95 3.615 ms in the desktop sample, with disk work on a worker; pause flush can block. These observations do not establish Android FPS, memory or thermal acceptance.
+
+Next: real phone installation, portrait multitouch/background-resume, sustained traversal and E120 combat/demolition profiling. Review LOD pop-in, giant movement, travel pacing and economy in natural play. Roads remain regular and distant silhouettes coarse. Read WORLD_GENERATION.md and WORLD_STREAMING.md before changing generator/seed/save contracts. Increment generator version and migrate or preserve old worlds for incompatible generation changes.
+
+The records below describe the preceding integration milestone.
+
+---
+
 # Kaijustomp integration handover — 17 October 2026
 
 ## Candidate to review

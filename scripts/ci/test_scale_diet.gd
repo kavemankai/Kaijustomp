@@ -23,6 +23,8 @@ func _clear_people(demo: Node) -> void:
 func _run() -> void:
 	var demo = load("res://scenes/BeachDemo.tscn").instantiate()
 	root.add_child(demo)
+	# This scenario exercises authored assets after explicitly requesting their chunks.
+	for authored_index in range(demo.world.authored_count): demo._prepare_authored(authored_index)
 	demo.set_physics_process(false)
 	await physics_frame
 	if not _check(DietProgression.can_grab_people(GrowthProgression.target_scale(28)), "Human grab closed too early"): return

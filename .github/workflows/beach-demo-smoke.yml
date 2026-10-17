@@ -2,7 +2,7 @@ name: Beach demo Godot smoke test
 
 on:
   push:
-    branches: [integration/stable-baseline, feature/beach-demo-elevated-camera, feature/creature-growth-takeover, feature/sculpted-coastal-art, feature/extended-coast-population, feature/cocoon-evolution-coastal-suburb, feature/expanded-suburb-shops-cars-debug, feature/giant-demolition-upright-feeding, feature/debug-batch-evolution, feature/scale-driven-diet-transition, feature/defcon-response-escalation, feature/outer-district-offscreen-defcon]
+    branches: [feature/persistent-streamed-world, integration/stable-baseline, feature/beach-demo-elevated-camera, feature/creature-growth-takeover, feature/sculpted-coastal-art, feature/extended-coast-population, feature/cocoon-evolution-coastal-suburb, feature/expanded-suburb-shops-cars-debug, feature/giant-demolition-upright-feeding, feature/debug-batch-evolution, feature/scale-driven-diet-transition, feature/defcon-response-escalation, feature/outer-district-offscreen-defcon]
   pull_request:
     paths:
       - 'assets/**'

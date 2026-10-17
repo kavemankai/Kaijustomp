@@ -42,6 +42,8 @@ func _run() -> void:
 		return
 	var demo: Variant = packed.instantiate()
 	root.add_child(demo)
+	# This scenario exercises authored assets after explicitly requesting their chunks.
+	for authored_index in range(demo.world.authored_count): demo._prepare_authored(authored_index)
 	await physics_frame
 	var original_camera_offset: Vector3 = demo._camera_offset()
 	demo._apply_growth_milestone(3)
