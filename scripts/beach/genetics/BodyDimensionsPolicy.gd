@@ -57,4 +57,6 @@ static func visual_axes(p: Dictionary, scale_metric: float) -> Vector3:
 	if p["axial"]:
 		# Head/neck growth follows girth. Only the world trail grows in length.
 		return Vector3(float(p["radius"])*1.9,float(p["height"])/1.7,float(p["radius"])*1.8)/s
-	return Vector3(float(p["width"])/2.0, float(p["height"])/2.3, minf(3.0,float(p["length"])/4.0))/s
+	var canonical_width: float={"crab":4.2,"spider":4.2,"ape":3.3,"mole":2.3}.get(p["family"],2.0)
+	var canonical_height: float={"crab":1.6,"spider":1.5,"bird":2.5,"mole":1.5}.get(p["family"],2.3)
+	return Vector3(float(p["width"])/canonical_width, float(p["height"])/canonical_height, minf(3.0,float(p["length"])/4.0))/s

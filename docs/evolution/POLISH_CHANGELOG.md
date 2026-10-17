@@ -39,3 +39,27 @@ Slice 1 — anatomy and movement contract:
 Limitations retained for disclosure: procedural art, no carved tunnels or
 rigid-body tail/self-collision, no 36 bespoke hybrid sculpts, no physical phone.
 Uncurated pairs remain explicitly described as selective-organ prototypes.
+
+Slice 2 — visual/physics verification and shipping gate:
+- Added actual geometry thumbnails to mutation cards and truthful rank/socket,
+  lift-load and host-growth descriptions. QA EVO moved clear of traversal.
+- Corrected canonical radial/ape/mole widths, axial head girth, missing crab
+  chelipeds and buried ape eyes. Mouth collision/feeding now use the live host
+  mouth, with an axial neck sweep and a separate active flight-wing envelope.
+- Wall approach closes the contact gap; the model poses against the surface
+  while collision remains outside it. Climb/fall cameras stay outside the wall.
+- Wall hooks now grow on moving tarsi. Additional family seeds retain support
+  tissue expressions; the matrix no longer hides the grasp arms it enables.
+- Added pause/checkpoint/death/rebirth tests in flight, burrow and climb, with
+  retained destruction and neutral new genomes. Control rectangles checked at
+  540x960, 540x1200 and 768x1024. All three added polish suites pass targeted.
+- Capture harness requires a completed-run index, so stale PNGs cannot satisfy
+  the shipping matrix. 565 actual engine frames cover base/growth/angles,
+  243 upgrades, 24 hybrid stages in two views, 41 sources, actions and 20:9 UI.
+- Desktop comparison uses the same 45-second scripted route on Windows/RTX3050,
+  with frame percentiles and sampled process-tree RSS. This is a short desktop
+  probe, not the requested physical-phone 15-minute stress acceptance.
+- CI config isolates com.kavemankai.kaijustomp.morphpolishpreview, gates export
+  on full regressions and completed visual evidence, then verifies signing,
+  ZIP/package/ARM64/16KiB alignment and downloads its immutable release asset
+  again for a byte-for-byte comparison. No prior package/release is replaced.

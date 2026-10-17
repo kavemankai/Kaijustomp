@@ -51,7 +51,7 @@ func configure(profile: Dictionary) -> void:
 	material.set_shader_parameter("worm",family=="worm")
 	material.set_shader_parameter("body_radius",radius)
 	material.set_shader_parameter("armour",float(mini(3,int(owner_scene.genetics.genome.ranks.get("armour",0)))))
-	if samples.is_empty() or not was_live or previous!=family: reset(owner_scene.beast.global_position,owner_scene.beast.global_transform.basis.z)
+	if samples.is_empty() or not was_live or previous not in ["snake","worm"]: reset(owner_scene.beast.global_position,owner_scene.beast.global_transform.basis.z)
 	_extend_history()
 	_rebuild_segments();update_pose()
 func reset(head: Vector3,rearward: Vector3) -> void:

@@ -171,11 +171,12 @@ func refresh_details() -> void:
 		var kind: String=["ground","flight","glide","burrow","climb"][i]
 		movement_picker.set_item_disabled(i,not model.traversal.can_use(kind))
 	movement_picker.select(["ground","flight","glide","burrow","climb"].find(model.traversal.mode) if model.traversal.mode in ["ground","flight","glide","burrow","climb"] else 0)
-	var text := "%s\nOrganism %d | %d archived lives\nGrowth: %s | Ground compatibility controller\n" % [model.genome.label(),model.life_id,model.archive.lives.size(),model.genome.growth_policy]
+	var text := "%s\nOrganism %d | %d archived lives\nGrowth: %s | Surface / air / soil / wall controller\n" % [model.genome.label(),model.life_id,model.archive.lives.size(),model.genome.growth_policy]
 	var shares := model.genome.percentages()
 	for f in GeneRegistry.FORMS: text += "%s: %d (%.0f%%) | mastery %d\n" % [String(f).capitalize(),model.genome.raw[f],shares[f],model.archive.mastery[f]]
 	text += "Hybrid discoveries: " + (", ".join(model.archive.hybrids) if not model.archive.hybrids.is_empty() else "none")
 	text += "\nTraversal: "+model.traversal.mode+"; abilities require equipped genes.\n"+model.traversal.last_error+"\n"+model.error_message
+	text += "\nAdditional lineages use fitted support tissues; uncurated pairs remain prototypes."
 	details.text = text
 
 func populate() -> void:

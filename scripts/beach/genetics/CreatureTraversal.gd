@@ -23,7 +23,9 @@ func can_use(kind: String) -> bool:
 	if not scene.genetics.enabled: return false
 	var g: Dictionary=scene.genetics.genome.ranks
 	match kind:
-		"flight": return int(g.get("gene_121",0))>0 and (not (scene.genetics.morphology.primary in ["ape","crab","worm"] or int(g.get("armour",0))>=3) or int(g.get("gene_122",0))>0)
+		"flight":
+			if scene.genetics.dimensions.get("axial",false) and float(scene.genetics.dimensions.get("length",0))>24: return false
+			return int(g.get("gene_121",0))>0 and (not (scene.genetics.morphology.primary in ["ape","crab","worm"] or int(g.get("armour",0))>=3) or int(g.get("gene_122",0))>0)
 		"glide": return int(g.get("gene_029",0))>0
 		"burrow": return int(g.get("gene_052",0))>0 or int(g.get("gene_119",0))>0
 		"climb": return int(g.get("gene_180",0))>0
@@ -63,7 +65,7 @@ func activate(kind: String) -> bool:
 	if kind==mode: return true
 	if scene.game_over or scene.evolving or scene.choice_open or scene.reveal_active: return false
 	if kind!="ground" and not can_use(kind):
-		last_error="Required movement genes are not equipped."
+		last_error="Movement needs its support genes. Heavy lift needs soaring; long axial bodies can only glide."
 		return false
 	if kind=="ground":
 		if mode=="emerging": return true
@@ -111,6 +113,9 @@ func activate(kind: String) -> bool:
 			last_error="Approach a solid wall before climbing."
 			return false
 		climb_normal=Vector3(wall["normal"])
+		var contact: Vector3=wall["position"]+climb_normal*(scene.beast_collision_shape.radius+.03)
+		contact.y=scene.beast.position.y
+		scene.beast.move_and_collide(contact-scene.beast.position)
 		mode="climb"
 		return true
 	return false
@@ -124,6 +129,7 @@ func _end_mode() -> void:
 	ground_marker.visible=false
 	vertical_input=0
 	bank=0
+	scene.genetics.wing_contact.disabled=true
 func cycle() -> void:
 	if mode!="ground":
 		activate("ground")
@@ -136,6 +142,8 @@ func cycle() -> void:
 		if can_use(kind) and activate(kind): return
 func direction_input(move: Vector3, vertical: float, speed: float, delta: float) -> bool:
 	var beast: CharacterBody3D=scene.beast
+	scene.genetics.wing_contact.disabled=mode not in ["flight","glide","landing"]
+	scene.genetics.wing_contact.rotation.z=bank
 	if mode=="ground": return false
 	# All modes share finite world bounds; swept collision still owns air travel.
 	var next := beast.position+move*speed*delta
@@ -257,6 +265,7 @@ func safe_restore(saved_mode: String) -> void:
 	elif saved_mode=="burrow":
 		if not _safe_surface(scene.beast.position):
 			_end_mode();return
+		underground_depth=maxf(3.5,float(scene.genetics.dimensions.get("radius",.7))*2.5)
 		mode="burrow";scene.beast.collision_layer=0;scene.beast.collision_mask=0
 		ground_marker.visible=true
 	else: _end_mode()

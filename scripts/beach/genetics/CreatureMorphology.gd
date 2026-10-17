@@ -22,6 +22,8 @@ var flight_clock := 0.0
 var face: Node3D
 var forelimb_kind := ""
 var seed_tier := 1
+var wall_hooks := false
+var grasp_tier := 0
 
 func configure(genome: GenomeState,generic_ranks: Dictionary={}) -> void:
 	var anatomy := AnatomyResolver.resolve(genome.ranks,genome.raw)
@@ -41,8 +43,14 @@ func configure(genome: GenomeState,generic_ranks: Dictionary={}) -> void:
 	for f in genome.ordered_families():
 		if f!=primary and f in families and genome.ranks.has(GeneRegistry.seed_key(f)):
 			active.append(f);break
+	# A matrix is a support system, not a replacement for the grasp organ it unlocks.
+	if primary in ["snake","worm"] and genome.ranks.has("gene_044"):
+		if active.size()==1: active.append("ape")
+		else: active[1]="ape"
 	forelimb_kind="pincer" if "crab" in active else ("spade" if "mole" in active else ("knuckle" if primary=="ape" else "paw"))
 	seed_tier=clampi(int(genome.ranks.get(GeneRegistry.seed_key(primary),1)),1,3)
+	wall_hooks=genome.ranks.has("gene_180")
+	grasp_tier=mini(3,int(genome.ranks.get("gene_044",0)))
 	wing_development=3 if genome.ranks.has("gene_122") else (2 if genome.ranks.has("gene_121") else (1 if genome.ranks.has("gene_029") else 0))
 	var core := Node3D.new();core.name="Core";add_child(core)
 	for key in genome.ranks:
@@ -56,6 +64,8 @@ func configure(genome: GenomeState,generic_ranks: Dictionary={}) -> void:
 		for part in core.get_children():
 			part.transform=Transform3D(Basis.from_scale(Vector3(1.0+seed_tier*.025,1.0+seed_tier*.02,1.0+seed_tier*.015)),Vector3.ZERO)*part.transform
 		for f in active: _signature(core,f,clampi(int(genome.ranks.get(GeneRegistry.seed_key(f),1)),1,3))
+		for f in GeneRegistry.FORMS:
+			if f not in active and genome.ranks.has(GeneRegistry.seed_key(f)): _integrated_support(core,f)
 		for id in GeneEffects.EARLY:
 			if genome.ranks.has("gene_%03d"%id): MutationExpressionLibrary.render_source(core,primary,id,int(genome.ranks["gene_%03d"%id]))
 		MutationExpressionLibrary.render(core,primary,generic_ranks)
@@ -63,10 +73,10 @@ func configure(genome: GenomeState,generic_ranks: Dictionary={}) -> void:
 		if cache.size()>=24: cache.erase(cache.keys()[0])
 		cache[mesh_key]=merged.mesh
 	_build_face()
-	if "bird" in active: _build_wings()
+	if "bird" in active or genome.ranks.has("gene_029"): _build_wings()
 	_build_supports(active,generic_ranks)
 	if primary=="crab": _build_pincers(generic_ranks)
-	if "biomass" in active: _build_tendrils()
+	if genome.ranks.has("gene_100"): _build_tendrils()
 
 static func oval(parent: Node3D, at: Vector3,size: Vector3,c: Color) -> MeshInstance3D:
 	return CoastalArt.oval(parent,at,size,c)
@@ -155,6 +165,15 @@ func _build_face() -> void:
 			eye(face,h+Vector3(s*width,.13,-.17),.065 if primary=="mole" else .10)
 			oval(face,h+Vector3(s*width,.24,-.15),Vector3(.16,.07,.20),COLORS[GeneRegistry.FORMS.find(primary)].darkened(.20))
 	CoastalArt.merge(face,"EyesAndBrows")
+func _integrated_support(p: Node3D,f: String) -> void:
+	# Further family seeds retain a fitted support expression; no third full rig.
+	if f in ["reptile","snake","crab","worm"]:
+		_signature(p,f,1)
+		return
+	var anchor: Vector3=AnatomyManifest.signature(primary)["anchors"]["flanks"]
+	var tint: Color=COLORS[GeneRegistry.FORMS.find(f)]
+	for side in [-1,1]:
+		OrganicGeometry.loft(p,[anchor+Vector3(side*.55,-.16,-.3),anchor+Vector3(side*.65,0,.08),anchor+Vector3(side*.55,-.12,.46)],[Vector2(.05,.08),Vector2(.09,.23),Vector2(.04,.06)],tint)
 func _build_wings() -> void:
 	var anchor: Vector3=AnatomyManifest.signature(primary)["anchors"]["wing"]
 	var length := .58+wing_development*.35+seed_tier*.06
@@ -188,13 +207,16 @@ func _build_supports(active: Array,generic: Dictionary) -> void:
 		add_child(joint)
 		var c: Color=COLORS[GeneRegistry.FORMS.find(primary)]
 		var muscle := .17+.022*mini(3,int(generic.get("strength",0)))
-		if radial or (count==8 and not front):
+		if (radial and not (primary=="ape" and front)) or (count==8 and not front):
 			var spread := lerpf(-.65,.75,float(row)/3.0)
 			link(joint,Vector3.ZERO,Vector3(s*.88,.40,spread*.45),.12,c)
 			link(joint,Vector3(s*.88,.40,spread*.45),Vector3(s*1.40,-.55,spread*.70),.085,c.lightened(.13))
+			if wall_hooks:
+				var toe := Vector3(s*1.40,-.55,spread*.70)
+				OrganicGeometry.loft(joint,[toe,toe+Vector3(s*.09,-.06,-.11),toe+Vector3(0,-.08,-.22)],[Vector2(.085,.07),Vector2(.06,.045),Vector2(.018,.02)],CREAM)
 		else:
-			var end := Vector3(s*.18,-.53,-.12)
-			if primary=="ape" and front: end=Vector3(s*.56,-.94,-.66)
+			var end := Vector3(s*.18,-.53,-.12-(grasp_tier*.11 if front else 0.0))
+			if (primary=="ape" or (primary in ["snake","worm"] and "ape" in active)) and front: end=Vector3(s*.56,-.70,-.66)
 			link(joint,Vector3.ZERO,end,muscle*(1.65 if primary=="ape" and front else 1.0),c)
 			if front and forelimb_kind=="pincer":
 				oval(joint,end,Vector3(.33,.25,.39),COLORS[4])
@@ -205,7 +227,7 @@ func _build_supports(active: Array,generic: Dictionary) -> void:
 				for k in range(4): OrganicGeometry.tapered(joint,end+Vector3((k-1.5)*.17,0,-.22),end+Vector3((k-1.5)*.20,-.08,-.77),.095,.025,CREAM)
 			elif primary=="bird":
 				link(joint,end+Vector3(0,.23,.06),end,.09,CREAM)
-				for k in [-1,0,1]: OrganicGeometry.tapered(joint,end, end+Vector3(k*.12,-.04,-.40),.06,.018,INK)
+				for k in [-1,0,1]: OrganicGeometry.tapered(joint,end, end+Vector3(k*.12,-.04,-.40-grasp_tier*.10),.06+grasp_tier*.01,.018,INK)
 			else: oval(joint,end,Vector3(.27 if primary!="ape" else .36,.15 if primary!="ape" else .27,.33),c.lightened(.13))
 		CoastalArt.merge(joint,"WorkingSupport")
 		joints.append(joint)

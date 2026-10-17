@@ -27,7 +27,7 @@ static func signature(family: String) -> Dictionary:
 		"worm":
 			plan = "axial_crawler";support=0
 			anchor["head"]=Vector3(0,.65,-1.25);anchor["mouth"]=Vector3(0,.6,-1.5)
-			anchor["dorsal"]=Vector3(0,.85,.6)
+			anchor["dorsal"]=Vector3(0,1.07,.1)
 			anchor["neck"]=Vector3(0,.6,-.65);anchor["shoulder"]=Vector3(0,.6,-.35)
 			anchor["flanks"]=Vector3(0,.55,0);anchor["wing"]=Vector3(0,.7,-.2)
 			anchor["forelimbs"]=Vector3(0,.45,-.65)
@@ -39,13 +39,15 @@ static func signature(family: String) -> Dictionary:
 			plan="lateral_ground";support=8;anchor["shell"]=Vector3(0,1.1,.2)
 			anchor["head"]=Vector3(0,.95,-.85);anchor["mouth"]=Vector3(0,.65,-1.15)
 			anchor["dorsal"]=Vector3(0,1.15,.2);anchor["forelimbs"]=Vector3(0,.65,-.75)
+			anchor["neck"]=Vector3(0,.96,-.5)
 		"spider":
 			plan="arachnid_ground";support=8;anchor["abdomen"]=Vector3(0,.8,1.05)
 			anchor["head"]=Vector3(0,.82,-.95);anchor["mouth"]=Vector3(0,.55,-1.25)
 			anchor["dorsal"]=Vector3(0,1.15,.8);anchor["forelimbs"]=Vector3(0,.65,-.6)
+			anchor["neck"]=Vector3(0,.95,-.55)
 		"ape":
 			plan="knuckle_ground";support=4;anchor["shoulder"]=Vector3(0,1.45,-.4)
-			anchor["head"]=Vector3(0,1.6,-.8)
+			anchor["head"]=Vector3(0,1.6,-1.0)
 			anchor["mouth"]=Vector3(0,1.35,-1.15);anchor["forelimbs"]=Vector3(0,1.3,-.35)
 		"mole":
 			plan="dig_ground";support=4;anchor["forelimbs"]=Vector3(0,.5,-.95)
@@ -53,6 +55,7 @@ static func signature(family: String) -> Dictionary:
 			anchor["dorsal"]=Vector3(0,1.15,.25)
 	return {"family":family,"plan":plan,"supports":support,"anchors":anchor}
 static func socket_for_gene(gene_id: int) -> String:
+	if gene_id==119: return "neck"
 	if gene_id in [1,7,11,12,14,30,43,57,95]: return "head"
 	if gene_id in [2,6,9,20,72,85,90]: return "dorsal"
 	if gene_id in [19,88,441]: return "tail"
@@ -98,5 +101,7 @@ static func expression(host: String, key: String, rank: int) -> Dictionary:
 	if key in ["armour","cocoon","regen","metamorphosis"]: operation="overlay"
 	if source>0: operation="add"
 	if source in [6,11,15,22,44,61,62,84,100]: operation="alter"
+	if source in [15,22,44,61]: operation="replace"
+	if source in [29,52,119,121,122,180]: operation="alter"
 	return {"owner":host,"gene":key,"source_id":source,"rank":rank,"tier":clampi(rank,1,3),
 		"socket":socket,"operation":operation,"organ":host+"_"+key,"support":signature(host)["plan"]}

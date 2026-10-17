@@ -20,6 +20,8 @@ var trail: AxialTrail
 var traversal: CreatureTraversal
 var dimensions: Dictionary = {}
 var qa_preview := false
+var neck_contact: CollisionShape3D
+var wing_contact: CollisionShape3D
 
 func setup(owner_scene: Node3D) -> void:
 	scene = owner_scene
@@ -28,6 +30,16 @@ func setup(owner_scene: Node3D) -> void:
 	morphology = CreatureMorphology.new()
 	morphology.name = "GeneticMorphology"
 	scene.beast_visual.add_child(morphology)
+	neck_contact=CollisionShape3D.new()
+	neck_contact.name="AnatomicalNeckCollision"
+	neck_contact.shape=CapsuleShape3D.new()
+	neck_contact.disabled=true
+	scene.beast.add_child(neck_contact)
+	wing_contact=CollisionShape3D.new()
+	wing_contact.name="FlightWingEnvelope"
+	wing_contact.shape=BoxShape3D.new()
+	wing_contact.disabled=true
+	scene.beast.add_child(wing_contact)
 	sensor = Node3D.new()
 	sensor.name = "PreySensor"
 	sensor.set_meta("exclude_shed",true)
@@ -73,6 +85,7 @@ func record() -> Dictionary:
 	return {"version":1,"enabled":enabled,"life_id":life_id,"focus":focus,"qa_preview":qa_preview,"genome":genome.record(),"effects":effects.record(),"breach_cooldown":breach_cooldown,"mode":traversal.mode,"trail":trail.record()}
 static func valid(data: Variant) -> bool:
 	if not data is Dictionary: return false
+	if data.has("qa_preview") and not data["qa_preview"] is bool: return false
 	var cooldown = data.get("breach_cooldown",0)
 	if not WorldState._number(cooldown) or float(cooldown)<0 or float(cooldown)>4: return false
 	return data.get("version")==1 and data.get("enabled") is bool and WorldState._number(data.get("life_id")) and int(data["life_id"])>=1 and data.get("focus","") in GeneRegistry.FORMS+[""] and GenomeState.from_record(data.get("genome")) != null and data.get("mode","ground") in ["ground","flight","glide","burrow","emerging","climb","roof","falling","landing"] and (not data.has("trail") or AxialTrail.valid(data["trail"])) and (not data.has("effects") or GeneEffects.valid(data["effects"]))
@@ -102,15 +115,53 @@ func refresh() -> void:
 		if not dimensions.has("family"):
 			dimensions=BodyDimensionsPolicy.measure(morphology.primary,int(genome.ranks.get("physical_growth",0)))
 		var contact_radius:=maxf(1.0,BodyDimensionsPolicy.envelope(dimensions))
+		# Hybrid support arrays may be wider than their primary host's core.
+		for joint in morphology.joints:
+			var mesh: MeshInstance3D=joint.get_child(0) as MeshInstance3D
+			var box := mesh.get_aabb()
+			for corner in range(8):
+				var at: Vector3=scene.beast.to_local(joint.to_global(box.get_endpoint(corner)))
+				contact_radius=maxf(contact_radius,absf(at.x)+.10)
 		scene.beast_collision_shape.radius=contact_radius
 		scene.beast_collision_shape.height=maxf(contact_radius*2.0,float(dimensions["height"]))
 		scene.body_collision_node.position.y=contact_radius
-		scene.head_collision_node.position=Vector3(0,maxf(1.1,float(dimensions["height"])*.55),-minf(2.0,contact_radius))
+		scene.head_collision_shape.radius=maxf(.28,float(dimensions["radius"])*.72 if dimensions["axial"] else float(dimensions["width"])*.19)
+		scene.head_collision_node.position=mouth_local()
+	neck_contact.disabled=not (overridden and dimensions.get("axial",false))
+	if not neck_contact.disabled:
+		var mouth := mouth_local()
+		var neck_radius := float(dimensions["radius"])*.78
+		neck_contact.shape.radius=neck_radius
+		neck_contact.shape.height=maxf(neck_radius*2,absf(mouth.z)+neck_radius*2)
+		neck_contact.rotation.x=PI*.5
+		neck_contact.position=Vector3(0,maxf(neck_radius,mouth.y),mouth.z*.5)
 	trail.configure(dimensions) if overridden else trail.hide()
+	if overridden: fit_wings()
+	if traversal.mode=="flight" and not traversal.can_use("flight"):
+		traversal.mode="glide"
+		traversal.height_target=scene.beast.position.y
+		traversal.last_error="New wing load: gliding to land."
 	for axis in morphology.axes: axis.visible=not trail.live
 	if not overridden: trail.live=false
 	scene.retry_button.text = "NEW ORGANISM" if enabled else "RESTART"
 	if is_instance_valid(hud): hud.refresh()
+
+func mouth_local() -> Vector3:
+	if not enabled or morphology.primary.is_empty(): return scene.head_collision_node.position
+	var mouth: Vector3=AnatomyManifest.signature(morphology.primary)["anchors"]["mouth"]
+	return scene.beast.to_local(morphology.to_global(mouth))
+
+func fit_wings() -> void:
+	if morphology.wings.is_empty():
+		wing_contact.disabled=true
+		return
+	var width := morphology.global_basis.x.length()
+	var length := .58+morphology.wing_development*.35+morphology.seed_tier*.06
+	var span := float(dimensions.get("wingspan",0))
+	if span<=0: span=maxf(4.2,float(dimensions.get("width",2))*1.8)
+	for wing in morphology.wings: wing.scale.x=maxf(.4,(span*.5/maxf(.01,width)-.43)/(1.0+length))
+	wing_contact.shape.size=Vector3(span,maxf(.35,float(dimensions["height"])*.15),maxf(1.0,float(dimensions["length"])*.6))
+	wing_contact.position=Vector3(0,float(dimensions["height"])*.6,0)
 
 func prepare_draft() -> void:
 	if genome.draft.is_empty(): genome.draft = MutationDraft.create(genome,genome.draft_seed,scene.evolutions,focus,{"terrain":"coast" if scene.beast.position.z>=WorldLayout.shore(scene.beast.position.x)-45 else "inland"})
@@ -132,10 +183,12 @@ func preview(key: String) -> String:
 	forecast.select_gene(key,"preview_%d" % scene.evolutions)
 	var affinity := "No family affinity"
 	if not gene["family"].is_empty(): affinity = "+4 " + String(gene["family"]).capitalize()
-	var host := morphology.primary if not morphology.primary.is_empty() else "reptile"
+	var host: String=AnatomyResolver.resolve(forecast.ranks,forecast.raw)["primary"]
+	if host.is_empty(): host="reptile"
 	var spec := AnatomyManifest.expression(host,key,int(forecast.ranks.get(key,1)))
 	var change := "%s %s · rank %d" % [String(spec["operation"]).capitalize(),String(spec["socket"]).replace("_"," "),spec["rank"]]
 	if key=="physical_growth": change="Length + radius" if host in ["snake","worm"] else "Body dimensions + clearance"
+	if key=="armour" and int(forecast.ranks.get(key,0))>=3 and not forecast.ranks.has("gene_122"): change+=" · heavy flight needs Soaring"
 	return "%s\n%s | %s\n%s\n%s" % [gene["name"],affinity,change,gene["detail"],forecast.label()]
 
 func speed_multiplier(at: Vector3) -> float:
@@ -164,7 +217,11 @@ func advance(delta: float) -> void:
 	morphology.bank=traversal.bank
 	morphology.flight_clock=scene.creature_idle_clock
 	morphology.bite=sin((1.0-clampf(scene.bite_timer/maxf(.05,scene.bite_duration),0,1))*PI) if scene.bite_timer>0 else 0.0
+	var wall_offset := Vector3.ZERO
+	if traversal.mode=="climb": wall_offset=scene.beast_visual.global_basis.inverse()*(-traversal.climb_normal*(scene.beast_collision_shape.radius-.12))
+	morphology.position=morphology.position.lerp(wall_offset,minf(1,delta*12))
 	morphology.animate(scene.run_phase,scene.beast.velocity.length()>0 or scene.touch_vector.length_squared()>.01)
+	if morphology.visible: scene.head_collision_node.position=mouth_local()
 	breach_cooldown = maxf(0,breach_cooldown-delta)
 	for i in range(scene.officers.size()-1,-1,-1):
 		var foe: Dictionary = scene.officers[i]

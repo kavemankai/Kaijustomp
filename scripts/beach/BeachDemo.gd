@@ -676,7 +676,14 @@ func _camera_offset() -> Vector3:
 		zoom=maxf(.85,maxf(float(d.get("width",2))/3.8,float(d.get("height",2.3))/3.5))
 		if d.get("axial",false): zoom=maxf(1.0,float(d["length"])/25.0)
 		if genetics.traversal.mode in ["flight","glide","landing"]: zoom=maxf(zoom,float(d.get("wingspan",0))/10.0)
-	return CAMERA_OFFSET*(PORTRAIT_CAMERA_DISTANCE if viewport_size.y>viewport_size.x else 1.0)*zoom+Vector3(0,_camera_height(),0)
+	var offset := CAMERA_OFFSET*(PORTRAIT_CAMERA_DISTANCE if viewport_size.y>viewport_size.x else 1.0)*zoom+Vector3(0,_camera_height(),0)
+	if is_instance_valid(genetics) and genetics.enabled and genetics.traversal.mode in ["climb","falling"] and genetics.traversal.climb_normal.length_squared()>.1:
+		var normal: Vector3=genetics.traversal.climb_normal
+		var side := Vector3.UP.cross(normal)
+		var horizontal := Vector2(offset.x,offset.z).length()
+		var around := normal*horizontal+side*horizontal*.20
+		offset.x=around.x;offset.z=around.z
+	return offset
 
 func _camera_height() -> float:
 	return (growth_scale - 1.0) * 0.65 + (growth_scale * 0.75 if upright_form else 0.0)
@@ -901,8 +908,8 @@ func _build_ui() -> void:
 	)
 	# Developer-only test shortcut. Shares the former restart slot while alive.
 	debug_evolve_button = Button.new()
-	debug_evolve_button.text = "DEBUG\nEVO"
-	_place_right_button(debug_evolve_button, -342, -263)
+	debug_evolve_button.text = "QA EVO"
+	_place_right_button(debug_evolve_button, -230, -174)
 	debug_evolve_button.visible = OS.has_feature("debug")
 	debug_evolve_button.pressed.connect(_debug_evolve)
 	debug_evolve_button.focus_mode = Control.FOCUS_NONE
@@ -1182,6 +1189,7 @@ func _update_movement(delta: float) -> void:
 		# Nokia-Snake handling: head leads; the body never slides sideways
 		# toward the stick vector or automatically becomes bipedal.
 		var turn_rate := 5.0 if genetics.morphology.primary=="snake" else 3.0
+		turn_rate/=1.0+.055*int(genetics.genome.ranks.get("physical_growth",0))
 		beast.rotation.y=lerp_angle(beast.rotation.y,atan2(-direction.x,-direction.z),minf(1.0,turn_rate*delta))
 		direction=-beast.global_transform.basis.z*minf(1.0,direction.length())
 	if sprint_locked and stamina >= max_stamina - 0.01:
@@ -1319,9 +1327,12 @@ func _update_creature_animation(delta: float, moving: bool) -> void:
 	if is_instance_valid(genetics) and genetics.enabled and genetics.morphology.visible:
 		# The hidden legacy muzzle pose must not move a custom body's collider
 		# after its sweep. Keep the proof head within its conservative envelope.
-		head_collision_node.position=Vector3(0,maxf(1.1,float(genetics.dimensions.get("height",2.0))*.55),-minf(2.0,beast_collision_shape.radius))
+		head_collision_node.position=genetics.mouth_local()
 	if is_instance_valid(prey_in_mouth):
 		var mouth := head_pivot.to_global(Vector3(0, -.43, -1.16))
+		if genetics.enabled and genetics.morphology.visible:
+			mouth=beast.to_global(genetics.mouth_local())
+			prey_in_mouth.global_position=prey_in_mouth.global_position.lerp(mouth,minf(1,18*delta))
 		if upright_form:
 			# Follow the hand scoop briefly, then interpolate the held prey up to
 			# the mouth. Works for a direct grab and a tongue-pulled target.
@@ -1330,7 +1341,7 @@ func _update_creature_animation(delta: float, moving: bool) -> void:
 			var hand_weight := 1.0 - smoothstep(.25, .80, progress)
 			var target := hand_point.lerp(mouth, 1.0 - hand_weight)
 			prey_in_mouth.global_position = prey_in_mouth.global_position.lerp(target, minf(1.0, 15.0 * delta))
-		else:
+		elif not (genetics.enabled and genetics.morphology.visible):
 			prey_in_mouth.position = prey_in_mouth.position.lerp(Vector3(0, -.43, -1.16), minf(1.0, 18.0 * delta))
 		prey_in_mouth.scale = Vector3.ONE * maxf(0.02, 1.0 - progress * 1.2)
 		if bite_timer <= delta:
@@ -1348,6 +1359,7 @@ func _update_creature_animation(delta: float, moving: bool) -> void:
 		ground_shadow.scale=Vector3(growth_scale,1,growth_scale)
 		if genetics.enabled and genetics.traversal.mode in ["flight","glide","landing"]:
 			ground_shadow.global_position=Vector3(beast.position.x,.035,beast.position.z)
+		else: ground_shadow.position=Vector3(0,.025,.35)
 
 func _grab_pose_strength() -> float:
 	if bite_timer <= 0.0:
@@ -1577,6 +1589,8 @@ func _normal_grab_reach() -> float:
 
 
 func _bite_reach() -> float:
+	if genetics.enabled and genetics.morphology.visible:
+		return maxf(BITE_RANGE,genetics.mouth_local().length()+head_collision_shape.radius*.8)*genetics.reach_multiplier()
 	# Only the upright form gains an extra 45% reach through a retractable
 	# tongue; hatchling balance and the existing input cone remain unchanged.
 	return _normal_grab_reach() * (1.45 if upright_form else 1.0) * genetics.reach_multiplier()

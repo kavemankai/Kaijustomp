@@ -5,9 +5,15 @@ var rows: Array[String]=["host,gene,rank,legal,owner,socket,operation,geometry_v
 func check(ok: bool,why: String) -> void:
 	if not ok: failed=true;printerr("POLISH ANATOMY TEST FAILED: "+why)
 func _initialize() -> void: call_deferred("run")
+func mesh_data(node: Node3D) -> String:
+	var data := str(node.transform)
+	if node is MeshInstance3D:
+		data+=str(node.mesh.get_faces())+str(node.mesh.surface_get_arrays(0)[Mesh.ARRAY_COLOR])
+	for child in node.get_children():
+		if child is Node3D: data+=mesh_data(child)
+	return data
 func hash_mesh(m: CreatureMorphology) -> String:
-	var mesh: Mesh=m.get_node("Core").get_child(0).mesh
-	return (str(mesh.get_faces())+str(mesh.surface_get_arrays(0)[Mesh.ARRAY_COLOR])).sha256_text()
+	return mesh_data(m).sha256_text()
 func make_genome(host: String,count: int=1) -> GenomeState:
 	var g := GenomeState.new()
 	for i in range(count): check(g.select_gene(GeneRegistry.seed_key(host),"seed_%d"%i),"seed "+host)
@@ -66,7 +72,7 @@ func run() -> void:
 				var spec := AnatomyManifest.expression(morphology.primary,key,int(g.ranks[key]))
 				check(morphology.expressions.any(func(e): return e["gene"]==key),"source expression exists")
 				# Flight changes animated feathers, seeds may change working supports.
-				check(hash_mesh(morphology)!=previous or int(gene["source_id"]) in [29,121,122,15,22,44,62,100],"source geometry exists "+host+" "+key)
+				check(hash_mesh(morphology)!=previous,"source geometry exists "+host+" "+key)
 				check(GenomeState.from_record(g.record())!=null,"source save roundtrip "+key)
 				check(String(gene["detail"]).length()>20 and not String(gene["effect"]).is_empty(),"card backed by runtime hook")
 				rows.append("%s,%s,%d,true,%s,%s,%s,true"%[host,key,g.ranks[key],spec["owner"],spec["socket"],spec["operation"]])

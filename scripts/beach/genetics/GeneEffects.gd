@@ -32,7 +32,7 @@ const EARLY := {
 	29:["bird","Short controlled ground-launched glide; altitude decreases without powered lift.","wing_membrane"],
 	52:["mole","Foundation-aware underground travel using digging foreclaws.","dig_claws"],
 	119:["worm","Segmented underground earth-plowing path; foundation-free tiles.","shovel"],
-	121:["bird","Powered flight with altitude, air collision and landing.","flight_wing"],
+	121:["bird","Powered flight drains stamina; heavy bodies need Soaring. Axial bodies over 24 units may only glide.","flight_wing"],
 	122:["bird","Broad soaring wing surfaces and stronger airborne control.","soaring"],
 	180:["spider","Wall adherence and climb movement on solid vertical surfaces.","wall_hooks"]
 }
