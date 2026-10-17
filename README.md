@@ -1,6 +1,6 @@
-## Sculpted coastal art candidate
+# Kaijustomp integration candidate
 
-The `feature/sculpted-coastal-art` branch implements the current creature and beach art direction. Read [the visual specification and pipeline](docs/ART_DIRECTION.md), with actual Godot captures and physical-phone acceptance notes. It uses authored GLBs and bounded mutation appearances; approved movement, camera and growth policy remain the baseline. The Android art preview has a separate package and does not replace the stable release.
+Current branch: integration/stable-baseline, based on unmerged PR #16. Start with [handover](docs/CODEX_HANDOVER.md), [technical audit](docs/TECHNICAL_AUDIT.md), [architecture](docs/ARCHITECTURE.md) and [reproducible builds](docs/BUILDING.md). Godot 4.5 import, launch and all 16 gameplay suites gate the isolated Android integration preview. Existing releases and draft branches are preserved.
 
 # Kaijustomp
 

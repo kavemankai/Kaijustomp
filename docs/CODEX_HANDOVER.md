@@ -1,3 +1,17 @@
+# Integration consolidation — 17 October 2026
+
+Current branch: integration/stable-baseline, based on 4fb5fde47bcc6b1d5561e4d6dfa28ba5e7e02a7 (draft PR16). Godot4.5 local import, main-scene launch and all16 suites pass. The original14 passed before changes. All high audit findings are addressed; no verified critical crash remains. See [technical audit](TECHNICAL_AUDIT.md), [architecture](ARCHITECTURE.md), [build process](BUILDING.md), [performance](PERFORMANCE.md) and [ranked roadmap](ROADMAP.md).
+
+Android build verification and review links are being recorded after CI completes. No Android device is connected: physical installation,15-minute thermal/frame pacing, touch/background resume, natural progression and giant artistic approval remain unverified. Candidate package: com.kavemankai.kaijustomp.integrationpreview; approved build189 and outer-world build214 assets and all draft branches remain intact.
+
+Remaining risks: heuristic responder navigation, arrival stalls occupying the9-unit cap, approximate giant knee/hip articulation and turning, always-loaded world/collision, growth fallback relocation, dense evacuation pacing, and a still-large orchestration controller. Next milestone is phone acceptance/profile of this candidate, then responder path/lifecycle ownership. Do not add districts/enemy types or merge the draft stack automatically.
+
+The local machine lacks Android SDK and matching4.5 Android templates; the existing GitHub workflow provisions them and performs the real export. Run/recovery instructions are in BUILDING.md.
+
+---
+
+# Historical handover records (superseded by integration status above)
+
 # Current art candidate - 2026-10-17
 
 Work continues on `feature/sculpted-coastal-art`, based on the takeover branch below. Read [ART_DIRECTION.md](ART_DIRECTION.md) first for the current assets, runtime adapter, mutation appearance rules, test coverage and phone acceptance limits. Both `.blend` masters and exported `.glb` assets are tracked. Do not switch back to the primitive assembly or use renderer-count minimums as an art test. The stable release is not an art candidate and must remain unchanged.

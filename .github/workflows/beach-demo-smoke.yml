@@ -2,7 +2,7 @@ name: Beach demo Godot smoke test
 
 on:
   push:
-    branches: [feature/beach-demo-elevated-camera, feature/creature-growth-takeover, feature/sculpted-coastal-art, feature/extended-coast-population, feature/cocoon-evolution-coastal-suburb, feature/expanded-suburb-shops-cars-debug, feature/giant-demolition-upright-feeding, feature/debug-batch-evolution, feature/scale-driven-diet-transition, feature/defcon-response-escalation, feature/outer-district-offscreen-defcon]
+    branches: [integration/stable-baseline, feature/beach-demo-elevated-camera, feature/creature-growth-takeover, feature/sculpted-coastal-art, feature/extended-coast-population, feature/cocoon-evolution-coastal-suburb, feature/expanded-suburb-shops-cars-debug, feature/giant-demolition-upright-feeding, feature/debug-batch-evolution, feature/scale-driven-diet-transition, feature/defcon-response-escalation, feature/outer-district-offscreen-defcon]
   pull_request:
     paths:
       - 'assets/**'
@@ -24,25 +24,12 @@ jobs:
           mkdir -p /tmp/godot
           unzip -q /tmp/godot.zip -d /tmp/godot
           chmod +x /tmp/godot/Godot_v4.5-stable_linux.x86_64
-      - name: Import project and parse scripts
-        shell: bash
-        run: |
-          set -o pipefail
-          /tmp/godot/Godot_v4.5-stable_linux.x86_64 --headless --editor --path . --quit 2>&1 | tee import.log
-          if grep -E 'SCRIPT ERROR|Parse Error' import.log; then exit 1; fi
-      - name: Launch beach scene for 60 physics frames
-        shell: bash
-        run: |
-          set -o pipefail
-          /tmp/godot/Godot_v4.5-stable_linux.x86_64 --headless --path . --quit-after 60 2>&1 | tee launch.log
-          if grep -E 'SCRIPT ERROR|Parse Error|Invalid call|Invalid access' launch.log; then exit 1; fi
-      - name: Exercise complete beach regression suite
-        shell: bash
-        run: |
-          set -euo pipefail
-          for TEST in test_evolution test_beach_combat test_stylized_creature test_growth_milestones test_growth_gameplay test_coastal_art test_long_beach test_suburb_evolution test_shopping_cars_debug test_giant_demolition_feeding test_batch_debug_evolution test_scale_diet test_defcon_response test_outer_world_offscreen; do
-            timeout 90 /tmp/godot/Godot_v4.5-stable_linux.x86_64 --headless --path . --script "res://scripts/ci/$TEST.gd" \
-              2>&1 | tee "$TEST.log"
-            grep -q 'TEST PASSED' "$TEST.log"
-            if grep -E 'SCRIPT ERROR|Parse Error|TEST FAILED|Invalid call|Invalid access' "$TEST.log"; then exit 1; fi
-          done
+      - name: Import, launch and exercise every gameplay suite
+        run: python3 scripts/ci/run_regressions.py --godot /tmp/godot/Godot_v4.5-stable_linux.x86_64
+      - name: Retain regression evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-regression-results-${{ github.run_number }}
+          path: build/regressions/
+          retention-days: 30
