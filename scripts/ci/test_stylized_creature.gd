@@ -74,9 +74,11 @@ func run() -> void:
 		if not check(render.skin == null,"Shed still depends on animated skeleton"): return
 	shell.free()
 	var resting_head_height: float = demo.head_pivot.global_position.y
+	var resting_arm: float = demo.leg_pivots[0].rotation.x
 	demo.bite_timer = demo.bite_duration * .5
-	demo._update_creature_animation(.016,true)
-	if not check(demo.head_pivot.global_position.y < resting_head_height - .5 * demo.growth_scale,"Upright bite did not reach down"): return
+	demo._update_creature_animation(.1,false)
+	if not check(demo.head_pivot.global_position.y >= resting_head_height - .5 * demo.growth_scale,"Upright feeding still faceplants instead of lifting prey"): return
+	if not check(demo.leg_pivots[0].rotation.x > resting_arm + .1 and demo.creature_rig["lower_limbs"][0].rotation.x < -.4, "Upright forelimb does not reach and bend to grab"): return
 	var actual: Vector3 = demo.beast.to_local(demo.head_pivot.to_global(Vector3(0,-.16,-1.11)))
 	if not check(actual.distance_to(demo.head_collision_node.position) < .001,"Bite collider trails visual pose"): return
 	# During planted stance, world-space feet must cancel forward body motion.
