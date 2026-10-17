@@ -42,7 +42,7 @@ func _run() -> void:
 	var wings := 0
 	for i in range(80, demo.buildings.size()):
 		var b: Dictionary = demo.buildings[i]
-		if absf(b["position"].x) > 560.0 and b["position"].z > -85.0:
+		if absf(b["position"].x) > 540.0 and b["position"].z > -85.0:
 			wings += 1
 		if b["position"].z < -750.0:
 			industry += 1
