@@ -17,16 +17,24 @@ const GOALS := [
     {"id":"escape", "title":"Lose the heat", "detail":"Reach DEFCON 2 or 1, then return alive to DEFCON 5.", "kind":"cooled", "goal":1}]
 const COUNTERS := ["coast","inland","evolution","demolished","responders","hot","cooled"]
 var state: WorldState
+var geography: WorldLayout
 var record: Dictionary
 var sites: Array[Dictionary]=[]
 var notice := ""
 var notice_time := 0.0
 var clock := 0.0
+var current_threat := 5
 
 func setup(world_state: WorldState,layout: WorldLayout) -> void:
     state=world_state
+    geography=layout
     sites=WorldLandmarks.locations(layout)
     record=state.events.get("objectives",{"version":1,"discovered":{},"completed":{},"counters":{},"tracked":"banksia"})
+    # Additive tracking migration: retain a previously selected non-default goal.
+    if not record.has("pins"):
+        record["pins"]=[]
+        if record.get("tracked","banksia")!="banksia" and not complete(record["tracked"]):
+            record["pins"].append(record["tracked"])
     state.events["objectives"]=record
     # Existing v1 saves gain goals without resetting progression or duplicating rewards.
     var destroyed := 0
@@ -40,6 +48,13 @@ static func valid(data: Variant) -> bool:
     var ids: Array=[]
     for goal in GOALS: ids.append(goal["id"])
     if data["tracked"] not in ids: return false
+    if data.has("pins"):
+        if not data["pins"] is Array or data["pins"].size()>3: return false
+        var seen: Array=[]
+        for id in data["pins"]:
+            if not id is String or id not in ids or id in seen: return false
+            seen.append(id)
+
     for field in ["discovered","completed","counters"]:
         if not data.get(field) is Dictionary: return false
     var site_ids: Array=[]
@@ -62,6 +77,7 @@ func observe(scene: Node3D,delta: float) -> void:
     clock-=delta
     if clock>0: return
     clock=.25
+    current_threat=scene.defcon
     var at: Vector3=scene.beast.position
     var counts: Dictionary=record["counters"]
     counts["coast"]=maxf(float(counts.get("coast",0)),absf(at.x))
@@ -104,6 +120,8 @@ func evaluate() -> void:
         if not complete(goal["id"]) and value(goal)>=goal["goal"]:
             record["completed"][goal["id"]]=true
             announce("COMPLETE: %s  +10 RENOWN" % goal["title"])
+    for id in record.get("pins",[]).duplicate():
+        if complete(id): record["pins"].erase(id)
     if complete(record["tracked"]):
         for goal in GOALS:
             if not complete(goal["id"]): record["tracked"]=goal["id"]; break
@@ -122,7 +140,59 @@ func tracked() -> Dictionary:
     return GOALS[0]
 func track(id: String) -> void:
     for goal in GOALS:
-        if goal["id"]==id: record["tracked"]=id; return
+        if goal["id"]!=id or complete(id): continue
+        if id in record["pins"]:
+            record["pins"].erase(id)
+        elif record["pins"].size()<3:
+            record["pins"].append(id)
+            record["tracked"]=id # Backward-compatible primary selection.
+        else:
+            announce("THREE PINNED / UNPIN ONE TO CHANGE")
+        return
+
+func tracked_goals(at: Vector3) -> Array[Dictionary]:
+    var selected: Array[Dictionary]=[]
+    for id in record.get("pins",[]):
+        for goal in GOALS:
+            if goal["id"]==id and not complete(id): selected.append(goal)
+    var candidates: Array[Dictionary]=[]
+    for i in range(GOALS.size()):
+        var goal: Dictionary=GOALS[i]
+        if complete(goal["id"]) or goal["id"] in record.get("pins",[]): continue
+        candidates.append({"goal":goal,"score":relevance(goal,at),"order":i})
+    candidates.sort_custom(func(a: Dictionary,b: Dictionary) -> bool:
+        return a["score"]>b["score"] if a["score"]!=b["score"] else a["order"]<b["order"])
+    for candidate in candidates:
+        if selected.size()>=3: break
+        selected.append(candidate["goal"])
+    return selected
+
+func sector_name(at: Vector3) -> String:
+    if WorldLayout.authored(at):
+        return "STARTING BEACH" if at.z>-82 else ("BANKSIA HEIGHTS" if at.z>-500 else "STARTING INDUSTRY")
+    return WorldLayout.DISTRICTS[geography.district(at)].to_upper()
+
+func relevance(goal: Dictionary,at: Vector3) -> float:
+    var counts: Dictionary=record["counters"]
+    var score := 10.0
+    var point := target(goal)
+    if goal.has("site") and point!=Vector3.INF:
+        # Nearby parcel/sector missions dominate; remote targets remain available to pin.
+        var distance := Vector2(point.x-at.x,point.z-at.z).length()
+        score=110.0-minf(100,distance/20)
+        if WorldLayout.coord(point)==WorldLayout.coord(at): score+=30
+        if goal["kind"]=="destroy" and int(counts.get("evolution",0))<22: score-=35
+    elif goal["kind"]=="evolution":
+        var remaining := maxi(0,int(goal["goal"])-int(counts.get("evolution",0)))
+        score=65.0-minf(50,remaining)
+    elif goal["kind"]=="coast": score=55 if at.z>-650 else 15
+    elif goal["kind"]=="inland": score=55 if at.z<-500 else 20
+    elif goal["kind"]=="demolished": score=50 if int(counts.get("evolution",0))>=22 else 12
+    elif goal["kind"]=="sites": score=35
+    elif goal["kind"]=="responders": score=60 if current_threat<=4 else 14
+    elif goal["kind"]=="cooled": score=95 if counts.get("hot",false) and current_threat<5 else 8
+    return score+minf(10,10.0*value(goal)/float(goal["goal"]))
+
 func target(goal: Dictionary) -> Vector3:
     if goal.has("site"):
         for site in sites:
@@ -130,13 +200,21 @@ func target(goal: Dictionary) -> Vector3:
     if goal["kind"]=="coast": return Vector3(2560,0,-53)
     if goal["kind"]=="inland": return Vector3(0,0,-2304)
     return Vector3.INF
-func guidance(goal: Dictionary,at: Vector3) -> String:
+func guidance(goal: Dictionary,at: Vector3,compact: bool=false) -> String:
     var point := target(goal)
-    if point==Vector3.INF: return goal["detail"]
+    if point==Vector3.INF:
+        if compact:
+            match goal["kind"]:
+                "evolution": return "Feed and evolve to E%d" % goal["goal"]
+                "demolished": return "Destroy different structures"
+                "responders": return "Defeat DEFCON responders"
+                "cooled": return "Escape alive to DEFCON 5" if record["counters"].get("hot",false) else "Reach DEFCON 2, then escape"
+                "sites": return "Discover named landmarks"
+        return goal["detail"]
     var offset := point-at
     var direction := "EAST" if offset.x>0 else "WEST"
     if absf(offset.z)>absf(offset.x): direction="INLAND" if offset.z<0 else "COASTWARD"
     var name := ""
     for site in sites:
-        if site["id"]==goal.get("site",""): name=site["title"]+" / "
+        if not compact and site["id"]==goal.get("site",""): name=site["title"]+" / "
     return "%s%s / %d units" % [name,direction,roundi(Vector2(offset.x,offset.z).length())]

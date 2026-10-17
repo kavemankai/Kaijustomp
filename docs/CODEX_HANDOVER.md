@@ -1,3 +1,9 @@
+# Three-mission sector tracker follow-up
+
+Current branch adds three simultaneous sector-relevant missions, with ordered persistent manual pins (maximum three) and automatic relevant suggestions in remaining slots. Selection considers nearby landmarks/chunk, coast/inland, evolution, demolition and DEFCON activity. Completed goals free their slot. Existing single-selection saves migrate without reset; optional pins remain within objective format1. Targeted tracker/persistence/UI tests pass; final APK and full verification will be recorded after CI publication.
+
+---
+
 # Missions and landmarks delivered - 17 October 2026
 
 [Download World Preview APK #229](https://github.com/kavemankai/Kaijustomp/releases/download/persistent-world-229-c9776a3/Kaijustomp-229-c9776a3-debug.apk) | [immutable release](https://github.com/kavemankai/Kaijustomp/releases/tag/persistent-world-229-c9776a3) | [draft PR #18](https://github.com/kavemankai/Kaijustomp/pull/18). Gameplay/build source `c9776a3b7370ce04986a8916d2a90a9e811be20d`; later documentation commits only record evidence. Branch `feature/persistent-streamed-world` still targets integration/stable-baseline; no merge or approved-build replacement.

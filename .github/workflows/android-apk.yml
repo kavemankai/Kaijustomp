@@ -553,7 +553,7 @@ jobs:
           cat > "$RUNNER_TEMP/world-notes.md" <<EOF
           Continuous finite Kaijustomp world preview from ${GITHUB_SHA}. Godot 4.5 Compatibility, portrait, ARM64.
           20,000-unit coast and 6,000 units inland; deterministic 256-unit chunks, authored starting region, generated districts, destructible structures, persistent rewards/player state, local traffic and offscreen DEFCON arrivals.
-          Includes 13 persistent optional objectives, six landmark destinations, one-time Renown badges and portrait tracking/selection. Existing world-preview saves gain objectives without resetting their world.
+          Includes 13 persistent optional objectives, six landmark destinations, one-time Renown badges and portrait tracking/selection with three sector-relevant missions and persistent pins. Existing world-preview saves gain objectives without resetting their world.
           Package com.kavemankai.kaijustomp.worldpreview installs alongside approved and integration builds.
           Every discovered regression, import, launch, signature, package, ZIP and native 16 KiB alignment check passed before publication.
           Desktop/CI performance evidence is available with this workflow. Physical phone installation, touch/thermal acceptance and sustained Android frame pacing remain to be verified.

@@ -1,3 +1,9 @@
+# 2026-10-17 - three relevant missions per sector
+
+Expanded the HUD to three simultaneous unfinished goals, with sector heading, progress/guidance per row and manual-pin indicators. Automatic suggestions rank nearby destinations, geography, existing progression and current threat; up to three ordered pins override suggestions. Completed pins are released, empty slots refill, and all-complete state is explicit. Optional validated pin arrays migrate old primary selection while retaining save format1. Added a dedicated regression covering relevance, limits, unique suggestions, disk migration and UI state. Delivery evidence follows in the handover.
+
+---
+
 # 2026-10-17 - missions and landmark implementation
 
 Added concurrent exploration, discovery, demolition, existing evolution milestones, responder victories and alive DEFCON escape objectives. Five generated landmark identities decorate stable existing parcels; Banksia remains unchanged. A compact portrait tracker and scrollable selection panel clear touch state and pause gameplay while open. Completions award one-time Renown badges rather than biomass. Optional validated objective records migrate old world saves, preserve future formats, and use existing bounded async checkpoints. New regression and rendered capture helpers cover objectives/persistence/UI/identity; Delivered as APK229 from c9776a3; all 24 Windows/Linux suites and Android packaging checks pass. Artifact, digest and remaining device acceptance are in the current handover.

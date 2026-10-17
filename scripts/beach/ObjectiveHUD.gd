@@ -5,12 +5,13 @@ var model: WorldObjectives
 var opened := false
 var button: Button
 var card: PanelContainer
-var title: Label
-var hint: Label
+var tracker_titles: Array[Label]=[]
+var tracker_hints: Array[Label]=[]
 var notice: Label
 var panel: PanelContainer
 var rows: VBoxContainer
 var heading: Label
+var sector_label: Label
 var last_signature := ""
 signal opened_changed
 
@@ -26,24 +27,32 @@ func _ready() -> void:
     add_child(button)
     card=PanelContainer.new()
     card.position=Vector2(16,188)
-    card.size=Vector2(286,74)
+    card.size=Vector2(286,174)
     card.mouse_filter=Control.MOUSE_FILTER_IGNORE
     add_child(card)
     var column := VBoxContainer.new()
     column.mouse_filter=Control.MOUSE_FILTER_IGNORE
     card.add_child(column)
-    title=Label.new()
-    title.add_theme_font_size_override("font_size",14)
-    title.mouse_filter=Control.MOUSE_FILTER_IGNORE
-    column.add_child(title)
-    hint=Label.new()
-    hint.add_theme_font_size_override("font_size",12)
-    hint.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
-    hint.custom_minimum_size=Vector2(250,30)
-    hint.mouse_filter=Control.MOUSE_FILTER_IGNORE
-    column.add_child(hint)
+    sector_label=Label.new()
+    sector_label.text="SECTOR OBJECTIVES"
+    sector_label.add_theme_font_size_override("font_size",11)
+    sector_label.mouse_filter=Control.MOUSE_FILTER_IGNORE
+    column.add_child(sector_label)
+    for i in range(3):
+        var title := Label.new()
+        title.add_theme_font_size_override("font_size",13)
+        title.mouse_filter=Control.MOUSE_FILTER_IGNORE
+        title.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS
+        column.add_child(title)
+        tracker_titles.append(title)
+        var hint := Label.new()
+        hint.add_theme_font_size_override("font_size",11)
+        hint.mouse_filter=Control.MOUSE_FILTER_IGNORE
+        hint.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS
+        column.add_child(hint)
+        tracker_hints.append(hint)
     notice=Label.new()
-    notice.position=Vector2(16,274)
+    notice.position=Vector2(16,374)
     notice.size=Vector2(508,50)
     notice.add_theme_font_size_override("font_size",14)
     notice.add_theme_color_override("font_shadow_color",Color.BLACK)
@@ -62,7 +71,7 @@ func _ready() -> void:
     heading=Label.new()
     contents.add_child(heading)
     var explanation := Label.new()
-    explanation.text="Optional goals / +10 Renown each / no biomass bonus"
+    explanation.text="Pin up to 3 / other slots suggest relevant sector goals"
     explanation.add_theme_font_size_override("font_size",13)
     contents.add_child(explanation)
     var scroll := ScrollContainer.new()
@@ -93,12 +102,22 @@ func refresh(at: Vector3,available: bool) -> void:
     button.disabled=not available
     card.visible=not opened and available
     if opened and not available: set_open(false)
-    var goal := model.tracked()
-    title.text="%s  %d/%d" % [goal["title"],mini(goal["goal"],model.value(goal)),goal["goal"]]
-    hint.text="ALL OBJECTIVES COMPLETE" if model.renown()==WorldObjectives.GOALS.size()*10 else model.guidance(goal,at)
+    var goals := model.tracked_goals(at)
+    sector_label.text=model.sector_name(at)+" / %d TRACKED" % goals.size()
+    for i in range(3):
+        tracker_titles[i].visible=i<goals.size()
+        tracker_hints[i].visible=i<goals.size()
+        if i>=goals.size(): continue
+        var goal: Dictionary=goals[i]
+        var pin := "* " if goal["id"] in model.record["pins"] else ""
+        tracker_titles[i].text="%s%s  %d/%d" % [pin,goal["title"],mini(goal["goal"],model.value(goal)),goal["goal"]]
+        tracker_hints[i].text=model.guidance(goal,at,true)
+    if goals.is_empty():
+        tracker_titles[0].visible=true
+        tracker_titles[0].text="ALL OBJECTIVES COMPLETE"
     notice.text=model.notice if model.notice_time>0 else ""
     notice.visible=not opened and available
-    heading.text="TERRITORY OBJECTIVES  /  RENOWN %d" % model.renown()
+    heading.text="OBJECTIVES / %d OF 3 PINNED / RENOWN %d" % [model.record["pins"].size(),model.renown()]
     if not opened: return
     var signature := JSON.stringify(model.record)+str(Vector2i(at.x/50,at.z/50))
     if signature==last_signature: return
@@ -109,9 +128,9 @@ func refresh(at: Vector3,available: bool) -> void:
     for entry in WorldObjectives.GOALS:
         var row := Button.new()
         var done := model.complete(entry["id"])
-        var mark := "DONE" if done else ("TRACKING" if entry["id"]==model.record["tracked"] else "TRACK")
+        var mark := "DONE" if done else ("UNPIN" if entry["id"] in model.record["pins"] else "PIN")
         row.custom_minimum_size=Vector2(460,82)
-        row.disabled=done
+        row.disabled=done or (model.record["pins"].size()>=3 and entry["id"] not in model.record["pins"])
         var content := VBoxContainer.new()
         content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
         content.offset_left=12
