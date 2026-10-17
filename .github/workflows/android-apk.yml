@@ -217,6 +217,14 @@ jobs:
           grep -q 'BATCH DEBUG TEST PASSED' "$RUNNER_TEMP/batch-evolution.log"
           if grep -E 'SCRIPT ERROR|Parse Error|TEST FAILED|Invalid call|Invalid access' "$RUNNER_TEMP/batch-evolution.log"; then exit 1; fi
 
+      - name: Verify creature-size food transition and one-time biomass rewards
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --path . --script res://scripts/ci/test_scale_diet.gd 2>&1 | tee "$RUNNER_TEMP/scale-diet.log"
+          grep -q 'SCALE DIET TEST PASSED' "$RUNNER_TEMP/scale-diet.log"
+          if grep -E 'SCRIPT ERROR|Parse Error|TEST FAILED|Invalid call|Invalid access' "$RUNNER_TEMP/scale-diet.log"; then exit 1; fi
+
       - name: Export portrait Android debug APK
         shell: bash
         run: |
@@ -251,6 +259,10 @@ jobs:
           if [ "$BUILD_BRANCH" = 'feature/debug-batch-evolution' ]; then
             sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.batchpreview"@' export_presets.cfg
             sed -i 's@^package/name=.*@package/name="Kaijustomp Batch Preview"@' export_presets.cfg
+          fi
+          if [ "$BUILD_BRANCH" = 'feature/scale-driven-diet-transition' ]; then
+            sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.dietpreview"@' export_presets.cfg
+            sed -i 's@^package/name=.*@package/name="Kaijustomp Diet Preview"@' export_presets.cfg
           fi
           APK="Kaijustomp-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:7}-debug.apk"
           echo "APK_NAME=$APK" >> "$GITHUB_ENV"
@@ -303,6 +315,9 @@ jobs:
           fi
           if [ "$BUILD_BRANCH" = 'feature/debug-batch-evolution' ]; then
             EXPECTED_PACKAGE='com.kavemankai.kaijustomp.batchpreview'
+          fi
+          if [ "$BUILD_BRANCH" = 'feature/scale-driven-diet-transition' ]; then
+            EXPECTED_PACKAGE='com.kavemankai.kaijustomp.dietpreview'
           fi
           grep -q "name='$EXPECTED_PACKAGE'" "$RUNNER_TEMP/apk-badging.txt"
           grep -q '^launchable-activity:' "$RUNNER_TEMP/apk-badging.txt"
@@ -421,6 +436,23 @@ jobs:
           ASSET_SIZE=$(gh release view "$TAG" --json assets --jq '.assets[] | select(.name == "Kaijustomp-growth-preview.apk") | .size')
           test "$LOCAL_SIZE" = "$ASSET_SIZE"
           echo "Preview APK: https://github.com/${GH_REPO}/releases/download/${TAG}/Kaijustomp-growth-preview.apk" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish immutable giant-diet transition preview
+        if: github.ref == 'refs/heads/feature/scale-driven-diet-transition' && github.event_name != 'pull_request'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG="scale-diet-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:7}"
+          cat > "$RUNNER_TEMP/diet-notes.md" <<EOF
+          Kaijustomp size-driven prey transition from ${GITHUB_SHA}. Eat humans with hand/tongue while actual scale <=3.35x; E22-scale creatures can also harvest biomass from destroying cars; once size exceeds 3.35x (currently between E28 and E34), humans stay in the world but stop being eaten, and destroyed buildings and cars grant scale-appropriate biomass. Small kiosks/shops and larger supermarkets yield different one-time rewards. Existing DEBUG EVO batch, upright animations, coastal world and combat unchanged. Distinct com.kavemankai.kaijustomp.dietpreview package. Android and all 12 Godot regressions gate release. Phone judgement of exactly where the hand-grab looks awkward is still required.
+          EOF
+          gh release create "$TAG" "build/android/$APK_NAME" "build/android/$APK_NAME.sha256" --target "$GITHUB_SHA" --title "Kaijustomp scale diet ${GITHUB_RUN_NUMBER}" --notes-file "$RUNNER_TEMP/diet-notes.md" --prerelease
+          LOCAL_SIZE=$(stat -c "%s" "build/android/$APK_NAME")
+          ASSET_SIZE=$(gh release view "$TAG" --json assets --jq ".assets[] | select(.name == \"$APK_NAME\") | .size")
+          test "$LOCAL_SIZE" = "$ASSET_SIZE"
 
       - name: Publish immutable batch evolution preview
         if: github.ref == 'refs/heads/feature/debug-batch-evolution' && github.event_name != 'pull_request'

@@ -1,5 +1,10 @@
 # Development log
 
+## 2026-10-17 — size-driven diet / stop giant human grabbing
+
+Player confirms batch evolution worked to E120, asks to transition food sources where individual human arm grabs become visually janky, instead of locking an arbitrary evolution. This isolated `feature/scale-driven-diet-transition` trial uses a configurable scale ratio (3.35× initial creature size; currently between E28 and E34). Once too large, people and officers still flee/act but no longer feed the giant. Demolishing vehicles begins to provide biomass during earlier upright growth, and structures become nutritious on collapse when human feeding stops. One-time rewards are footprint/type-sensitive, not per-hit; HUD shows the current food sources. Eleven prior tests remain, plus `test_scale_diet.gd`; dedicated preview APK. Does not claim to resolve E120 walk/stretch or map scale yet. See [SIZE_DIET_TRANSITION.md](SIZE_DIET_TRANSITION.md).
+
+
 ## 2026-10-17 — selectable multi-level DEBUG EVO
 
 Player requested choosing how many levels to evolve in one batch. On isolated `feature/debug-batch-evolution`, replace DEBUG EVO's single forced mutation menu with a portrait numeric/preset selector (1/5/10/20/34/50, editable 1–60) and apply all levels in one operation. Record one automatic real mutation and ordered history entry per step, compute all sparse growth milestones, and update the correct final anatomy, collision and camera without repeated 34 skin reveals. Keep normal progression intact, debug-build-only gating, input guards and sensible E120 test limit. Add 11th CI regression and distinct APK package; verify on phone before merging. See [BATCH_DEBUG_EVOLUTION.md](BATCH_DEBUG_EVOLUTION.md).
