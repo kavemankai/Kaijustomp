@@ -118,7 +118,8 @@ func update_pose() -> void:
 		part.global_position=at+Vector3(0,radius*.70,0)
 		contact_areas[i].global_position=part.global_position
 		contact_areas[i].collision_layer=4
-		var section: SphereShape3D=contact_areas[i].get_child(0).shape
+		var collider: CollisionShape3D=contact_areas[i].get_child(0) as CollisionShape3D
+		var section: SphereShape3D=collider.shape as SphereShape3D
 		section.radius=radius*(.65+.35*sin(fraction*PI))
 		var thickness := radius*(.65+.35*sin(fraction*PI))
 		part.scale=Vector3(thickness,thickness,spacing*.72)
