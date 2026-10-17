@@ -101,6 +101,8 @@ func run() -> void:
 	var old_y: float=demo.beast.position.y
 	for i in range(10): demo.genetics.traversal.direction_input(Vector3.ZERO,1,7.0,.10)
 	check(demo.beast.position.y>old_y+1,"climbs a physical vertical facade")
+	for i in range(80): demo.genetics.traversal.direction_input(Vector3.ZERO,1,7.0,.10)
+	check(demo.genetics.traversal.mode=="roof","real wall-to-roof transition")
 	demo.genetics.traversal.activate("ground")
 	demo.queue_free()
 	await process_frame

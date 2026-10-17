@@ -73,7 +73,7 @@ static func valid(data: Variant) -> bool:
 	if not data is Dictionary: return false
 	var cooldown = data.get("breach_cooldown",0)
 	if not WorldState._number(cooldown) or float(cooldown)<0 or float(cooldown)>4: return false
-	return data.get("version")==1 and data.get("enabled") is bool and WorldState._number(data.get("life_id")) and int(data["life_id"])>=1 and data.get("focus","") in GeneRegistry.FORMS+[""] and GenomeState.from_record(data.get("genome")) != null and data.get("mode","ground") in ["ground","flight","glide","burrow","climb","landing"] and (not data.has("trail") or AxialTrail.valid(data["trail"])) and (not data.has("effects") or GeneEffects.valid(data["effects"]))
+	return data.get("version")==1 and data.get("enabled") is bool and WorldState._number(data.get("life_id")) and int(data["life_id"])>=1 and data.get("focus","") in GeneRegistry.FORMS+[""] and GenomeState.from_record(data.get("genome")) != null and data.get("mode","ground") in ["ground","flight","glide","burrow","climb","roof","falling","landing"] and (not data.has("trail") or AxialTrail.valid(data["trail"])) and (not data.has("effects") or GeneEffects.valid(data["effects"]))
 
 func refresh() -> void:
 	if not is_instance_valid(morphology): return

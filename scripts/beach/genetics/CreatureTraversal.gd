@@ -67,7 +67,10 @@ func activate(kind: String) -> bool:
 		if mode=="burrow" and not _safe_surface(scene.beast.global_position):
 			last_error="Blocked emergence: move away from buried foundations."
 			return false
-		if mode in ["roof","climb","falling"]:
+		if mode=="roof":
+			last_error="Walk off the roof edge to descend; walls remain solid."
+			return false
+		if mode in ["climb","falling"]:
 			mode="falling"
 			return true
 		if mode=="flight" or mode=="glide":
