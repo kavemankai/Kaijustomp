@@ -1,6 +1,6 @@
 # Genetics preview baseline — 17 October 2026
 
-Status: baseline verified; genetics implementation awaits the referenced product specifications. No Genetics Preview APK exists yet.
+Status: design inputs received and implementation added. Current functionality, tests, captures and Android status are in [evolution/GENETICS_HANDOVER.md](evolution/GENETICS_HANDOVER.md). The baseline record below is retained for provenance.
 
 ## Source and safety
 
@@ -26,15 +26,15 @@ Independently downloaded World Preview #231 to ignored `build/preserved/Kaijusto
 - Both ARM64 libraries pass the existing ELF 16 KiB alignment verifier.
 - Existing `validation/three-missions/android-ci.txt` confirms v2/v3 signing and `com.kavemankai.kaijustomp.worldpreview` for these exact hashed bytes. Signature verification was not independently rerun locally.
 
-## Required inputs
+## Inputs received after baseline
 
-The supplied handoff explicitly requires these documents, which were absent from the attachment, checkout and filename search under Documents:
+The initial handoff required these documents. The user subsequently supplied all four; copies are retained under `docs/evolution/` and `data/evolution/`:
 
 1. `KaijuStomp_Nine_Form_Evolution_GDD.md`
 2. `KaijuStomp_Codex_Nine_Form_Implementation_Spec.md`
 3. `kaijustomp_mutation_catalog_500.json`
 4. `KaijuStomp_500_Mutation_Integration_Plan.md`
 
-The first two contain approved gradual-evolution rules, the 35-source-gene mappings and test expectations; the catalogue is needed to validate all 500 IDs. The referenced 3x3 EVO1 concept roster is also absent. Requested their location from the user. Do not invent approved gene definitions, source mappings or reference art, or describe this baseline as a completed nine-form implementation.
+The first two supplied approved gradual-evolution rules, 35-source-gene mappings and test expectations. All 500 catalogue IDs validate. The original concept image remains unavailable; procedural proof art follows the supplied text directions.
 
-Next: obtain the missing inputs, implement Gate 1 in small verified commits, then complete Gates 2–7 with actual gameplay, capture and independently packaged release evidence. Existing releases and legacy growth/save contracts must remain preserved.
+Implementation now covers the nine ground proofs, three hybrids, curated 35 genes, chosen growth, legal drafts and persistent new lives. Read the current handover for evidence, remaining acceptance limits and release status. Existing releases and legacy growth/save contracts remain preserved.

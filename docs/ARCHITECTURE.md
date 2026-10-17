@@ -1,5 +1,7 @@
 # Persistent world architecture — current candidate
 
+Genetics preview extension: `BeachGenetics` composes `GeneRegistry`, `GenomeState`, `MutationDraft`, `AnatomyResolver`, `GeneEffects`, `CreatureMorphology`, `LineageArchive` and `GeneticsHUD` into the active BeachDemo. `WorldStreaming` remains the only save owner; versioned active genetics is nested under player and archive under events. New lives retain world deltas/objectives, while confirmed full reset clears all domains. Legacy automatic growth remains for old saves; new genetics lives choose physical growth separately. See [evolution/GENETICS_HANDOVER.md](evolution/GENETICS_HANDOVER.md) for module contracts, tested ground-controller scope and migration.
+
 Godot4.5 Compatibility, ARM64 Android portrait540x960. The same BeachDemo scene and touch controls remain the active runtime. World expansion does not load a replacement gameplay scene.
 
 | Owner | Responsibility |

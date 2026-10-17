@@ -1,3 +1,9 @@
+# 2026-10-17 - nine-form ground genetics implementation
+
+Received the four source documents and retained the immutable 500-source catalogue. Added a 35-source prototype registry, neutral nine-track genome, seeded legal lanes/frozen choices, explicit anatomy support and pincer replacement, bounded procedural body cache and five new regression suites. Connected actual sensing, venom/corrosion, movement/armour costs, feeding, ground breach, stance, lure and bounded trail hooks to BeachDemo. Chosen growth is independent of identity; old saves retain legacy milestones. Extended the existing save owner with active genetics/effect state and archive; final death records once and NEW ORGANISM retains world/objective/vehicle/evacuation/seed data. Full reset is separate, confirmed and backed up. All 30 suites pass locally with import/launch. Real same-camera form/hybrid/trait sheets and portrait UI were rendered and inspected. Genetics-specific package and immutable CI publishing are prepared; export and phone acceptance are pending. See evolution/GENETICS_HANDOVER.md.
+
+---
+
 # 2026-10-17 - genetics preview baseline
 
 Created a separate local genetics branch from the exact current-world handoff base, verified PR #18 head, reproduced official Godot 4.5 import/launch and 25/25 suites, and independently checked APK231 bytes, ZIP and native alignment. Recorded raw results and missing specification inputs in GENETICS_PREVIEW_STATUS.md. No genetics implementation, CI export, installation or release change has occurred.

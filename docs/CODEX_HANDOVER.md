@@ -1,6 +1,6 @@
-# Genetics preview preparation - 17 October 2026
+# Genetics ground-controller preview - 17 October 2026
 
-Local `feature/nine-form-genetics-preview` starts at `35dc25b`, retaining unmerged PR #18. Official Godot 4.5 import, launch and all 25 baseline suites pass. APK231 independently matches its published size/hash and passes ZIP/native alignment checks. Genetics implementation awaits the handoff's missing GDD, implementation specification, mutation catalogue and integration plan. No new gameplay or Genetics Preview APK is delivered. See [GENETICS_PREVIEW_STATUS.md](GENETICS_PREVIEW_STATUS.md) for evidence and required inputs. Existing World Preview delivery below remains the current playable candidate.
+`feature/nine-form-genetics-preview` starts at `35dc25b`, retaining unmerged PR #18. Adds nine procedural ground family proofs, three functional hybrid fixtures, curated 35 source-gene prototypes, deterministic legal drafts, optional physical growth and archived death/new organism in the retained world. All 500 source entries are indexed; remaining concepts and advanced movement are locked. Official Godot 4.5 import, launch and 30/30 suites pass locally, including the original 25. Android Genetics Preview export/publication is pending CI; no download is claimed yet. See [GENETICS_HANDOVER.md](evolution/GENETICS_HANDOVER.md) for coverage, captures, save policy and limits. The preceding World Preview delivery below remains preserved.
 
 ---
 

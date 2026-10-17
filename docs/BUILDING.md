@@ -1,4 +1,8 @@
-# Reproducing the integration candidate
+# Reproducing the genetics candidate
+
+Current branch: `feature/nine-form-genetics-preview`, based on unmerged PR18. The default Android preset is now `com.kavemankai.kaijustomp.geneticpreview` / **Kaijustomp Genetics Preview**. This branch's push workflow publishes immutable `genetics-<run>-<sha>` prereleases after all discovered suites and signature/package/ZIP/native alignment checks; PR builds retain artifacts only. Known older branches retain explicit package mappings. Current suite count is **30**, including the original 25. Local Android SDK/build-tools and matching templates are unavailable; CI provisions them. Current evidence and exact artifact status: [evolution/GENETICS_HANDOVER.md](evolution/GENETICS_HANDOVER.md).
+
+The earlier integration build record below is retained; use this branch and its independent package for genetics work.
 
 ## Clean gameplay verification
 
