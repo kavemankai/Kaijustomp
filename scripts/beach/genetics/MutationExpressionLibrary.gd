@@ -99,7 +99,7 @@ static func trait_frame(root: Node3D, host: String, gene_id: int) -> Node3D:
 		"wing":Vector3(0,1.1,0),"abdomen":Vector3(0,.8,.5)}
 	var frame := Node3D.new()
 	frame.name="Trait_%03d" % gene_id
-	frame.position=Vector3(anchors.get(socket,Vector3.ZERO))-Vector3(reference.get(socket,Vector3.ZERO))
+	frame.position=anchors.get(socket,Vector3.ZERO)-reference.get(socket,Vector3.ZERO)
 	if host in ["snake","worm"]:
 		frame.scale=Vector3(.65,.78,.70)
 	if host=="bird" and socket=="wing":

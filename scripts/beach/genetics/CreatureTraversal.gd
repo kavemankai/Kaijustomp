@@ -8,6 +8,7 @@ var height_target := 0.0
 var climb_normal := Vector3.ZERO
 var underground_depth := 3.5
 var toggled := false
+var vertical_input := 0.0
 var last_error := ""
 func setup(game: Node3D) -> void:
 	scene=game

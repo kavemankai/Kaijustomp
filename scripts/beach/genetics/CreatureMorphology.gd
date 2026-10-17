@@ -10,6 +10,8 @@ var axes: Array[Node3D] = []
 var primary := ""
 var recipe := ""
 var build_count := 0
+var wings: Array[Node3D] = []
+var movement_mode := "ground"
 
 func configure(genome: GenomeState, generic_ranks: Dictionary = {}) -> void:
 	var anatomy := AnatomyResolver.resolve(genome.ranks,genome.raw)
@@ -26,6 +28,7 @@ func configure(genome: GenomeState, generic_ranks: Dictionary = {}) -> void:
 	for child in get_children(): child.free()
 	joints.clear()
 	axes.clear()
+	wings.clear()
 	visible = not primary.is_empty()
 	if not visible: return
 	build_count += 1
@@ -46,6 +49,17 @@ func configure(genome: GenomeState, generic_ranks: Dictionary = {}) -> void:
 		var merged := CoastalArt.merge(body,"GeneticCore")
 		if cache.size() >= 24: cache.erase(cache.keys()[0])
 		cache[signature] = merged.mesh
+	# Independent feather supports flap while the static silhouette remains cached.
+	if "bird" in families:
+		for side in [-1.0,1.0]:
+			var wing:=Node3D.new()
+			wing.name="ArticulatedWing"
+			wing.position=Vector3(side*.48,1.35,-.10)
+			add_child(wing)
+			for feather in range(5):
+				var reach:=1.0+float(feather)*.25
+				link(wing,Vector3.ZERO,Vector3(side*(.9+reach),.1,.15+feather*.22),.13,Color("c7a569"))
+			wings.append(wing)
 	# Articulated supports are independent nodes, reusing primitive meshes until next recipe.
 	var color: Color = COLORS[GeneRegistry.FORMS.find(primary)]
 	if primary in ["snake","worm"]:
@@ -168,7 +182,11 @@ func _signature(body: Node3D, family: String, pincer_hands: bool = false) -> voi
 
 func animate(phase: float, moving: bool) -> void:
 	for i in range(joints.size()): joints[i].rotation.x = sin(phase+i*PI)*.3 if moving else 0.0
-	for i in range(axes.size()): axes[i].position.x = sin(phase-i*.55)*.18 if moving else 0.0
+	for i in range(axes.size()):
+		axes[i].position.x=sin(phase-i*.55)*.18 if moving else 0.0
+	for i in range(wings.size()):
+		var airborne := movement_mode in ["flight","glide","landing"]
+		wings[i].rotation.z=(1.0 if i==0 else -1.0)*(.34+.22*sin(phase*2.7) if airborne else .05+.07*sin(phase*.8))
 
 func _trait(body: Node3D, id: int) -> void:
 	# Distinct small anatomical cues, merged once into the recipe mesh.

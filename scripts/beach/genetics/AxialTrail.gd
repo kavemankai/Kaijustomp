@@ -98,4 +98,6 @@ func update_pose() -> void:
 		var thickness := radius*(.65+.35*sin(fraction*PI))
 		part.scale=Vector3(thickness,thickness,spacing*.72)
 		if along.length_squared()>.001:
-			part.global_transform.basis=Basis.looking_at(-along.normalized(),Vector3.UP)*Basis.from_scale(part.scale)
+			var transform := part.global_transform
+			transform.basis=Basis.looking_at(-along.normalized(),Vector3.UP)*Basis.from_scale(part.scale)
+			part.global_transform=transform
