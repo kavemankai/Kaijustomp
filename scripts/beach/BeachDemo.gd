@@ -401,7 +401,7 @@ func _update_cars(delta: float) -> void:
 		# damage them with the same walk/sprint contact controls as buildings.
 		var candidate := node.position + Vector3(0, 0, float(direction) * float(car["speed"]) * delta)
 		if is_instance_valid(world): world.ensure_region(candidate,12)
-		if candidate.distance_to(beast.global_position) > 5.0 + growth_scale and _blocking_building(candidate) < 0:
+		if candidate.distance_to(beast.global_position) > 5.0 + growth_scale and _blocking_building(candidate) < 0 and WorldLayout.inside(candidate,3):
 			node.position = candidate
 		cars[i] = car
 
@@ -2125,6 +2125,6 @@ func _stream_cars() -> void:
 			if not occupied:
 				_add_car(lane,true,-1,Color("bf6555"))
 				cars[-1]["persistent"] = false
-				cars[-1]["min_z"] = lane.z-128
-				cars[-1]["max_z"] = lane.z+128
+				cars[-1]["min_z"] = maxf(WorldLayout.INLAND+8,lane.z-128)
+				cars[-1]["max_z"] = minf(WorldLayout.shore(lane.x)-60,lane.z+128)
 				traffic_spawn_clock = 15.0

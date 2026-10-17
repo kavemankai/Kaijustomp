@@ -72,13 +72,25 @@ func _make_backdrop() -> void:
 	CoastalArt.box(self, Vector3(0,-2.2,0),Vector3(WorldLayout.HALF_WIDTH*4+8000,.4,50000),Color("4f9da7"))
 	var ridge := Node3D.new()
 	add_child(ridge)
+	var groups := {}
 	for x in range(-span-500,span+501,400):
-		var mountain := CoastalArt.box(ridge,Vector3(x,70,WorldLayout.INLAND-100),Vector3(650,180,600),Color("859587"))
-		mountain.rotation.z = sin(x*.013)*.2
+		_add_boundary_hill(ridge,groups,"Inland_%d" % floori(x/1024.0),Vector3(x,-2,WorldLayout.INLAND-250),Vector3(12,27+6*sin(x*.013),9))
 	for z in range(int(WorldLayout.INLAND)-300,301,350):
 		for side in [-1,1]:
-			CoastalArt.box(ridge,Vector3(side*(WorldLayout.HALF_WIDTH+200),40,z),Vector3(600,140,600),Color("859587"))
-	CoastalArt.merge(ridge,"BoundaryRidges")
+			_add_boundary_hill(ridge,groups,"Side_%d_%d" % [side,floori(z/1024.0)],Vector3(side*(WorldLayout.HALF_WIDTH+200),-2,z),Vector3(10,23+5*cos(z*.011),8))
+	for group in groups.values(): CoastalArt.merge(group,"BoundaryRidges")
+
+func _add_boundary_hill(parent: Node3D,groups: Dictionary,key: String,at: Vector3,size: Vector3) -> void:
+	if not groups.has(key):
+		var group := Node3D.new()
+		group.name=key
+		parent.add_child(group)
+		groups[key]=group
+	var group: Node3D = groups[key]
+	CoastalArt._headland(group,Vector3.ZERO)
+	var hill: MeshInstance3D = group.get_child(group.get_child_count()-1)
+	hill.position=at
+	hill.scale=size
 
 func ensure_region(at: Vector3, radius: float) -> void:
 	if not initialized: return
