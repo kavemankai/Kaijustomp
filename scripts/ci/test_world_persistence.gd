@@ -32,6 +32,15 @@ func run() -> void:
 	loaded = WorldState.new()
 	loaded.path = state.path
 	check(loaded.read_save() and loaded.recovery=="migrated" and loaded.write_save(),"v0 migration failed")
+	for malformed in [{"events":{"vehicles":[]}}, {"player":{"history":["invalid entry"]}}]:
+		var invalid := state.document()
+		for key in malformed: invalid[key]=malformed[key]
+		file=FileAccess.open(state.path,FileAccess.WRITE)
+		file.store_string(JSON.stringify(invalid))
+		file.close()
+		loaded=WorldState.new()
+		loaded.path=state.path
+		check(loaded.read_save() and loaded.recovery=="backup","Malformed nested save bypasses recovery")
 	migrated["version"] = 999
 	file = FileAccess.open(state.path,FileAccess.WRITE)
 	file.store_string(JSON.stringify(migrated))

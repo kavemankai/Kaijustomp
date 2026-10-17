@@ -74,8 +74,17 @@ static func _valid_document(data: Dictionary) -> bool:
 	if p.has("mutations"):
 		if not p["mutations"] is Dictionary: return false
 		for id in p["mutations"]:
+			if id not in ["armour","strength","speed","stamina","health","jaw","regen","cocoon","metamorphosis"]: return false
 			if not _number(p["mutations"][id]) or float(p["mutations"][id])<0 or float(p["mutations"][id])>10000: return false
-	if p.has("history") and not p["history"] is Array: return false
+	if p.has("history"):
+		if not p["history"] is Array: return false
+		for entry in p["history"]:
+			if not entry is Dictionary: return false
+			for key in ["step","growth_milestone"]:
+				if not _number(entry.get(key)): return false
+			for key in ["mutation_id","label","form"]:
+				if not entry.get(key) is String: return false
+			if not entry.get("size_changed") is bool: return false
 	for key in p:
 		if key not in ["position","mutations","history","evacuations"] and not _number(p[key]): return false
 	if p.has("evacuations"):
@@ -87,7 +96,14 @@ static func _valid_document(data: Dictionary) -> bool:
 				for n in event[key]:
 					if not _number(n): return false
 			for key in ["remaining","released"]:
-				if not _number(event.get(key)): return false
+				if not _number(event.get(key)) or float(event[key])<0: return false
+	var events = data.get("events",{})
+	if not events is Dictionary: return false
+	var vehicles = events.get("vehicles",{})
+	if not vehicles is Dictionary: return false
+	for id in vehicles:
+		var car = vehicles[id]
+		if not car is Dictionary or not car.get("destroyed") is bool or not _number(car.get("hits")): return false
 	return true
 
 func write_save() -> bool:
