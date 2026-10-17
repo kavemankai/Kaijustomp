@@ -73,7 +73,8 @@ var evolution_damage := 0.0
 var choice_open := false
 var reveal_active := false
 var evolution_total := 6.0
-const NEIGHBOURHOOD_FAR_Z := -512.0
+const NEIGHBOURHOOD_FAR_Z := -1520.0
+const INDUSTRIAL_ZONE_Z := -750.0
 const SHOPPING_DISTRICT_Z := -320.0
 var evolution_history: Array[Dictionary] = []
 var shedding: EvolutionShedding
@@ -88,8 +89,8 @@ var cars: Array[Dictionary] = []
 const MAX_CARS := 20
 const MAX_PROJECTILES := 72
 # Seven coastal districts give roughly eight times the original 140-unit beach.
-const COAST_HALF_LENGTH := 560.0
-const PLAYABLE_HALF_LENGTH := 548.0
+const COAST_HALF_LENGTH := 780.0
+const PLAYABLE_HALF_LENGTH := 768.0
 const ACTIVE_POPULATION_TARGET := 34
 const MAX_ACTIVE_CIVILIANS := 42
 const POPULATION_REFRESH_SECONDS := 1.7
@@ -193,6 +194,7 @@ func _build_beach() -> void:
 		_box(self, Vector3(float(x) * 11.0, 0.02, -27), Vector3(4.2, 0.03, 0.20), Color(0.76, 0.70, 0.50))
 	CoastalArt.scenery(self, COAST_HALF_LENGTH)
 	CoastalArt.neighbourhood(self)
+	CoastalArt.outer_district(self)
 	# Weak beach structures are the first demolition targets; larger buildings
 	# require more Strength evolutions. Every structure has baseline occupants.
 	_add_building(Vector3(-6, 0, -35), Vector2(5, 5), 2.9, Color(0.71, 0.58, 0.34), "Beach kiosk", 1, 3, 3, 2)
@@ -203,7 +205,7 @@ func _build_beach() -> void:
 	_add_building(Vector3(45, 0, -54), Vector2(14, 12), 7.0, Color(0.64, 0.62, 0.49), "Hotel", 3, 7, 5, 12)
 	# Keep the proven first six buildings intact. Six additional coastal districts
 	# spread weak and strong structures along both directions of the beach.
-	for district in [-3, -2, -1, 1, 2, 3]:
+	for district in [-4, -3, -2, -1, 1, 2, 3, 4]:
 		var anchor := float(district) * 150.0
 		var stagger := float(absi(district) % 2) * 4.0
 		_add_building(Vector3(anchor - 35, 0, -35 - stagger), Vector2(5, 5), 2.9, Color(0.71, 0.58, 0.34), "Beach kiosk", 1, 3, 3, 2)
@@ -238,6 +240,29 @@ func _build_beach() -> void:
 		var at := Vector3(side * 75.0, 0, -468.0)
 		_add_building(at, Vector2(31, 22), 7.5, Color("becbc3"),
 			"Supermarket" if side < 0 else "Hardware Store", 4, 11, 6, 12)
+	# The original 80 indices must remain stable for previously tested scenes.
+	# Northern outer suburbs supply a continuous transition to heavy industry.
+	for row in range(2):
+		for column in range(6):
+			var x := -150.0 + float(column) * 60.0
+			var z := -570.0 - float(row) * 86.0
+			_add_building(Vector3(x, 0, z), Vector2(19, 17), 6.2,
+				Color("b5c8b9") if column % 2 == 0 else Color("ddcbb4"),
+				"Coastal home", 3, 8, 5, 5)
+	# Three industrial estates, each with four genuinely large structures.
+	# Increasing heights and footprints yield higher demolition biomass.
+	var sites := ["Distribution Depot", "Warehouse", "Factory", "Container Yard",
+		"Warehouse", "Factory", "Power Station", "Distribution Depot",
+		"Container Yard", "Warehouse", "Water Works", "Factory"]
+	for row in range(3):
+		for column in range(4):
+			var x := [-286.0, -103.0, 103.0, 286.0][column]
+			var z := -830.0 - float(row) * 265.0
+			var title: String = sites[row * 4 + column]
+			var big := title in ["Power Station", "Factory", "Water Works"]
+			_add_building(Vector3(x, 0, z), Vector2(88, 75) if big else Vector2(70, 58),
+				23.0 if big else 15.0, Color("aebdb9") if big else Color("b9b5a6"),
+				title, 5 if big else 4, 18 if big else 13, 8 if big else 6, 8)
 
 
 # Vehicles are bounded, collidable world objects, not scenery you walk through.
@@ -341,7 +366,9 @@ func _add_building(pos: Vector3, footprint: Vector2, height: float, col: Color, 
 	var root := Node3D.new()
 	root.position = pos
 	add_child(root)
-	if title == "Coastal home":
+	if title in ["Distribution Depot", "Warehouse", "Factory", "Container Yard", "Power Station", "Water Works"]:
+		CoastalArt.industrial_building(root, footprint, height, title)
+	elif title == "Coastal home":
 		CoastalArt.home(root, footprint, height, col)
 	elif title in ["Bakery", "Chemist", "Fish & Chips", "Bookshop", "Greengrocer", "Takeaway",
 		"Coffee Bar", "Surf Outlet", "Florist", "Newsagent", "Corner Mart", "Pet Shop",
@@ -503,7 +530,7 @@ func _build_camera() -> void:
 	add_child(follow_camera)
 	follow_camera.fov = 48.0
 	follow_camera.near = 0.1
-	follow_camera.far = 230.0
+	follow_camera.far = 4000.0
 	follow_camera.current = true
 	follow_camera.global_position = beast.global_position + _camera_offset()
 	follow_camera.look_at(_camera_look_target(), Vector3.UP)
@@ -1802,10 +1829,10 @@ func _update_hud() -> void:
 	stats_label.text = "HP %d/%d    BIOMASS %d/%d\nSTAMINA %d%%    EVOLUTIONS %d\n%s" % [
 		int(ceil(hp)), int(max_hp), biomass, _cost(), int(100.0 * stamina / max_stamina), evolutions, status
 	]
-	var district_name := "SHOPPING DISTRICT" if beast.global_position.z < SHOPPING_DISTRICT_Z else ("COASTAL NEIGHBOURHOOD" if beast.global_position.z < -82.0 else ("COASTAL KAIJU" if upright_form else "COASTAL HATCHLING"))
+	var district_name := "INDUSTRIAL DISTRICT" if beast.global_position.z < INDUSTRIAL_ZONE_Z else ("SHOPPING DISTRICT" if beast.global_position.z < SHOPPING_DISTRICT_Z else ("COASTAL NEIGHBOURHOOD" if beast.global_position.z < -82.0 else ("COASTAL KAIJU" if upright_form else "COASTAL HATCHLING")))
 	var food_source := DietProgression.diet_label(growth_scale)
 	if food_source != "PEOPLE":
-		district_name = "COASTAL DIET: " + food_source if beast.global_position.z > -82.0 else ("SHOPPING: " if beast.global_position.z < SHOPPING_DISTRICT_Z else "SUBURB: ") + food_source
+		district_name = "COASTAL DIET: " + food_source if beast.global_position.z > -82.0 else ("INDUSTRY: " if beast.global_position.z < INDUSTRIAL_ZONE_Z else ("SHOPPING: " if beast.global_position.z < SHOPPING_DISTRICT_Z else "SUBURB: ")) + food_source
 	coastal_hud.update_defcon(defcon, DefconDirector.name_for(defcon))
 	coastal_hud.update_state(hp, max_hp, stamina, max_stamina, biomass, _cost(), evolutions, status if evolving or game_over else district_name)
 	if is_instance_valid(debug_evolve_button):
