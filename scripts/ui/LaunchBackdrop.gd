@@ -58,4 +58,4 @@ func _draw() -> void:
 		var base := 741.0 + float(i) * 28.0
 		draw_line(Vector2(0,base),Vector2(540,base+40),Color(1,.74,.45,.065),2.0,true)
 	draw_rect(Rect2(0,825,540,135),Color(0.018,0.075,0.11,.60))
-	draw_set_transform()
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
