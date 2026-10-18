@@ -4,6 +4,8 @@ config_version=5
 [application]
 config/name="KaijuStomp"
 run/main_scene="res://scenes/LaunchMenu.tscn"
+boot_splash/bg_color=Color(0.031, 0.107, 0.153, 1)
+boot_splash/show_image=false
 config/features=PackedStringArray("4.5", "GL Compatibility")
 run/max_fps=60
 
