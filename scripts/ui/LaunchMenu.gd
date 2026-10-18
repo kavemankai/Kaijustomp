@@ -218,7 +218,10 @@ func _skip_intro(event: InputEvent) -> void:
 func _finish_intro() -> void:
 	if splash_finished: return
 	splash_finished=true
-	continue_button.grab_focus() if existing_world else new_button.grab_focus()
+	if existing_world:
+		continue_button.grab_focus()
+	else:
+		new_button.grab_focus()
 	var fade := create_tween().set_parallel(true)
 	fade.tween_property(intro,"modulate:a",0.0,.42)
 	fade.tween_property(menu_card,"modulate:a",1.0,.42)
@@ -261,7 +264,7 @@ func _start_new() -> void:
 			_problem("Could not safely archive the existing world. No saves were deleted.")
 			return
 	for extension in ["",".bak"]:
-		var existing:=save_path+extension
+		var existing: String=save_path+extension
 		if FileAccess.file_exists(existing):
 			if DirAccess.remove_absolute(ProjectSettings.globalize_path(existing))!=OK:
 				_problem("World was archived but the old save could not be cleared. Retry after checking device storage.")
@@ -297,4 +300,5 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not splash_finished and event is InputEventKey and event.pressed:
 		_finish_intro()
 	elif splash_finished and event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE and not navigating:
-		_request_new() if not existing_world else continue_button.grab_focus()
+		if existing_world: continue_button.grab_focus()
+		else: new_button.grab_focus()
