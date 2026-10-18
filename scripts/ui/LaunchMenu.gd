@@ -34,7 +34,7 @@ func _ready() -> void:
 	_build_actions()
 	_build_dialogs()
 	_build_intro()
-	size_changed.connect(_layout)
+	resized.connect(_layout)
 	_layout()
 	_refresh_save()
 	_begin_intro.call_deferred()
@@ -253,9 +253,9 @@ func _start_new() -> void:
 	var stamp := str(int(Time.get_unix_time_from_system()))
 	# Preserve BOTH primary and backup before touching either file.
 	for extension in ["",".bak"]:
-		var existing:=save_path+extension
+		var existing: String=save_path+extension
 		if not FileAccess.file_exists(existing): continue
-		var archive:=save_path+".archive-"+stamp+extension
+		var archive: String=save_path+".archive-"+stamp+extension
 		var outcome:=DirAccess.copy_absolute(ProjectSettings.globalize_path(existing),ProjectSettings.globalize_path(archive))
 		if outcome!=OK:
 			_problem("Could not safely archive the existing world. No saves were deleted.")
