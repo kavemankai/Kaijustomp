@@ -179,6 +179,10 @@ jobs:
             sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.morphpolishpreview"@' export_presets.cfg
             sed -i 's@^package/name=.*@package/name="Kaijustomp Morph Polish"@' export_presets.cfg
           fi
+          if [ "$BUILD_BRANCH" = 'feature/launch-splash-title-menu' ]; then
+            sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.launchpreview"@' export_presets.cfg
+            sed -i 's@^package/name=.*@package/name="KaijuStomp Launch Preview"@' export_presets.cfg
+          fi
           if [ "$BUILD_BRANCH" = 'integration/stable-baseline' ]; then
             sed -i 's@^package/unique_name=.*@package/unique_name="com.kavemankai.kaijustomp.integrationpreview"@' export_presets.cfg
             sed -i 's@^package/name=.*@package/name="Kaijustomp Integration Preview"@' export_presets.cfg
@@ -261,6 +265,9 @@ jobs:
           "$ANDROID_SDK_ROOT/build-tools/35.0.0/aapt" dump badging "$APK" > "$RUNNER_TEMP/apk-badging.txt"
           grep -E '^(package:|application-label:|launchable-activity:|native-code:)' "$RUNNER_TEMP/apk-badging.txt"
           EXPECTED_PACKAGE='com.kavemankai.kaijustomp.geneticpreview'
+          if [ "$BUILD_BRANCH" = 'feature/launch-splash-title-menu' ]; then
+            EXPECTED_PACKAGE='com.kavemankai.kaijustomp.launchpreview'
+          fi
           if [ "$BUILD_BRANCH" = 'feature/morphology-traversal-polish' ]; then
             EXPECTED_PACKAGE='com.kavemankai.kaijustomp.morphpolishpreview'
           fi
@@ -684,3 +691,24 @@ jobs:
           test "$(stat -c '%s' "build/android/$APK_NAME")" = "$(gh release view "$TAG" --json assets --jq ".assets[] | select(.name == \"$APK_NAME\") | .size")"
           gh release download "$TAG" --pattern "$APK_NAME" --dir "$RUNNER_TEMP/polish-download"
           cmp "build/android/$APK_NAME" "$RUNNER_TEMP/polish-download/$APK_NAME"
+
+      - name: Publish immutable launch and title APK
+        if: github.ref == 'refs/heads/feature/launch-splash-title-menu' && github.event_name == 'push'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG="launch-title-${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:7}"
+          (cd build/android && sha256sum "$APK_NAME" > "$APK_NAME.sha256")
+          cat > "$RUNNER_TEMP/launch-title-notes.md" <<EOF
+          Initial KaijuStomp launch/front-end implementation from ${GITHUB_SHA}.
+          Shows a short skippable branded splash and responsive coastal title menu, with validated Continue, confirmation plus archived saves for New World, persisted master-volume setting and credits. Gameplay remains the previous morphology-polish build; fixed-species selection is a separate upcoming gameplay milestone.
+          Independent debug Android package com.kavemankai.kaijustomp.launchpreview. Earlier approved preview packages and saves are untouched.
+          Every discovered Godot 4.5 regression and Android APK signature/package/native alignment check gated this release.
+          Physical Android start/resume and touch visual quality have not been verified.
+          Build: https://github.com/${GH_REPO}/actions/runs/${GITHUB_RUN_ID}
+          EOF
+          gh release create "$TAG" "build/android/$APK_NAME" "build/android/$APK_NAME.sha256" --target "$GITHUB_SHA" --title "KaijuStomp Splash and Title ${GITHUB_RUN_NUMBER}" --notes-file "$RUNNER_TEMP/launch-title-notes.md" --prerelease
+          test "$(stat -c '%s' "build/android/$APK_NAME")" = "$(gh release view "$TAG" --json assets --jq ".assets[] | select(.name == \"$APK_NAME\") | .size")"
